@@ -1,0 +1,17 @@
+// 一个用于在新窗口中启动扩展的启动配置
+// 使用 IntelliSense 了解可能的属性。
+// 悬停以查看现有属性的描述。
+// 有关详细信息，请访问：https://go.microsoft.com/fwlink/?linkid=830387
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Run Extension",
+			"type": "extensionHost",
+			"request": "launch",
+			"args": [
+				"--extensionDevelopmentPath=${workspaceFolder}"
+			]
+		}
+	]
+}

@@ -1,0 +1,148 @@
+{
+  "name": "i18n-automatically",
+  "displayName": "i18n-automatically",
+  "description": "vscode国际化多语言自动生成替换方案",
+  "publisher": "wu529778790",
+  "author": "wu529778790",
+  "repository": "https://github.com/wu529778790/i18n-automatically",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.92.0"
+  },
+  "categories": [
+    "Extension Packs",
+    "Programming Languages",
+    "Visualization",
+    "Debuggers",
+    "Notebooks"
+  ],
+  "keywords": [
+    "i18n",
+    "i18n Ally",
+    "i18n ally",
+    "i18n-ally",
+    "vue i18n",
+    "electron",
+    "vue3 i18n",
+    "react i18n",
+    "shopify-i18n",
+    "shopify",
+    "i18next",
+    "多语言",
+    "多语言插件",
+    "多语言翻译",
+    "i18n插件",
+    "i18n tool",
+    "国际化",
+    "国际化多语言",
+    "自动翻译",
+    "中文",
+    "扫描",
+    "翻译",
+    "翻译插件",
+    "i18n vue",
+    "文案",
+    "vue",
+    "vue3",
+    "react",
+    "ali",
+    "react-intl",
+    "国际化 i18n",
+    "poizon"
+  ],
+  "icon": "public/logo.png",
+  "activationEvents": [
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onLanguage:vue",
+    "onLanguage:html",
+    "onLanguage:react"
+  ],
+  "main": "./src/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "extension.automatically.i18n.scanChinese",
+        "title": "扫描中文"
+      },
+      {
+        "command": "extension.automatically.i18n.scanChineseBatch",
+        "title": "批量扫描中文"
+      },
+      {
+        "command": "extension.automatically.i18n.generateLanguagePackage",
+        "title": "生成语言包"
+      },
+      {
+        "command": "extension.automatically.i18n.switchLanguage",
+        "title": "切换语言"
+      },
+      {
+        "command": "extension.automatically.i18n.updateLocalLangPackage",
+        "title": "刷新数据"
+      },
+      {
+        "command": "extension.automatically.i18n.setting",
+        "title": "设置"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "when": "resourceExtname =~ /\\.(ts|js|tsx|jsx|vue|html|json|yaml|yml)$/",
+          "submenu": "automatically/submenus",
+          "group": "navigation"
+        }
+      ],
+      "automatically/submenus": [
+        {
+          "command": "extension.automatically.i18n.scanChinese",
+          "group": "1_workspace@1"
+        },
+        {
+          "command": "extension.automatically.i18n.scanChineseBatch",
+          "group": "1_workspace@2"
+        },
+        {
+          "command": "extension.automatically.i18n.generateLanguagePackage",
+          "group": "2_workspace@1"
+        },
+        {
+          "command": "extension.automatically.i18n.switchLanguage",
+          "group": "2_workspace@2"
+        },
+        {
+          "command": "extension.automatically.i18n.updateLocalLangPackage",
+          "group": "3_workspace@1"
+        },
+        {
+          "command": "extension.automatically.i18n.setting",
+          "group": "4_workspace@1"
+        }
+      ]
+    },
+    "submenus": [
+      {
+        "id": "automatically/submenus",
+        "label": "i18n-automatically"
+      }
+    ]
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "pretest": "pnpm run lint",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.7",
+    "@types/node": "20.x",
+    "@types/vscode": "^1.92.0",
+    "@vscode/test-cli": "^0.0.9",
+    "@vscode/test-electron": "^2.4.0",
+    "eslint": "^8.57.0"
+  },
+  "dependencies": {
+    "axios": "^1.7.7",
+    "md5": "^2.3.0"
+  }
+}
