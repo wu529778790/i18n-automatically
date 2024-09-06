@@ -2,8 +2,7 @@ const vscode = require("vscode");
 const fs = require("fs");
 const {
   generateUniqueId,
-  isInScriptComment,
-  isInTemplateComment,
+  isInCommentByPosition,
   saveObjectToPath,
   customLog,
   isInTemplate,
@@ -38,7 +37,7 @@ exports.scanChinese = async (filePath = undefined) => {
     let index = 0;
 
     // 匹配所有中文的正则表达式，包括属性值中的中文和纯中文
-    const chineseRegex = /([\w-]+)="([\u4e00-\u9fa5]+)"|[\u4e00-\u9fa5]+/g;
+    const chineseRegex = /[\u4e00-\u9fa5]+/g;
     let chineseMatches = [];
     let match;
     while ((match = chineseRegex.exec(text))) {
@@ -57,19 +56,17 @@ exports.scanChinese = async (filePath = undefined) => {
     }
 
     let uniqueIds = {};
-    let offset = 0;
+    let offset = 0; // 偏移量
     for (let i = 0; i < chineseMatches.length; i++) {
       const { match: chineseMatch, start, end } = chineseMatches[i];
-      let inTemplate = isInTemplate(text, chineseMatch);
-
-      // 判断是否在注释中,如果在注释中，就不替换
-      if (
-        isInTemplateComment(text, chineseMatch) ||
-        isInScriptComment(text, chineseMatch)
-      ) {
+      // 调用 isInCommentByPosition 来判断是否在注释中
+      const isComment = isInCommentByPosition(text, start, end, offset);
+      // 如果在注释中，跳过本次替换
+      if (isComment) {
         continue;
       }
-      // 根据filePath
+
+      // 根据 filePath 生成 UUID
       const pathParts = filePath.split("\\");
       const selectedLevelsParts = pathParts.slice(-config.keyFilePathLevel);
       const lastLevelWithoutExtension =
@@ -80,20 +77,18 @@ exports.scanChinese = async (filePath = undefined) => {
         .join("-");
       const uuid = `${selectedLevels}-${fileUuid}-${index}`;
       index++;
-      // 如果在 template 标签
+
+      // 判断是否在 template 标签内
+      let inTemplate = isInTemplate(text, chineseMatch);
+
       if (inTemplate) {
-        // 判断是否是属性值中的中文
-        if (
-          chineseMatch.match(
-            /([\w-]+)="([\u4e00-\u9fa5]+(\s[\u4e00-\u9fa5]+)*)"/
-          )
-        ) {
-          const attrName = chineseMatch.match(
-            /([\w-]+)="([\u4e00-\u9fa5]+(\s[\u4e00-\u9fa5]+)*)"/
-          )[1];
-          const chineseValue = chineseMatch.match(
-            /([\w-]+)="([\u4e00-\u9fa5]+(\s[\u4e00-\u9fa5]+)*)"/
-          )[2];
+        // 处理模板内的替换逻辑
+        const attrMatch = chineseMatch.match(
+          /([\w-]+)="([\u4e00-\u9fa5]+(\s[\u4e00-\u9fa5]+)*)"/
+        );
+        if (attrMatch) {
+          const attrName = attrMatch[1];
+          const chineseValue = attrMatch[2];
           const replacementLength =
             `:${attrName}="${config.templateI18nCall}('${uuid}')"`.length;
           text =
@@ -121,21 +116,14 @@ exports.scanChinese = async (filePath = undefined) => {
           offset += replacementLength - (end - start);
         }
       } else {
-        // 如果在 script 标签，且不在注释中
+        // 处理 script 标签内的替换逻辑
         const replacement = `${config.scriptI18nCall}('${uuid}')`;
+
         // 检查是否是单引号或双引号包裹的字符串,如果有，去掉引号
-        if (
-          (text[start + offset - 1] === "'" &&
-            text[end + offset] === "'" &&
-            text
-              .slice(start + offset - 1, end + offset + 1)
-              .match(/^'[\u4e00-\u9fa5]+'$/)) ||
-          (text[start + offset - 1] === '"' &&
-            text[end + offset] === '"' &&
-            text
-              .slice(start + offset - 1, end + offset + 1)
-              .match(/^"[\u4e00-\u9fa5]+"/))
-        ) {
+        const stringMatch = text
+          .slice(start + offset - 1, end + offset + 1)
+          .match(/^['"][\u4e00-\u9fa5]+['"]$/);
+        if (stringMatch) {
           const replacementLength = replacement.length;
           text =
             text.slice(0, start + offset - 1) +
@@ -143,10 +131,7 @@ exports.scanChinese = async (filePath = undefined) => {
             text.slice(end + offset + 1);
           customLog(
             config.debug,
-            `在脚本中替换中文：原内容 ${text.slice(
-              start + offset - 1,
-              end + offset + 1
-            )}，替换为 ${replacement}`
+            `在脚本中替换中文：原内容 ${stringMatch[0]}，替换为 ${replacement}`
           );
           uniqueIds[uuid] = chineseMatch;
           offset += replacementLength - (end + 1 - (start - 1));
@@ -184,10 +169,10 @@ exports.scanChinese = async (filePath = undefined) => {
           text =
             text.slice(0, scriptEndIndex) +
             `\n${config.autoImportI18n}` +
-            text.slice(scriptStartIndex + scriptStartMatch.length);
+            text.slice(scriptEndIndex);
         });
       } else {
-        // 不在 script 标签里面的话，就插入到第一行
+        // 如果没有 script 标签，则插入到文本开头
         text = `${config.autoImportI18n}\n` + text;
       }
     }
@@ -205,7 +190,7 @@ exports.scanChinese = async (filePath = undefined) => {
       }, 300);
     }
 
-    // 清空 uniqueIds
+    // 重置索引和状态
     index = 0;
     uniqueIds = {};
     hasI18nUsageInScript = false;

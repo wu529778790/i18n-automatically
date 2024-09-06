@@ -12,6 +12,57 @@ exports.generateUniqueId = () => {
 };
 
 /**
+ * 判断匹配的中文是否在注释中
+ * @param {string} text - 文件的初始文本内容
+ * @param {number} start - 中文文本的初始起始索引
+ * @param {number} end - 中文文本的初始结束索引
+ * @param {number} previousOffset - 上次替换时的偏移量（用于修正索引）
+ * @returns {boolean} - 如果在注释中则返回 true，否则返回 false
+ */
+exports.isInCommentByPosition = (text, start, end, previousOffset = 0) => {
+  // 修正后的 start 和 end，考虑到之前替换时的偏移
+  const adjustedStart = start + previousOffset;
+  const adjustedEnd = end + previousOffset;
+
+  // 模板部分注释 <!-- -->
+  const templateCommentRegex = /<!--[\s\S]*?-->/g;
+  // JS代码注释 // 和 /* */
+  const jsSingleLineCommentRegex = /(\/\/.*?$)/gm;
+  const jsMultiLineCommentRegex = /\/\*[\s\S]*?\*\//g;
+  // 样式部分注释 /* */
+  const styleCommentRegex = /\/\*[\s\S]*?\*\//g;
+
+  // Helper function to check if a position is within any comment block
+  const isInComment = (regex, text) => {
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+      const commentStart = match.index;
+      const commentEnd = commentStart + match[0].length;
+      // 判断中文是否在当前注释范围内
+      if (
+        (adjustedStart >= commentStart && adjustedStart < commentEnd) ||
+        (adjustedEnd > commentStart && adjustedEnd <= commentEnd)
+      ) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  // 检查是否在模板的注释中
+  if (isInComment(templateCommentRegex, text)) return true;
+  // 检查是否在JS单行注释中
+  if (isInComment(jsSingleLineCommentRegex, text)) return true;
+  // 检查是否在JS多行注释中
+  if (isInComment(jsMultiLineCommentRegex, text)) return true;
+  // 检查是否在样式注释中
+  if (isInComment(styleCommentRegex, text)) return true;
+
+  // 如果没有匹配到任何注释，则返回 false
+  return false;
+};
+
+/**
  * 检查Script标签中是否存在于另一个字符串的注释中
  *
  * @param {string} content - 要检查的原始字符串，其中可能包含注释
