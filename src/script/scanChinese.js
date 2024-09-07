@@ -82,39 +82,36 @@ exports.scanChinese = async (filePath = undefined) => {
       let inTemplate = isInTemplate(text, chineseMatch);
 
       if (inTemplate) {
-        // 处理模板内的替换逻辑
-        const attrMatch = chineseMatch.match(
-          /([\w-]+)="([\u4e00-\u9fa5]+(\s[\u4e00-\u9fa5]+)*)"/
-        );
-        if (attrMatch) {
-          const attrName = attrMatch[1];
-          const chineseValue = attrMatch[2];
-          const replacementLength =
-            `:${attrName}="${config.templateI18nCall}('${uuid}')"`.length;
+        let replacement;
+        // 判断当前位置是否在属性值中
+        if (text[start + offset - 2] === "=") {
+          // 从等号往前找属性名的开始
+          let attributeStart = start + offset - 2 - 1;
+          // 找到属性名的开始位置，遇到空格或其他非字母数字字符时暂停
+          while (attributeStart >= 0 && text[attributeStart].match(/[\w-]/)) {
+            attributeStart--;
+          }
+          // 在属性名的开始位置增加冒号
           text =
-            text.slice(0, start + offset) +
-            `:${attrName}="${config.templateI18nCall}('${uuid}')"` +
-            text.slice(end + offset);
-          customLog(
-            config.debug,
-            `在模板中替换中文：原内容 ${attrName}="${chineseValue}"，替换为 :${attrName}="${config.templateI18nCall}('${uuid}')"`
-          );
-          uniqueIds[uuid] = chineseValue;
-          offset += replacementLength - (end - start);
+            text.slice(0, attributeStart + 1) +
+            ":" +
+            text.slice(attributeStart + 1);
+          offset++;
+          replacement = `${config.templateI18nCall}('${uuid}')`;
         } else {
-          const replacement = `{{ ${config.templateI18nCall}('${uuid}') }}`;
-          customLog(
-            config.debug,
-            `在模板中替换中文：原内容 ${chineseMatch}，替换为 ${replacement}`
-          );
-          const replacementLength = replacement.length;
-          text =
-            text.slice(0, start + offset) +
-            replacement +
-            text.slice(end + offset);
-          uniqueIds[uuid] = chineseMatch;
-          offset += replacementLength - (end - start);
+          replacement = `{{ ${config.templateI18nCall}('${uuid}') }}`;
         }
+        const replacementLength = replacement.length;
+        text =
+          text.slice(0, start + offset) +
+          replacement +
+          text.slice(end + offset);
+        uniqueIds[uuid] = chineseMatch;
+        offset += replacementLength - (end - start);
+        customLog(
+          config.debug,
+          `在模板中替换中文：原内容 ${chineseMatch}，替换为 ${replacement}`
+        );
       } else {
         // 处理 script 标签内的替换逻辑
         const replacement = `${config.scriptI18nCall}('${uuid}')`;
