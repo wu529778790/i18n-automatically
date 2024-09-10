@@ -41,22 +41,34 @@ exports.generateLanguagePackage = async () => {
   );
   const enJsonObj = JSON.parse(JSON.stringify(zhJson));
 
-  // 分批处理中文值并调用翻译 API
-  for (let i = 0; i < zhJsonValuesLengthgroup; i++) {
-    const zhJsonValuesLengthgroupArrItem = zhJsonValues.slice(
-      i * TRANSLATE_LIMIT,
-      (i + 1) * TRANSLATE_LIMIT
-    );
-    const zhJsonValuesLengthgroupArrItemString =
-      zhJsonValuesLengthgroupArrItem.join("\n");
-    const data = await baiduTranslateApi(
-      zhJsonValuesLengthgroupArrItemString,
-      language
-    );
-    data.forEach((item, index) => {
-      enJsonObj[zhJsonKeys[i * TRANSLATE_LIMIT + index]] = item.dst;
-    });
-  }
+  await vscode.window.withProgress(
+    {
+      location: vscode.ProgressLocation.Notification,
+      title: `正在生成${language}语言包`,
+      cancellable: false,
+    },
+    async (progress) => {
+      progress.report({ increment: 0 });
+      for (let i = 0; i < zhJsonValuesLengthgroup; i++) {
+        // 计算进度
+        const progressPercentage = ((i + 1) / zhJsonValuesLengthgroup) * 100;
+        progress.report({ increment: progressPercentage });
+        const zhJsonValuesLengthgroupArrItem = zhJsonValues.slice(
+          i * TRANSLATE_LIMIT,
+          (i + 1) * TRANSLATE_LIMIT
+        );
+        const zhJsonValuesLengthgroupArrItemString =
+          zhJsonValuesLengthgroupArrItem.join("\n");
+        const data = await baiduTranslateApi(
+          zhJsonValuesLengthgroupArrItemString,
+          language
+        );
+        data.forEach((item, index) => {
+          enJsonObj[zhJsonKeys[i * TRANSLATE_LIMIT + index]] = item.dst;
+        });
+      }
+    }
+  );
 
   // 生成指定语言的语言包文件
   await fs.promises.writeFile(
