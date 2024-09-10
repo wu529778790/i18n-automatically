@@ -5,7 +5,7 @@ const { getConfig } = require("./setting.js");
 const { baiduTranslateApi } = require("../api/baidu.js");
 
 // 一次请求翻译多少个中文
-const TRANSLATE_LIMIT = 10;
+const TRANSLATE_LIMIT = 20;
 
 exports.generateLanguagePackage = async () => {
   const config = getConfig(true);
