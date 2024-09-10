@@ -18,7 +18,6 @@ exports.generateLanguagePackage = async () => {
     );
     return;
   }
-  console.log(1);
 
   // 获取用户输入的语言包名称
   const language = await vscode.window.showInputBox({

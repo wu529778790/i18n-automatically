@@ -10,7 +10,7 @@ const generateSign = (appid, q, salt, secretKey) => {
 exports.baiduTranslateApi = async (q, language = "en") => {
   const config = getConfig();
   if (!config) {
-    console.log("未找到配置文件");
+    console.error("未找到配置文件");
     return;
   }
   const { appid, secretKey } = config.baidu;

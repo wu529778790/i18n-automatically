@@ -242,7 +242,6 @@ exports.getRootPath = () => {
 exports.customLog = (debug, ...args) => {
   // 如果 debug 参数为真，即开发模式下
   if (debug) {
-    // 则使用 console.log 方法将 args 参数中的所有内容输出到控制台
     console.log(...args);
   }
 };
