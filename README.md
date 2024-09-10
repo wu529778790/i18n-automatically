@@ -17,7 +17,7 @@
 
 ### 批量扫描中文
 
-弹出选择文件夹，扫描当前文件夹的所有的中文，并替换成`key`，并生成 `zh.json` 文件。
+弹出选择文件夹，扫描所选文件夹的所有的中文，并替换成`key`，并生成 `zh.json` 文件。
 
 ### 生成语言包
 
@@ -34,6 +34,18 @@
 ![20240905160252](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20240905160252.png)
 
 ## 配置文件
+
+|属性|描述|默认值|
+|:--|:--|:--|
+|i18nFilePath|指定国际化文件的根目录。| '/src/i18n' |
+|templateI18nCall|在 Vue 模板中调用翻译函数的语法。| '$t' |
+|scriptI18nCall|在 JavaScript 文件中调用翻译函数的语法。| 'i18n.t' |
+|autoImportI18n|自动导入i18n模块的代码。| 'import i18n from '@/i18n';' |
+|keyFilePathLevel|生成的语言包的键中文件路径的层级。| 2 |
+|excludedExtensions|在扫描和生成语言包时需要排除的文件扩展名列表。| [".svg", ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".ico", ".md", ".txt", ".json", ".css", ".scss", ".less", ".sass", ".styl"] |
+|debug|是否开启调试模式。|  false |
+|baidu.appid|百度翻译的应用ID。|  '20240816002125202' |
+|baidu.secretKey|百度翻译的密钥。| 'RgsItLMSJR3AACzwBwc6' |
 
 ```json
 {
