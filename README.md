@@ -47,6 +47,18 @@
 |baidu.appid|百度翻译的应用ID。| - |
 |baidu.secretKey|百度翻译的密钥。| - |
 
+### 申请百度翻译
+
+<https://api.fanyi.baidu.com/doc/21>
+
+按照流程申请百度翻译api权限
+
+![20240910201102](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20240910201102.png)
+
+然后点击开发者信息, <https://api.fanyi.baidu.com/manage/developer>,复制`appid`和`secretKey`到配置文件中
+
+![20240910201237](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20240910201237.png)
+
 ## 开发
 
 <https://github.com/wu529778790/i18n-automatically>
