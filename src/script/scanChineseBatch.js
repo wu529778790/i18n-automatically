@@ -25,11 +25,26 @@ exports.scanChineseBatch = async () => {
   // 定义要过滤的后缀名数组
   const excludedExtensions = [...config.excludedExtensions];
 
-  // 遍历所选文件夹内的所有文件
+  // 获取所有符合条件的文件
   const files = getAllFilesInFolder(folderPath, excludedExtensions);
-  for (const filePath of files) {
-    await processFile(filePath);
-  }
+  const fileCount = files.length;
+
+  await vscode.window.withProgress(
+    {
+      location: vscode.ProgressLocation.Notification,
+      title: "正在批量扫描中文",
+      cancellable: false,
+    },
+    async (progress) => {
+      let processedCount = 0;
+      for (const filePath of files) {
+        await processFile(filePath);
+        processedCount++;
+        const progressPercentage = (processedCount / fileCount) * 100;
+        progress.report({ increment: progressPercentage });
+      }
+    }
+  );
 };
 
 function getAllFilesInFolder(folderPath, excludedExtensions) {
