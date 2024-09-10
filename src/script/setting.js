@@ -27,8 +27,8 @@ const defaultConfig = {
   ],
   debug: false,
   baidu: {
-    appid: "20240816002125202",
-    secretKey: "RgsItLMSJR3AACzwBwc6",
+    appid: "",
+    secretKey: "",
   },
 };
 

@@ -18,6 +18,18 @@ exports.generateLanguagePackage = async () => {
     );
     return;
   }
+  // 判断config是否配置了百度翻译的appid和secretKey
+  if (!config.baidu.appid || !config.baidu.secretKey) {
+    vscode.window.showInformationMessage(
+      `未配置百度翻译的appid和secretKey，请先在配置文件中配置`
+    );
+
+    const configFilePath = getRootPath() + "/automatically-i18n-config.json";
+    vscode.workspace.openTextDocument(configFilePath).then((document) => {
+      vscode.window.showTextDocument(document);
+    });
+    return;
+  }
 
   // 获取用户输入的语言包名称
   const language = await vscode.window.showInputBox({
