@@ -44,45 +44,29 @@
 |keyFilePathLevel|生成的语言包的键中文件路径的层级。| 2 |
 |excludedExtensions|在扫描和生成语言包时需要排除的文件扩展名列表。| [".svg", ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".ico", ".md", ".txt", ".json", ".css", ".scss", ".less", ".sass", ".styl"] |
 |debug|是否开启调试模式。|  false |
-|baidu.appid|百度翻译的应用ID。|  '20240816002125202' |
-|baidu.secretKey|百度翻译的密钥。| 'RgsItLMSJR3AACzwBwc6' |
+|baidu.appid|百度翻译的应用ID。| - |
+|baidu.secretKey|百度翻译的密钥。| - |
 
-```json
-{
-  // i18n根目录
-  "i18nFilePath": "/src/i18n",
-  // vue的template标签内的语法
-  "templateI18nCall": "$t",
-  // js语法
-  "scriptI18nCall": "i18n.t",
-  // 自动导入i18n的代码
-  "autoImportI18n": "import i18n from '@/i18n';",
-  // 生成的语言包的key中filepath的层级
-  "keyFilePathLevel": 2,
-  // 排除文件的后缀名
-  "excludedExtensions": [
-    ".svg",
-    ".png",
-    ".jpg",
-    ".jpeg",
-    ".gif",
-    ".bmp",
-    ".ico",
-    ".md",
-    ".txt",
-    ".json",
-    ".css",
-    ".scss",
-    ".less",
-    ".sass",
-    ".styl"
-  ],
-  // 是否开启debug模式
-  "debug": false,
-  // 百度翻译的appid和secretKey
-  "baidu": {
-    "appid": "20240816002125202",
-    "secretKey": "RgsItLMSJR3AACzwBwc6"
-  }
-}
+## 开发
+
+<https://github.com/wu529778790/i18n-automatically>
+
+安装依赖
+
+```bash
+yarn
+```
+
+F5 启动, 调试
+
+下载打包依赖
+
+```bash
+yarn add @vscode/vsce -g
+```
+
+打包
+
+```bash
+vsce package --yarn
 ```

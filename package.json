@@ -124,7 +124,7 @@
     "submenus": [
       {
         "id": "automatically/submenus",
-        "label": "i18n-automatically"
+        "label": "i18n-automatically(国际化)"
       }
     ]
   },
