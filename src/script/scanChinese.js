@@ -44,6 +44,26 @@ const readFileContent = async (filePath) => {
 };
 
 /**
+ * 生成唯一的 UUID
+ * @param {string} filePath 文件路径
+ * @param {string} fileUuid 文件 UUID
+ * @param {number} index 索引
+ * @param {object} config 配置
+ * @returns {string}
+ */
+const generateUUID = (filePath, fileUuid, index, config) => {
+  const pathParts = filePath.split("\\");
+  const selectedLevelsParts = pathParts.slice(-config.keyFilePathLevel);
+  const lastLevelWithoutExtension =
+    selectedLevelsParts[selectedLevelsParts.length - 1].split(".")[0];
+  const selectedLevels = selectedLevelsParts
+    .slice(0, -1)
+    .concat(lastLevelWithoutExtension)
+    .join("-");
+  return `${selectedLevels}-${fileUuid}-${index}`;
+};
+
+/**
  * 扫描中文
  * @param {string} filePath 文件路径, 可选
  * @returns {Promise<void>}
@@ -90,16 +110,7 @@ exports.scanChinese = async (filePath = undefined) => {
         continue;
       }
 
-      // 根据 filePath 生成 UUID
-      const pathParts = filePath.split("\\");
-      const selectedLevelsParts = pathParts.slice(-config.keyFilePathLevel);
-      const lastLevelWithoutExtension =
-        selectedLevelsParts[selectedLevelsParts.length - 1].split(".")[0];
-      const selectedLevels = selectedLevelsParts
-        .slice(0, -1)
-        .concat(lastLevelWithoutExtension)
-        .join("-");
-      const uuid = `${selectedLevels}-${fileUuid}-${index}`;
+      const uuid = generateUUID(filePath, fileUuid, index, config);
       index++;
 
       // 判断是否在 template 标签内
