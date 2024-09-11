@@ -31,6 +31,19 @@ const findChineseMatches = (text) => {
 };
 
 /**
+ * 读取文件内容
+ * @param {string} filePath 文件路径
+ * @returns {Promise<string>}
+ */
+const readFileContent = async (filePath) => {
+  try {
+    return await fs.promises.readFile(filePath, "utf-8");
+  } catch (error) {
+    throw new Error(`无法读取文件 ${filePath}: ${error.message}`);
+  }
+};
+
+/**
  * 扫描中文
  * @param {string} filePath 文件路径, 可选
  * @returns {Promise<void>}
@@ -50,7 +63,7 @@ exports.scanChinese = async (filePath = undefined) => {
   let text;
   try {
     // 异步读取文件内容
-    text = await fs.promises.readFile(filePath, "utf-8");
+    text = await readFileContent(filePath);
 
     // 生成文件的唯一标识
     const fileUuid = generateUniqueId();
