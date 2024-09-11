@@ -64,6 +64,20 @@ const generateUUID = (filePath, fileUuid, index, config) => {
 };
 
 /**
+ * 保存文件内容
+ * @param {string} filePath 文件路径
+ * @param {string} content 文件内容
+ * @returns {Promise<void>}
+ */
+const saveFileContent = async (filePath, content) => {
+  try {
+    await fs.promises.writeFile(filePath, content, "utf-8");
+  } catch (error) {
+    throw new Error(`无法保存文件 ${filePath}: ${error.message}`);
+  }
+};
+
+/**
  * 扫描中文
  * @param {string} filePath 文件路径, 可选
  * @returns {Promise<void>}
@@ -210,7 +224,7 @@ exports.scanChinese = async (filePath = undefined) => {
     }
 
     // 保存修改后的文件
-    await fs.promises.writeFile(filePath, text, "utf-8");
+    await saveFileContent(filePath, text);
 
     // 调用保存文件方法
     await saveObjectToPath(uniqueIds, `${config.i18nFilePath}/locale/zh.json`);
