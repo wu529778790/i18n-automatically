@@ -11,6 +11,26 @@ const { getConfig } = require("./setting.js");
 const { updateDecorations } = require("./switchLanguage.js");
 
 /**
+ * 查找文本中的所有中文
+ * @param {string} text 文本内容
+ * @returns {Array<{match: string, start: number, end: number}>}
+ */
+const findChineseMatches = (text) => {
+  const chineseRegex =
+    /[\u4e00-\u9fa5\u3400-\u4DBF\uF900-\uFAFF\uFF00-\uFFEF]+/g;
+  const matches = [];
+  let match;
+  while ((match = chineseRegex.exec(text))) {
+    matches.push({
+      match: match[0],
+      start: match.index,
+      end: match.index + match[0].length,
+    });
+  }
+  return matches;
+};
+
+/**
  * 扫描中文
  * @param {string} filePath 文件路径, 可选
  * @returns {Promise<void>}
@@ -36,19 +56,7 @@ exports.scanChinese = async (filePath = undefined) => {
     const fileUuid = generateUniqueId();
     let index = 0;
 
-    // 匹配所有中文的正则表达式，包括属性值中的中文和纯中文
-    const chineseRegex =
-      /[\u4e00-\u9fa5\u3400-\u4DBF\uF900-\uFAFF\uFF00-\uFFEF]+/g;
-    let chineseMatches = [];
-    let match;
-    while ((match = chineseRegex.exec(text))) {
-      // 记录中文匹配项及其位置
-      chineseMatches.push({
-        match: match[0],
-        start: match.index,
-        end: match.index + match[0].length,
-      });
-    }
+    let chineseMatches = findChineseMatches(text);
 
     // 如果没有找到中文，直接返回
     if (!chineseMatches.length) {
