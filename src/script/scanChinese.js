@@ -37,7 +37,8 @@ exports.scanChinese = async (filePath = undefined) => {
     let index = 0;
 
     // 匹配所有中文的正则表达式，包括属性值中的中文和纯中文
-    const chineseRegex = /[\u4e00-\u9fa5]+/g;
+    const chineseRegex =
+      /[\u4e00-\u9fa5\u3400-\u4DBF\uF900-\uFAFF\uFF00-\uFFEF]+/g;
     let chineseMatches = [];
     let match;
     while ((match = chineseRegex.exec(text))) {
@@ -54,6 +55,8 @@ exports.scanChinese = async (filePath = undefined) => {
       customLog(config.debug, "未找到中文内容，直接返回。");
       return;
     }
+
+    console.log(chineseMatches);
 
     let uniqueIds = {};
     let offset = 0; // 偏移量
