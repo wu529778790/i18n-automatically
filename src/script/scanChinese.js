@@ -110,8 +110,7 @@ exports.scanChinese = async (filePath = undefined) => {
       return;
     }
 
-    // customLog(config.debug, `${filePath}匹配到的中文`, chineseMatches);
-    console.log(`${filePath}匹配到的中文`, chineseMatches);
+    customLog(config.debug, `${filePath}匹配到的中文`, chineseMatches);
 
     let uniqueIds = {};
     let offset = 0; // 偏移量
