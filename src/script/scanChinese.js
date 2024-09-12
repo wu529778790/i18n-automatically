@@ -16,8 +16,7 @@ const { updateDecorations } = require("./switchLanguage.js");
  * @returns {Array<{match: string, start: number, end: number}>}
  */
 const findChineseMatches = (text) => {
-  const chineseRegex =
-    /[\u4e00-\u9fa5\u3400-\u4DBF\uF900-\uFAFF\uFF00-\uFFEF]+/g;
+  const chineseRegex = /[\u4e00-\u9fa5]+/g;
   const matches = [];
   let match;
   while ((match = chineseRegex.exec(text))) {
@@ -111,7 +110,8 @@ exports.scanChinese = async (filePath = undefined) => {
       return;
     }
 
-    console.log(chineseMatches);
+    // customLog(config.debug, `${filePath}匹配到的中文`, chineseMatches);
+    console.log(`${filePath}匹配到的中文`, chineseMatches);
 
     let uniqueIds = {};
     let offset = 0; // 偏移量
