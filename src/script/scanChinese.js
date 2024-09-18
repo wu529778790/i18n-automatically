@@ -168,7 +168,7 @@ exports.scanChinese = async (filePath = undefined) => {
         // 检查是否是单引号或双引号包裹的字符串,如果有，去掉引号
         const stringMatch = text
           .slice(start + offset - 1, end + offset + 1)
-          .match(/^['"][\u4e00-\u9fa5]+['"]$/);
+          .match(/^(['"])[\u4e00-\u9fa5]+\1$/);
         if (stringMatch) {
           const replacementLength = replacement.length;
           text =
