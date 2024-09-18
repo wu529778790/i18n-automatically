@@ -133,7 +133,7 @@ exports.scanChinese = async (filePath = undefined) => {
       if (inTemplate) {
         let replacement;
         // 判断当前位置是否在属性值中
-        if (text[start + offset - 2] === "=") {
+        if (start + offset - 2 >= 0 && text[start + offset - 2] === "=") {
           // 从等号往前找属性名的开始
           let attributeStart = start + offset - 2 - 1;
           // 找到属性名的开始位置，遇到空格或其他非字母数字字符时暂停
