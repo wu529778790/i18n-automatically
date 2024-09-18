@@ -4,8 +4,10 @@ const path = require("path");
 const { getConfig } = require("./setting.js");
 const { getRootPath, customLog } = require("../utils/index.js");
 
+let cachedLanguage = "zh.json"; // 初始化缓存变量
+
 // 获取语言包
-const getLanguagePack = async (language = "zh.json") => {
+const getLanguagePack = async (language = cachedLanguage) => {
   // 读取配置文件
   const config = getConfig();
   if (!config) {
@@ -77,7 +79,7 @@ function getDecorationType() {
   return decorationType;
 }
 
-exports.updateDecorations = async (language = "zh.json") => {
+exports.updateDecorations = async (language = cachedLanguage) => {
   // 读取配置文件
   const config = getConfig();
   if (!config) {
@@ -150,7 +152,7 @@ exports.updateDecorations = async (language = "zh.json") => {
 exports.switchLanguage = async () => {
   // 读取配置文件
   const config = getConfig(true);
-  // 读取i18n文件夹下locale目录下的json文件
+  // 读取 i18n 文件夹下 locale 目录下的 json 文件
   const rootPath = getRootPath();
   const languageFiles = fs.readdirSync(
     `${rootPath}${config.i18nFilePath}/locale`
@@ -165,6 +167,7 @@ exports.switchLanguage = async () => {
   // 打开 vscode 快捷命令
   vscode.window.showQuickPick(languageFiles).then(async (item) => {
     if (item) {
+      cachedLanguage = item; // 缓存用户选择的语言
       await this.updateDecorations(item);
     }
   });
