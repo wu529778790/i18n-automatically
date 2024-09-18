@@ -140,12 +140,16 @@ exports.scanChinese = async (filePath = undefined) => {
           while (attributeStart >= 0 && text[attributeStart].match(/[\w-]/)) {
             attributeStart--;
           }
-          // 在属性名的开始位置增加冒号
-          text =
-            text.slice(0, attributeStart + 1) +
-            ":" +
-            text.slice(attributeStart + 1);
-          offset++;
+          // 检查属性是否已经绑定
+          const isBound = text[attributeStart + 1] === ":";
+          if (!isBound) {
+            // 在属性名的开始位置增加冒号
+            text =
+              text.slice(0, attributeStart + 1) +
+              ":" +
+              text.slice(attributeStart + 1);
+            offset++;
+          }
           replacement = `${config.templateI18nCall}('${uuid}')`;
         } else {
           replacement = `{{ ${config.templateI18nCall}('${uuid}') }}`;
