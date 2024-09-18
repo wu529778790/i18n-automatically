@@ -198,12 +198,8 @@ exports.scanChinese = async (filePath = undefined) => {
     }
 
     // 如果在 script 标签中没有找到 i18n 引用，并且有 i18n 的用法，就插入到引入 i18n 的语句
-    if (
-      !text.match(
-        /import\s+(?:\{\s*i18n\s*\}|\s*i18n\s+)\s+from\s+['"].*['"];/
-      ) &&
-      hasI18nUsageInScript
-    ) {
+    const alreadyImported = text.match(/import\s+(?:i18n)\s+from\s+['"].*['"]/);
+    if (!alreadyImported && hasI18nUsageInScript) {
       const scriptStartRegex = /<script\s*([^>]*)>/gs;
       const scriptStartMatches = text.match(scriptStartRegex);
       if (scriptStartMatches) {
