@@ -1,5 +1,6 @@
 const vscode = require("vscode");
 const fs = require("fs");
+const path = require("path");
 const {
   generateUniqueId,
   isInCommentByPosition,
@@ -51,7 +52,7 @@ const readFileContent = async (filePath) => {
  * @returns {string}
  */
 const generateUUID = (filePath, fileUuid, index, config) => {
-  const pathParts = filePath.split("\\");
+  const pathParts = filePath.split(path.sep);
   const selectedLevelsParts = pathParts.slice(-config.keyFilePathLevel);
   const lastLevelWithoutExtension =
     selectedLevelsParts[selectedLevelsParts.length - 1].split(".")[0];
