@@ -47,11 +47,24 @@ exports.generateLanguagePackage = async () => {
   const zhJsonKeys = Object.keys(zhJson);
   const zhJsonValuesLength = zhJsonValues.length;
 
+  // 读取已有的目标语言包文件（如果存在）
+  let existingLanguageJson = {};
+  const existingLanguagePath = `${getRootPath()}${
+    config.i18nFilePath
+  }/locale/${language}.json`;
+  if (fs.existsSync(existingLanguagePath)) {
+    const existingLanguageString = await fs.promises.readFile(
+      existingLanguagePath,
+      "utf-8"
+    );
+    existingLanguageJson = JSON.parse(existingLanguageString);
+  }
+
   // 计算需要发送的请求次数
   const zhJsonValuesLengthgroup = Math.ceil(
     zhJsonValuesLength / TRANSLATE_LIMIT
   );
-  const enJsonObj = JSON.parse(JSON.stringify(zhJson));
+  const newLanguageJson = JSON.parse(JSON.stringify(zhJson));
 
   await vscode.window.withProgress(
     {
@@ -76,7 +89,12 @@ exports.generateLanguagePackage = async () => {
           language
         );
         data.forEach((item, index) => {
-          enJsonObj[zhJsonKeys[i * TRANSLATE_LIMIT + index]] = item.dst;
+          const key = zhJsonKeys[i * TRANSLATE_LIMIT + index];
+          if (!existingLanguageJson[key]) {
+            newLanguageJson[key] = item.dst;
+          } else {
+            newLanguageJson[key] = existingLanguageJson[key];
+          }
         });
       }
     }
@@ -85,6 +103,6 @@ exports.generateLanguagePackage = async () => {
   // 生成指定语言的语言包文件
   await fs.promises.writeFile(
     `${getRootPath()}${config.i18nFilePath}/locale/${language}.json`,
-    JSON.stringify(enJsonObj, null, 2)
+    JSON.stringify(newLanguageJson, null, 2)
   );
 };
