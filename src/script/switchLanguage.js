@@ -152,11 +152,10 @@ exports.updateDecorations = async (language = cachedLanguage) => {
 exports.switchLanguage = async () => {
   // 读取配置文件
   const config = getConfig(true);
-  // 读取 i18n 文件夹下 locale 目录下的 json 文件
+  // 读取 i18n 文件夹下 locale 目录下的文件，并过滤出.json 文件
   const rootPath = getRootPath();
-  const languageFiles = fs.readdirSync(
-    `${rootPath}${config.i18nFilePath}/locale`
-  );
+  const allFiles = fs.readdirSync(`${rootPath}${config.i18nFilePath}/locale`);
+  const languageFiles = allFiles.filter((file) => file.endsWith(".json"));
   customLog(config.debug, "语言文件列表：", languageFiles);
   if (!languageFiles.length) {
     vscode.window.showInformationMessage(
