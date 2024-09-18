@@ -31,11 +31,12 @@ exports.generateLanguagePackage = async () => {
     return;
   }
 
-  // 获取用户输入的语言包名称
-  const language = await vscode.window.showInputBox({
+  // 获取用户输入的语言包名称，如果用户未输入，则默认为'en'
+  const languageInput = await vscode.window.showInputBox({
     prompt: "请输入语言包名称",
     value: "en",
   });
+  const language = languageInput || "en";
 
   // 读取中文语言包文件内容
   const zhString = await fs.promises.readFile(zhPath, "utf-8");
