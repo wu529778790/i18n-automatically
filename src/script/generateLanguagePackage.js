@@ -100,7 +100,7 @@ exports.generateLanguagePackage = async () => {
         );
         if (data.error_code) {
           vscode.window.showErrorMessage(
-            `翻译失败，错误码：${data.error_code}`
+            `翻译失败，错误码：${data.error_code}，请打开百度翻译官网查看错误信息：https://api.fanyi.baidu.com/doc/21`
           );
           continue;
         }
