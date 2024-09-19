@@ -27,5 +27,5 @@ exports.baiduTranslateApi = async (q, language = "en") => {
       sign: generateSign(appid, q, salt, secretKey),
     },
   });
-  return res.data.trans_result;
+  return res.data;
 };

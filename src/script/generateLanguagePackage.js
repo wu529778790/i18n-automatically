@@ -98,9 +98,15 @@ exports.generateLanguagePackage = async () => {
           valuesToTranslateLengthgroupArrItemString,
           language
         );
-        customLog(config.debug, "翻译结果", data);
+        if (data.error_code) {
+          vscode.window.showErrorMessage(
+            `翻译失败，错误码：${data.error_code}`
+          );
+          continue;
+        }
+        customLog(config.debug, "翻译结果", data.trans_result);
         // 将翻译结果添加到目标语言包对象中
-        data.forEach((item, index) => {
+        data.trans_result.forEach((item, index) => {
           const key = keysToTranslate[i * TRANSLATE_LIMIT + index];
           newLanguageJson[key] = item.dst;
         });
