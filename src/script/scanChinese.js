@@ -17,10 +17,10 @@ exports.scanChinese = async () => {
     const { descriptor } = parse(text);
     // 解析 Vue 文件
     const template = descriptor.template ? descriptor.template.content : "";
-    const script = descriptor.script ? descriptor.script.content : "";
-    const scriptSetup = descriptor.scriptSetup
-      ? descriptor.scriptSetup.content
-      : "";
+    // const script = descriptor.script ? descriptor.script.content : "";
+    // const scriptSetup = descriptor.scriptSetup
+    //   ? descriptor.scriptSetup.content
+    //   : "";
     // 解析模板
     const { compileTemplate } = require("@vue/compiler-sfc");
     const { ast } = compileTemplate({
@@ -30,20 +30,9 @@ exports.scanChinese = async () => {
     });
 
     const traverseTemplate = (ast) => {
-      const chineseRegex = /[\u4e00-\u9fa5]/;
-      const chineseTexts = [];
-
-      const collectChineseText = (content) => {
-        console.log("content", content);
-        const test = chineseRegex.test(content);
-        if (test) {
-          console.error(test, content);
-          chineseTexts.push(content);
-        }
-      };
-
       const traverseNode = (node) => {
-        console.log(node);
+        console.log("node", node);
+        const chineseRegex = /[\u4e00-\u9fa5]/;
         switch (node.type) {
           case 0: // Root Node（根节点）
             if (node.children) {
@@ -54,23 +43,56 @@ exports.scanChinese = async () => {
           case 1: // Element Node（元素节点）
             if (node.props) {
               node.props.forEach((prop) => {
-                if (prop.type === 1 && prop.content) {
-                  collectChineseText(prop.content);
+                console.log("prop", prop);
+                // Expression Node（表达式节点）
+                if (
+                  prop.type === 1 &&
+                  prop.content &&
+                  chineseRegex.test(prop.content)
+                ) {
+                  console.error(prop.content);
                 }
-                if (prop.type === 2 && prop.content) {
-                  collectChineseText(prop.content);
+                // Interpolation Node（插值节点
+                if (
+                  prop.type === 2 &&
+                  prop.content &&
+                  chineseRegex.test(prop.content)
+                ) {
+                  console.error(prop.content);
                 }
-                if (prop.type === 3 && prop.content) {
-                  collectChineseText(prop.content);
+                // Text Node（文本节点
+                if (
+                  prop.type === 3 &&
+                  prop.content &&
+                  chineseRegex.test(prop.content)
+                ) {
+                  console.error(prop.content);
                 }
-                if (prop.type === 4 && prop.content) {
-                  collectChineseText(prop.content);
+                // Comment Node（注释节点）
+                if (
+                  prop.type === 4 &&
+                  prop.content &&
+                  chineseRegex.test(prop.content)
+                ) {
+                  console.error(prop.content);
                 }
-                if (prop.type === 6 && prop.value && prop.value.content) {
-                  collectChineseText(prop.value.content);
+                // Attribute Node（属性节点）
+                if (
+                  prop.type === 6 &&
+                  prop.value &&
+                  prop.value.content &&
+                  chineseRegex.test(prop.value.content)
+                ) {
+                  console.error(prop.value.content);
                 }
-                if (prop.type === 7 && prop.exp && prop.exp.loc.source) {
-                  collectChineseText(prop.exp.loc.source);
+                // Directive Node（指令节点）
+                if (
+                  prop.type === 7 &&
+                  prop.exp &&
+                  prop.exp.loc.source &&
+                  chineseRegex.test(prop.content)
+                ) {
+                  console.error(prop.content);
                 }
               });
             }
@@ -80,12 +102,16 @@ exports.scanChinese = async () => {
             break;
 
           case 2: // Text Node（文本节点）
-            collectChineseText(node.loc.source);
+            if (chineseRegex.test(node.loc.source)) {
+              console.error(node.loc.source);
+            }
             break;
 
           case 5: // Interpolation Node（插值节点）
           case 12: // Interpolation Node（插值节点）
-            collectChineseText(node.loc.source);
+            if (chineseRegex.test(node.loc.source)) {
+              console.error(node.loc.source);
+            }
             break;
 
           case 8: // Slot Node（插槽节点）
@@ -108,11 +134,9 @@ exports.scanChinese = async () => {
       };
 
       traverseNode(ast);
-      return chineseTexts;
     };
 
-    const templateChineseTexts = traverseTemplate(ast);
-    console.log("templateChineseTexts", templateChineseTexts);
+    traverseTemplate(ast);
 
     // 解析脚本
     // const parser = require("@babel/parser");
