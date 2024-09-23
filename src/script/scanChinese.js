@@ -30,11 +30,10 @@ exports.scanChinese = async () => {
     });
 
     const traverseTemplate = (ast) => {
-      const chineseRegex = /[\u4e00-\u9fa5]+/g;
+      const chineseRegex = /[\u4e00-\u9fa5]/;
       const chineseTexts = [];
 
       const collectChineseText = (content) => {
-        if (typeof content !== "string") return;
         console.log("content", content);
         const test = chineseRegex.test(content);
         if (test) {
