@@ -28,55 +28,83 @@ exports.scanChinese = async () => {
       filename: fileName,
       id: new Date().getTime().toString(),
     });
-    // 遍历模板 AST
+
     const traverseTemplate = (ast) => {
       const chineseRegex = /[\u4e00-\u9fa5]+/g;
       const chineseTexts = [];
 
+      const collectChineseText = (content) => {
+        if (typeof content !== "string") return;
+        console.log("content", content);
+        const test = chineseRegex.test(content);
+        if (test) {
+          console.error(test, content);
+          chineseTexts.push(content);
+        }
+      };
+
       const traverseNode = (node) => {
         console.log(node);
+        switch (node.type) {
+          case 0: // Root Node（根节点）
+            if (node.children) {
+              node.children.forEach(traverseNode);
+            }
+            break;
 
-        if (node.type === 0) {
-          // 根节点
-          if (node.children) {
-            node.children.forEach((child) => traverseNode(child));
-          }
-        } else if (node.type === 2) {
-          // 文本节点
-          if (node.content && chineseRegex.test(node.content)) {
-            console.log("文本节点", node.content);
-            chineseTexts.push({
-              value: node.content,
-              start: node.loc.start.offset,
-              end: node.loc.end.offset,
-            });
-          }
-        } else if (node.type === 1) {
-          // 元素节点
-          if (node.children) {
-            node.children.forEach((child) => traverseNode(child));
-          }
-          if (node.props) {
-            console.log("props", node.props);
-            // 处理组件属性
-            node.props.forEach((prop) => {
-              console.log("prop", prop);
-              if (prop.type === 6 && prop.value && prop.value.content) {
-                console.log(prop.value.content, typeof prop.value.content);
-                const test = chineseRegex.test(prop.value.content);
-                console.log("test", test);
-
-                if (test) {
-                  console.log("属性值", prop.value.content);
-                  chineseTexts.push({
-                    value: prop.value.content,
-                    start: prop.value.loc.start.offset,
-                    end: prop.value.loc.end.offset,
-                  });
+          case 1: // Element Node（元素节点）
+            if (node.props) {
+              node.props.forEach((prop) => {
+                if (prop.type === 1 && prop.content) {
+                  collectChineseText(prop.content);
                 }
-              }
-            });
-          }
+                if (prop.type === 2 && prop.content) {
+                  collectChineseText(prop.content);
+                }
+                if (prop.type === 3 && prop.content) {
+                  collectChineseText(prop.content);
+                }
+                if (prop.type === 4 && prop.content) {
+                  collectChineseText(prop.content);
+                }
+                if (prop.type === 6 && prop.value && prop.value.content) {
+                  collectChineseText(prop.value.content);
+                }
+                if (prop.type === 7 && prop.exp && prop.exp.loc.source) {
+                  collectChineseText(prop.exp.loc.source);
+                }
+              });
+            }
+            if (node.children) {
+              node.children.forEach(traverseNode);
+            }
+            break;
+
+          case 2: // Text Node（文本节点）
+            collectChineseText(node.loc.source);
+            break;
+
+          case 5: // Interpolation Node（插值节点）
+          case 12: // Interpolation Node（插值节点）
+            collectChineseText(node.loc.source);
+            break;
+
+          case 8: // Slot Node（插槽节点）
+          case 10: // For Node（循环节点）
+            if (node.children) {
+              node.children.forEach(traverseNode);
+            }
+            break;
+
+          case 9: // If Node（条件节点）
+            if (node.branches) {
+              node.branches.forEach(traverseNode);
+            }
+            break;
+
+          default:
+            console.log("----------", node);
+            break;
         }
       };
 
