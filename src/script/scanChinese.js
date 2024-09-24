@@ -1,6 +1,11 @@
 const vscode = require("vscode");
 const { generateUniqueId } = require("../utils/index.js");
-const { parse, compileTemplate } = require("@vue/compiler-sfc");
+const { parse: parseSfc } = require("@vue/compiler-sfc");
+const {
+  parse: parseTemplate,
+  compile: compileDom,
+  generate: generateDom,
+} = require("@vue/compiler-dom");
 const { parse: babelParse } = require("@babel/parser");
 const { default: generate } = require("@babel/generator");
 
@@ -25,10 +30,9 @@ exports.scanChinese = async () => {
     const editor = vscode.window.activeTextEditor;
     const document = editor.document;
     const text = document.getText();
-    const fileName = document.fileName;
     const fileUUid = generateUniqueId();
 
-    const { descriptor } = parse(text);
+    const { descriptor } = parseSfc(text);
     // 解析 Vue 文件
     const template = descriptor.template ? descriptor.template.content : "";
     const script = descriptor.script ? descriptor.script.content : "";
@@ -36,11 +40,7 @@ exports.scanChinese = async () => {
       ? descriptor.scriptSetup.content
       : "";
     // 解析模板
-    const { ast } = compileTemplate({
-      source: template,
-      filename: fileName,
-      id: new Date().getTime().toString(),
-    });
+    const templateAst = parseTemplate(template);
 
     const traverseTemplate = (ast) => {
       const traverseNode = (node) => {
@@ -64,7 +64,7 @@ exports.scanChinese = async () => {
                   chineseRegex.test(prop.content)
                 ) {
                   collectChineseText(prop.content);
-                  prop.content = prop.content.replace(chineseRegex, fileUUid);
+                  // prop.content = prop.content.replace(chineseRegex, fileUUid);
                 }
                 // Interpolation Node（插值节点）
                 if (
@@ -73,7 +73,7 @@ exports.scanChinese = async () => {
                   chineseRegex.test(prop.content)
                 ) {
                   collectChineseText(prop.content);
-                  prop.content = prop.content.replace(chineseRegex, fileUUid);
+                  // prop.content = prop.content.replace(chineseRegex, fileUUid);
                 }
                 // Text Node（文本节点）
                 if (
@@ -82,7 +82,7 @@ exports.scanChinese = async () => {
                   chineseRegex.test(prop.content)
                 ) {
                   collectChineseText(prop.content);
-                  prop.content = prop.content.replace(chineseRegex, fileUUid);
+                  // prop.content = prop.content.replace(chineseRegex, fileUUid);
                 }
                 // Comment Node（注释节点）
                 if (
@@ -91,7 +91,7 @@ exports.scanChinese = async () => {
                   chineseRegex.test(prop.content)
                 ) {
                   collectChineseText(prop.content);
-                  prop.content = prop.content.replace(chineseRegex, fileUUid);
+                  // prop.content = prop.content.replace(chineseRegex, fileUUid);
                 }
                 // Attribute Node（属性节点）
                 if (
@@ -101,15 +101,15 @@ exports.scanChinese = async () => {
                   chineseRegex.test(prop.value.content)
                 ) {
                   collectChineseText(prop.value.content);
-                  prop.value.content = prop.value.content.replace(
-                    chineseRegex,
-                    fileUUid
-                  );
+                  // prop.value.content = prop.value.content.replace(
+                  //   chineseRegex,
+                  //   fileUUid
+                  // );
                 }
                 // Directive Node（指令节点）
                 if (prop.type === 7 && chineseRegex.test(prop.content)) {
                   collectChineseText(prop.content);
-                  prop.content = prop.content.replace(chineseRegex, fileUUid);
+                  // prop.content = prop.content.replace(chineseRegex, fileUUid);
                 }
               });
             }
@@ -149,7 +149,7 @@ exports.scanChinese = async () => {
       traverseNode(ast);
     };
 
-    traverseTemplate(ast);
+    traverseTemplate(templateAst);
     console.log("chineseTexts", chineseTexts);
 
     // 解析脚本部分
@@ -380,11 +380,9 @@ exports.scanChinese = async () => {
     traverseScript(scriptSetupAst);
 
     // 将修改后的模板AST转换为字符串
-    const { code: templateCode } = compileTemplate({
-      source: template,
-      filename: fileName,
-      id: new Date().getTime().toString(),
-    });
+    const templateCode = generateDom(templateAst).code;
+    console.log("templateCode", templateCode);
+
     const scriptCode = generate(scriptAst).code;
     const scriptSetupCode = generate(scriptSetupAst).code;
 
