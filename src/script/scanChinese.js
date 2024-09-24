@@ -1,14 +1,17 @@
 const vscode = require("vscode");
+const fs = require("fs");
+const path = require("path");
 const { generateUniqueId } = require("../utils/index.js");
 const { parse: parseSfc } = require("@vue/compiler-sfc");
 const {
   parse: parseTemplate,
-  compile: compileDom,
-  generate: generateDom,
+  // compile: compileDom,
+  // generate: generateDom,
 } = require("@vue/compiler-dom");
 const { parse: babelParse } = require("@babel/parser");
 const { default: generate } = require("@babel/generator");
 const { getConfig } = require("./setting.js");
+const { updateDecorations } = require("./switchLanguage.js");
 
 const chineseTexts = new Map();
 let index = 0;
@@ -24,17 +27,67 @@ const collectChineseText = (content) => {
 };
 
 /**
+ * 读取文件内容
+ * @param {string} filePath 文件路径
+ * @returns {Promise<string>}
+ */
+const readFileContent = async (filePath) => {
+  try {
+    return await fs.promises.readFile(filePath, "utf-8");
+  } catch (error) {
+    throw new Error(`无法读取文件 ${filePath}: ${error.message}`);
+  }
+};
+
+/**
+ * 保存文件内容
+ * @param {string} filePath 文件路径
+ * @param {string} content 文件内容
+ * @returns {Promise<void>}
+ */
+const saveFileContent = async (filePath, content) => {
+  try {
+    await fs.promises.writeFile(filePath, content, "utf-8");
+  } catch (error) {
+    throw new Error(`无法保存文件 ${filePath}: ${error.message}`);
+  }
+};
+
+/**
+ * 生成唯一的 UUID
+ * @param {string} filePath 文件路径
+ * @param {string} fileUuid 文件 UUID
+ * @param {number} index 索引
+ * @param {object} config 配置
+ * @returns {string}
+ */
+const generateUUID = (filePath, fileUuid, index, config) => {
+  const pathParts = filePath.split(path.sep);
+  const selectedLevelsParts = pathParts.slice(-config.keyFilePathLevel);
+  const lastLevelWithoutExtension =
+    selectedLevelsParts[selectedLevelsParts.length - 1].split(".")[0];
+  const selectedLevels = selectedLevelsParts
+    .slice(0, -1)
+    .concat(lastLevelWithoutExtension)
+    .join("-");
+  index++;
+  return `${selectedLevels}-${fileUuid}-${index}`;
+};
+
+/**
  * 扫描中文
  * @returns {Promise<void>}
  */
-exports.scanChinese = async () => {
+exports.scanChinese = async (filePath) => {
   try {
     // 读取配置文件
     const config = getConfig(true);
-    const editor = vscode.window.activeTextEditor;
-    const document = editor.document;
-    const text = document.getText();
-    const fileUUid = generateUniqueId();
+    const currentFilePath = vscode.window.activeTextEditor.document.uri.fsPath;
+    // 如果 filePath 不存在，那么获取当前操作文件的路径
+    filePath = filePath || currentFilePath;
+    const text = await readFileContent(filePath);
+    // 生成文件的唯一标识
+    const fileUuid = generateUniqueId();
 
     const { descriptor } = parseSfc(text);
     // 解析 Vue 文件
@@ -69,7 +122,7 @@ exports.scanChinese = async () => {
                   chineseRegex.test(prop.content)
                 ) {
                   collectChineseText(prop.content);
-                  // prop.content = prop.content.replace(chineseRegex, fileUUid);
+                  // prop.content = prop.content.replace(chineseRegex, fileUuid);
                 }
                 // Interpolation Node（插值节点）
                 if (
@@ -78,7 +131,7 @@ exports.scanChinese = async () => {
                   chineseRegex.test(prop.content)
                 ) {
                   collectChineseText(prop.content);
-                  // prop.content = prop.content.replace(chineseRegex, fileUUid);
+                  // prop.content = prop.content.replace(chineseRegex, fileUuid);
                 }
                 // Text Node（文本节点）
                 if (
@@ -87,7 +140,7 @@ exports.scanChinese = async () => {
                   chineseRegex.test(prop.content)
                 ) {
                   collectChineseText(prop.content);
-                  // prop.content = prop.content.replace(chineseRegex, fileUUid);
+                  // prop.content = prop.content.replace(chineseRegex, fileUuid);
                 }
                 // Comment Node（注释节点）
                 if (
@@ -96,7 +149,7 @@ exports.scanChinese = async () => {
                   chineseRegex.test(prop.content)
                 ) {
                   collectChineseText(prop.content);
-                  // prop.content = prop.content.replace(chineseRegex, fileUUid);
+                  // prop.content = prop.content.replace(chineseRegex, fileUuid);
                 }
                 // Attribute Node（属性节点）
                 if (
@@ -108,13 +161,13 @@ exports.scanChinese = async () => {
                   collectChineseText(prop.value.content);
                   // prop.value.content = prop.value.content.replace(
                   //   chineseRegex,
-                  //   fileUUid
+                  //   fileUuid
                   // );
                 }
                 // Directive Node（指令节点）
                 if (prop.type === 7 && chineseRegex.test(prop.content)) {
                   collectChineseText(prop.content);
-                  // prop.content = prop.content.replace(chineseRegex, fileUUid);
+                  // prop.content = prop.content.replace(chineseRegex, fileUuid);
                 }
               });
             }
@@ -125,8 +178,11 @@ exports.scanChinese = async () => {
 
           case 2: // Text Node（文本节点）
             if (chineseRegex.test(node.content)) {
-              const uuid = generateUniqueId(); // 替换中文为唯一 ID
-              modifiedTemplate = modifiedTemplate.replace(node.content, uuid);
+              const uuid = generateUUID(filePath, fileUuid, index, config);
+              modifiedTemplate = modifiedTemplate.replace(
+                node.content,
+                `${config.templateI18nCall}('${uuid}')`
+              );
               collectChineseText(node.content);
             }
             break;
@@ -143,7 +199,7 @@ exports.scanChinese = async () => {
           case 12: // Interpolation Node（插值节点）
             if (chineseRegex.test(node.loc.source)) {
               collectChineseText(node.loc.source);
-              node.loc.source = node.loc.source.replace(chineseRegex, fileUUid);
+              node.loc.source = node.loc.source.replace(chineseRegex, fileUuid);
             }
             break;
 
@@ -190,19 +246,19 @@ exports.scanChinese = async () => {
         const chineseRegex = /[\u4e00-\u9fa5]/;
         if (node.type === "StringLiteral" && chineseRegex.test(node.value)) {
           collectChineseText(node.value);
-          node.value = node.value.replace(chineseRegex, fileUUid);
+          node.value = node.value.replace(chineseRegex, fileUuid);
         }
         if (node.type === "TemplateLiteral" && node.quasis) {
           node.quasis.forEach((quasi) => {
             if (chineseRegex.test(quasi.value.raw)) {
               collectChineseText(quasi.value.raw);
-              quasi.value.raw = quasi.value.raw.replace(chineseRegex, fileUUid);
+              quasi.value.raw = quasi.value.raw.replace(chineseRegex, fileUuid);
             }
           });
         }
         if (node.type === "JSXText" && chineseRegex.test(node.value)) {
           collectChineseText(node.value);
-          node.value = node.value.replace(chineseRegex, fileUUid);
+          node.value = node.value.replace(chineseRegex, fileUuid);
         }
         if (node.type === "JSXElement" && node.children) {
           node.children.forEach(traverseNode);
@@ -214,7 +270,7 @@ exports.scanChinese = async () => {
           chineseRegex.test(node.value.value)
         ) {
           collectChineseText(node.value.value);
-          node.value.value = node.value.value.replace(chineseRegex, fileUUid);
+          node.value.value = node.value.value.replace(chineseRegex, fileUuid);
         }
         if (
           node.type === "ExpressionStatement" &&
@@ -403,22 +459,19 @@ exports.scanChinese = async () => {
     const scriptCode = generate(scriptAst).code;
     const scriptSetupCode = generate(scriptSetupAst).code;
 
-    // 将字符串写回到文件中
-    const edit = new vscode.WorkspaceEdit();
-    const firstLine = document.lineAt(0);
-    const lastLine = document.lineAt(document.lineCount - 1);
-    const textRange = new vscode.Range(
-      firstLine.range.start,
-      lastLine.range.end
-    );
     // 替换原模板内容
     const newText = text
       .replace(template, modifiedTemplate)
       .replace(script, scriptCode)
       .replace(scriptSetup, scriptSetupCode);
-    edit.replace(document.uri, textRange, newText);
-    await vscode.workspace.applyEdit(edit);
-    await document.save();
+    // 保存文件
+    saveFileContent(filePath, newText);
+    // 如果是当前文件，更新装饰器
+    if (filePath === currentFilePath) {
+      setTimeout(() => {
+        updateDecorations();
+      }, 300);
+    }
   } catch (error) {
     console.error(`发生未知错误：${error}`);
   }
