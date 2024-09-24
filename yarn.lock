@@ -233,6 +233,17 @@
     estree-walker "^2.0.2"
     source-map-js "^1.2.0"
 
+"@vue/compiler-core@3.5.8":
+  version "3.5.8"
+  resolved "http://npm.fabigbig.com/@vue%2fcompiler-core/-/compiler-core-3.5.8.tgz#03ee4a2fa022c9bc3e59f789a1e14593b1e95b10"
+  integrity sha512-Uzlxp91EPjfbpeO5KtC0KnXPkuTfGsNDeaKQJxQN718uz+RqDYarEf7UhQJGK+ZYloD2taUbHTI2J4WrUaZQNA==
+  dependencies:
+    "@babel/parser" "^7.25.3"
+    "@vue/shared" "3.5.8"
+    entities "^4.5.0"
+    estree-walker "^2.0.2"
+    source-map-js "^1.2.0"
+
 "@vue/compiler-dom@3.5.6":
   version "3.5.6"
   resolved "http://npm.fabigbig.com/@vue%2fcompiler-dom/-/compiler-dom-3.5.6.tgz#0942c290d3a52eb396243850ec73005f669c210d"
@@ -240,6 +251,14 @@
   dependencies:
     "@vue/compiler-core" "3.5.6"
     "@vue/shared" "3.5.6"
+
+"@vue/compiler-dom@^3.5.8":
+  version "3.5.8"
+  resolved "http://npm.fabigbig.com/@vue%2fcompiler-dom/-/compiler-dom-3.5.8.tgz#03e4a6bef00a1979613a1db2ab39e9b2dced3373"
+  integrity sha512-GUNHWvoDSbSa5ZSHT9SnV5WkStWfzJwwTd6NMGzilOE/HM5j+9EB9zGXdtu/fCNEmctBqMs6C9SvVPpVPuk1Eg==
+  dependencies:
+    "@vue/compiler-core" "3.5.8"
+    "@vue/shared" "3.5.8"
 
 "@vue/compiler-sfc@^3.5.6":
   version "3.5.6"
@@ -268,6 +287,11 @@
   version "3.5.6"
   resolved "http://npm.fabigbig.com/@vue%2fshared/-/shared-3.5.6.tgz#602b3c2dccfe612f9e2e52e861dd7db340961a4f"
   integrity sha512-eidH0HInnL39z6wAt6SFIwBrvGOpDWsDxlw3rCgo1B+CQ1781WzQUSU3YjxgdkcJo9Q8S6LmXTkvI+cLHGkQfA==
+
+"@vue/shared@3.5.8":
+  version "3.5.8"
+  resolved "http://npm.fabigbig.com/@vue%2fshared/-/shared-3.5.8.tgz#6ef14933872dcc4f7b79fee3aaecf648ff807fed"
+  integrity sha512-mJleSWbAGySd2RJdX1RBtcrUBX6snyOc0qHpgk3lGi4l9/P/3ny3ELqFWqYdkXIwwNN/kdm8nD9ky8o6l/Lx2A==
 
 acorn-jsx@^5.3.2:
   version "5.3.2"
