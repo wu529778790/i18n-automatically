@@ -1,4 +1,17 @@
 const vscode = require("vscode");
+const { generateUniqueId } = require("../utils/index.js");
+
+const chineseTexts = {};
+let index = 0;
+const collectChineseText = (content) => {
+  if (Object.prototype.toString.call(content) !== "[object String]") {
+    return;
+  }
+  console.error("collectChineseText", content);
+  content = content.trim();
+  chineseTexts[`${index}`] = content;
+  index++;
+};
 
 /**
  * 扫描中文
@@ -12,6 +25,7 @@ exports.scanChinese = async () => {
     const document = editor.document;
     const text = document.getText();
     const fileName = document.fileName;
+    const fileUUid = generateUniqueId();
 
     const { parse } = require("@vue/compiler-sfc");
     const { descriptor } = parse(text);
@@ -50,7 +64,7 @@ exports.scanChinese = async () => {
                   prop.content &&
                   chineseRegex.test(prop.content)
                 ) {
-                  console.error(prop.content);
+                  collectChineseText(prop.content);
                 }
                 // Interpolation Node（插值节点
                 if (
@@ -58,7 +72,7 @@ exports.scanChinese = async () => {
                   prop.content &&
                   chineseRegex.test(prop.content)
                 ) {
-                  console.error(prop.content);
+                  collectChineseText(prop.content);
                 }
                 // Text Node（文本节点
                 if (
@@ -66,7 +80,7 @@ exports.scanChinese = async () => {
                   prop.content &&
                   chineseRegex.test(prop.content)
                 ) {
-                  console.error(prop.content);
+                  collectChineseText(prop.content);
                 }
                 // Comment Node（注释节点）
                 if (
@@ -74,7 +88,7 @@ exports.scanChinese = async () => {
                   prop.content &&
                   chineseRegex.test(prop.content)
                 ) {
-                  console.error(prop.content);
+                  collectChineseText(prop.content);
                 }
                 // Attribute Node（属性节点）
                 if (
@@ -83,16 +97,11 @@ exports.scanChinese = async () => {
                   prop.value.content &&
                   chineseRegex.test(prop.value.content)
                 ) {
-                  console.error(prop.value.content);
+                  collectChineseText(prop.value.content);
                 }
                 // Directive Node（指令节点）
-                if (
-                  prop.type === 7 &&
-                  prop.exp &&
-                  prop.exp.loc.source &&
-                  chineseRegex.test(prop.content)
-                ) {
-                  console.error(prop.content);
+                if (prop.type === 7 && chineseRegex.test(prop.content)) {
+                  collectChineseText(prop.content);
                 }
               });
             }
@@ -102,15 +111,10 @@ exports.scanChinese = async () => {
             break;
 
           case 2: // Text Node（文本节点）
-            if (chineseRegex.test(node.loc.source)) {
-              console.error(node.loc.source);
-            }
-            break;
-
           case 5: // Interpolation Node（插值节点）
           case 12: // Interpolation Node（插值节点）
             if (chineseRegex.test(node.loc.source)) {
-              console.error(node.loc.source);
+              collectChineseText(node.loc.source);
             }
             break;
 
@@ -137,6 +141,7 @@ exports.scanChinese = async () => {
     };
 
     traverseTemplate(ast);
+    console.log("chineseTexts", chineseTexts);
 
     // 解析脚本
     // const parser = require("@babel/parser");
