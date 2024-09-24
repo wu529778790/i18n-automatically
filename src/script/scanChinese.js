@@ -8,17 +8,19 @@ const {
 } = require("@vue/compiler-dom");
 const { parse: babelParse } = require("@babel/parser");
 const { default: generate } = require("@babel/generator");
+const { getConfig } = require("./setting.js");
 
-const chineseTexts = {};
+const chineseTexts = new Map();
 let index = 0;
+
 const collectChineseText = (content) => {
-  if (Object.prototype.toString.call(content) !== "[object String]") {
+  if (typeof content !== "string") {
     return;
   }
-  console.error("collectChineseText", content);
   content = content.trim();
-  chineseTexts[`${index}`] = content;
-  index++;
+  if (content && !chineseTexts.has(content)) {
+    chineseTexts.set(index++, content);
+  }
 };
 
 /**
@@ -27,6 +29,8 @@ const collectChineseText = (content) => {
  */
 exports.scanChinese = async () => {
   try {
+    // 读取配置文件
+    const config = getConfig(true);
     const editor = vscode.window.activeTextEditor;
     const document = editor.document;
     const text = document.getText();
@@ -42,7 +46,8 @@ exports.scanChinese = async () => {
     // 解析模板
     const templateAst = parseTemplate(template);
 
-    const traverseTemplate = (ast) => {
+    const traverseTemplate = (ast, content) => {
+      let modifiedTemplate = content;
       const traverseNode = (node) => {
         console.log("node", node);
         const chineseRegex = /[\u4e00-\u9fa5]/;
@@ -119,7 +124,22 @@ exports.scanChinese = async () => {
             break;
 
           case 2: // Text Node（文本节点）
+            if (chineseRegex.test(node.content)) {
+              const uuid = generateUniqueId(); // 替换中文为唯一 ID
+              modifiedTemplate = modifiedTemplate.replace(node.content, uuid);
+              collectChineseText(node.content);
+            }
+            break;
           case 5: // Interpolation Node（插值节点）
+            if (chineseRegex.test(node.content.content)) {
+              const uuid = generateUniqueId();
+              modifiedTemplate = modifiedTemplate.replace(
+                node.content.content,
+                uuid
+              );
+              collectChineseText(node.content.content);
+            }
+            break;
           case 12: // Interpolation Node（插值节点）
             if (chineseRegex.test(node.loc.source)) {
               collectChineseText(node.loc.source);
@@ -147,11 +167,12 @@ exports.scanChinese = async () => {
       };
 
       traverseNode(ast);
+
+      return modifiedTemplate;
     };
 
-    traverseTemplate(templateAst);
-    console.log("chineseTexts", chineseTexts);
-
+    // 遍历 AST 并生成修改后的模板字符串
+    const modifiedTemplate = traverseTemplate(templateAst, template);
     // 解析脚本部分
     const scriptAst = babelParse(script, {
       sourceType: "module",
@@ -379,10 +400,6 @@ exports.scanChinese = async () => {
     traverseScript(scriptAst);
     traverseScript(scriptSetupAst);
 
-    // 将修改后的模板AST转换为字符串
-    const templateCode = generateDom(templateAst).code;
-    console.log("templateCode", templateCode);
-
     const scriptCode = generate(scriptAst).code;
     const scriptSetupCode = generate(scriptSetupAst).code;
 
@@ -394,8 +411,9 @@ exports.scanChinese = async () => {
       firstLine.range.start,
       lastLine.range.end
     );
+    // 替换原模板内容
     const newText = text
-      .replace(template, templateCode)
+      .replace(template, modifiedTemplate)
       .replace(script, scriptCode)
       .replace(scriptSetup, scriptSetupCode);
     edit.replace(document.uri, textRange, newText);
