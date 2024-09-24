@@ -64,22 +64,25 @@ exports.scanChinese = async () => {
                   chineseRegex.test(prop.content)
                 ) {
                   collectChineseText(prop.content);
+                  prop.content = prop.content.replace(chineseRegex, fileUUid);
                 }
-                // Interpolation Node（插值节点
+                // Interpolation Node（插值节点）
                 if (
                   prop.type === 2 &&
                   prop.content &&
                   chineseRegex.test(prop.content)
                 ) {
                   collectChineseText(prop.content);
+                  prop.content = prop.content.replace(chineseRegex, fileUUid);
                 }
-                // Text Node（文本节点
+                // Text Node（文本节点）
                 if (
                   prop.type === 3 &&
                   prop.content &&
                   chineseRegex.test(prop.content)
                 ) {
                   collectChineseText(prop.content);
+                  prop.content = prop.content.replace(chineseRegex, fileUUid);
                 }
                 // Comment Node（注释节点）
                 if (
@@ -88,6 +91,7 @@ exports.scanChinese = async () => {
                   chineseRegex.test(prop.content)
                 ) {
                   collectChineseText(prop.content);
+                  prop.content = prop.content.replace(chineseRegex, fileUUid);
                 }
                 // Attribute Node（属性节点）
                 if (
@@ -97,10 +101,15 @@ exports.scanChinese = async () => {
                   chineseRegex.test(prop.value.content)
                 ) {
                   collectChineseText(prop.value.content);
+                  prop.value.content = prop.value.content.replace(
+                    chineseRegex,
+                    fileUUid
+                  );
                 }
                 // Directive Node（指令节点）
                 if (prop.type === 7 && chineseRegex.test(prop.content)) {
                   collectChineseText(prop.content);
+                  prop.content = prop.content.replace(chineseRegex, fileUUid);
                 }
               });
             }
