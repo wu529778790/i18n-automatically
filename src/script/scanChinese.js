@@ -1,7 +1,6 @@
 const vscode = require("vscode");
 const fs = require("fs");
 const path = require("path");
-const { generateUniqueId } = require("../utils/index.js");
 const { parse: parseSfc } = require("@vue/compiler-sfc");
 const {
   parse: parseTemplate,
@@ -12,17 +11,18 @@ const { parse: babelParse } = require("@babel/parser");
 const { default: generate } = require("@babel/generator");
 const { getConfig } = require("./setting.js");
 const { updateDecorations } = require("./switchLanguage.js");
+const { generateUniqueId, saveObjectToPath } = require("../utils/index.js");
 
 const chineseTexts = new Map();
 let index = 0;
 
-const collectChineseText = (content) => {
+const collectChineseText = (uuid, content) => {
   if (typeof content !== "string") {
     return;
   }
   content = content.trim();
-  if (content && !chineseTexts.has(content)) {
-    chineseTexts.set(index++, content);
+  if (content && !chineseTexts.has(uuid)) {
+    chineseTexts.set(uuid, content);
   }
 };
 
@@ -157,7 +157,8 @@ exports.scanChinese = async (filePath) => {
                     replacementText +
                     modifiedTemplate.substring(end);
                   offset += replacementText.length - (end - start); // 更新偏移量
-                  collectChineseText(prop.value.content);
+                  index++;
+                  collectChineseText(uuid, prop.value.content);
                 }
                 // Directive Node（指令节点）
                 if (prop.type === 7 && prop.content) {
@@ -181,7 +182,8 @@ exports.scanChinese = async (filePath) => {
                 replacementText +
                 modifiedTemplate.substring(end);
               offset += replacementText.length - (end - start); // 更新偏移量
-              collectChineseText(node.content);
+              index++;
+              collectChineseText(uuid, node.content);
             }
             break;
           case 5: // Interpolation Node（插值节点）
@@ -216,9 +218,9 @@ exports.scanChinese = async (filePath) => {
                     content.substring(item.end + 1);
                   offset +=
                     replacementText.length - (item.end - item.start) - 2; // 更新偏移量
-                  collectChineseText(node.content.content);
+                  index++;
+                  collectChineseText(uuid, item.match);
                 });
-                console.log(content);
 
                 const replacementText = content;
                 modifiedTemplate =
@@ -239,7 +241,8 @@ exports.scanChinese = async (filePath) => {
                 replacementText +
                 modifiedTemplate.substring(end);
               offset += replacementText.length - (end - start); // 更新偏移量
-              collectChineseText(node.loc.source);
+              index++;
+              collectChineseText(uuid, node.loc.source);
             }
             break;
 
@@ -505,6 +508,10 @@ exports.scanChinese = async (filePath) => {
     // .replace(scriptSetup, scriptSetupCode);
     // 保存文件
     saveFileContent(filePath, newText);
+    const obj = Object.fromEntries(chineseTexts);
+    // 调用保存文件方法
+    await saveObjectToPath(obj, `${config.i18nFilePath}/locale/zh.json`);
+
     // 如果是当前文件，更新装饰器
     if (filePath === currentFilePath) {
       setTimeout(() => {
