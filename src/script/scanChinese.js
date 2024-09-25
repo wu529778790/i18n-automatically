@@ -13,7 +13,7 @@ const { getConfig } = require("./setting.js");
 const { updateDecorations } = require("./switchLanguage.js");
 const { generateUniqueId, saveObjectToPath } = require("../utils/index.js");
 
-const chineseTexts = new Map();
+let chineseTexts = new Map();
 let index = 0;
 
 const collectChineseText = (uuid, content) => {
@@ -507,9 +507,9 @@ exports.scanChinese = async (filePath) => {
     // .replace(script, scriptCode)
     // .replace(scriptSetup, scriptSetupCode);
     // 保存文件
-    saveFileContent(filePath, newText);
+    await saveFileContent(filePath, newText);
+    // 保存语言包
     const obj = Object.fromEntries(chineseTexts);
-    // 调用保存文件方法
     await saveObjectToPath(obj, `${config.i18nFilePath}/locale/zh.json`);
 
     // 如果是当前文件，更新装饰器
@@ -518,6 +518,9 @@ exports.scanChinese = async (filePath) => {
         updateDecorations();
       }, 300);
     }
+    // 重置索引和状态
+    index = 0;
+    chineseTexts = new Map();
   } catch (error) {
     console.error(`发生未知错误：${error}`);
   }
