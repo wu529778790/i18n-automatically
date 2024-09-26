@@ -22,13 +22,18 @@ const chineseRegex = /[\u4e00-\u9fa5]/;
 let chineseTexts = new Map();
 let index = 0;
 
-const collectChineseText = (uuid, content) => {
+/**
+ * 收集中文文本
+ * @param {string} fileUuid 文件 UUID
+ * @param {string} content 文件内容
+ */
+const collectChineseText = (fileUuid, content) => {
   if (typeof content !== "string") {
     return;
   }
   content = content.trim();
-  if (content && !chineseTexts.has(uuid)) {
-    chineseTexts.set(uuid, content);
+  if (content && !chineseTexts.has(fileUuid)) {
+    chineseTexts.set(fileUuid, content);
   }
 };
 
@@ -80,6 +85,13 @@ const generateUUID = (filePath, fileUuid, index, config) => {
   return `${selectedLevels}-${fileUuid}-${index}`;
 };
 
+/**
+ * 获取位置
+ * @param {string} code 代码
+ * @param {number} line 行号
+ * @param {number} column 列号
+ * @returns {object}
+ */
 const getPosition = (code, line, column) => {
   const lines = code.split("\n");
   let position = 0;
@@ -90,6 +102,14 @@ const getPosition = (code, line, column) => {
   return position;
 };
 
+/**
+ * 遍历脚本
+ * @param {object} ast 抽象语法树
+ * @param {string} script 脚本内容
+ * @param {string} filePath 文件路径
+ * @param {string} fileUuid 文件 UUID
+ * @param {object} config 配置
+ */
 const traverseScript = (ast, script, filePath, fileUuid, config) => {
   let modifiedScript = script;
   let prePath;
@@ -150,6 +170,14 @@ const traverseScript = (ast, script, filePath, fileUuid, config) => {
   return modifiedScript;
 };
 
+/**
+ * 遍历模板
+ * @param {object} ast 抽象语法树
+ * @param {string} template 模板内容
+ * @param {string} filePath 文件路径
+ * @param {string} fileUuid 文件 UUID
+ * @param {object} config 配置
+ */
 const traverseTemplate = (ast, template, filePath, fileUuid, config) => {
   let modifiedTemplate = template;
   let offset = 0;
@@ -228,7 +256,7 @@ const traverseTemplate = (ast, template, filePath, fileUuid, config) => {
                   modifiedTemplate.substring(matchEnd);
                 offset += replacement.length - (matchEnd - matchStart);
                 index++;
-                collectChineseText(uuid, match);
+                collectChineseText(uuid, match[0]);
               }
             }
           });
@@ -304,6 +332,10 @@ const traverseTemplate = (ast, template, filePath, fileUuid, config) => {
   return modifiedTemplate;
 };
 
+/**
+ * 扫描中文
+ * @param {string} filePath 文件路径
+ */
 exports.scanChinese = async (filePath) => {
   try {
     const config = getConfig(true);
