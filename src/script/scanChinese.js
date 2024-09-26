@@ -419,7 +419,7 @@ exports.scanChinese = async (filePath) => {
         /import\s+(?:i18n)\s+from\s+['"].*['"]/
       );
       if (!alreadyImported && hasI18nUsageInScript) {
-        modifiedScript = `\n${config.autoImportI18n}` + modifiedScript;
+        modifiedScript = `${config.autoImportI18n}\n` + modifiedScript;
       }
       text = text.replace(script, modifiedScript);
     }
