@@ -276,22 +276,29 @@ exports.scanChinese = async (filePath) => {
                     chineseRegex.test(prop.exp.content)
                   ) {
                     console.log(prop.exp.content, prop);
-                    const start = prop.exp.loc.start.offset + offset;
-                    const end = prop.exp.loc.end.offset + offset;
-                    const uuid = generateUUID(
-                      filePath,
-                      fileUuid,
-                      index,
-                      config
-                    );
-                    const replacementText = `${config.templateI18nCall}('${uuid}')`;
-                    modifiedTemplate =
-                      modifiedTemplate.substring(0, start) +
-                      replacementText +
-                      modifiedTemplate.substring(end);
-                    offset += replacementText.length - (end - start); // 更新偏移量
-                    index++;
-                    collectChineseText(uuid, prop.exp.loc.source);
+                    const content = prop.exp.content;
+                    const start = prop.exp.loc.start.offset;
+                    const chineseRegex = /[\u4e00-\u9fa5]+/g;
+                    let match;
+                    while ((match = chineseRegex.exec(content))) {
+                      const matchStart = start + match.index + offset;
+                      const matchEnd = matchStart + match[0].length;
+                      const uuid = generateUUID(
+                        filePath,
+                        fileUuid,
+                        index,
+                        config
+                      );
+                      const replacement =
+                        "${" + `${config.templateI18nCall}('${uuid}')` + "}";
+                      modifiedTemplate =
+                        modifiedTemplate.substring(0, matchStart) +
+                        replacement +
+                        modifiedTemplate.substring(matchEnd);
+                      offset += replacement.length - (matchEnd - matchStart); // 更新偏移量
+                      index++;
+                      collectChineseText(uuid, match);
+                    }
                   }
                 });
               }
