@@ -12,7 +12,11 @@ const { default: traverse } = require("@babel/traverse");
 // const { default: generate } = require("@babel/generator");
 const { getConfig } = require("./setting.js");
 const { updateDecorations } = require("./switchLanguage.js");
-const { generateUniqueId, saveObjectToPath } = require("../utils/index.js");
+const {
+  generateUniqueId,
+  saveObjectToPath,
+  customLog,
+} = require("../utils/index.js");
 
 let chineseTexts = new Map();
 let index = 0;
@@ -128,7 +132,7 @@ exports.scanChinese = async (filePath) => {
       // 偏移量
       let offset = 0;
       const traverseNode = (node) => {
-        console.log("node", node);
+        customLog(config.debug, "node", node);
         switch (node.type) {
           case 0: // Root Node（根节点）
             if (node.children) {
@@ -139,22 +143,22 @@ exports.scanChinese = async (filePath) => {
           case 1: // Element Node（元素节点）
             if (node.props) {
               node.props.forEach((prop) => {
-                console.log("prop", prop);
+                customLog(config.debug, "prop", prop);
                 // Expression Node（表达式节点）
                 if (prop.type === 1 && prop.content) {
-                  console.log("未适配的prop节点", prop.type);
+                  customLog(config.debug, "未适配的prop节点", prop.type);
                 }
                 // Interpolation Node（插值节点）
                 if (prop.type === 2 && prop.content) {
-                  console.log("未适配的prop节点", prop.type);
+                  customLog(config.debug, "未适配的prop节点", prop.type);
                 }
                 // Text Node（文本节点）
                 if (prop.type === 3 && prop.content) {
-                  console.log("未适配的prop节点", prop.type);
+                  customLog(config.debug, "未适配的prop节点", prop.type);
                 }
                 // Comment Node（注释节点）
                 if (prop.type === 4 && prop.content) {
-                  console.log("未适配的prop节点", prop.type);
+                  customLog(config.debug, "未适配的prop节点", prop.type);
                 }
                 // Attribute Node（属性节点）
                 if (
@@ -185,7 +189,7 @@ exports.scanChinese = async (filePath) => {
                 }
                 // Directive Node（指令节点）
                 if (prop.type === 7 && prop.content) {
-                  console.log("未适配的prop节点", prop.type);
+                  customLog(config.debug, "未适配的prop节点", prop.type);
                 }
               });
             }
@@ -283,7 +287,7 @@ exports.scanChinese = async (filePath) => {
             break;
 
           default:
-            console.log("未适配的node节点", node.type);
+            customLog(config.debug, "未适配的node节点", node.type);
             break;
         }
       };
@@ -309,9 +313,9 @@ exports.scanChinese = async (filePath) => {
       let offset = 0;
       traverse(ast, {
         StringLiteral(path) {
-          console.log("StringLiteral", path);
+          customLog(config.debug, "StringLiteral", path);
           if (chineseRegex.test(path.node.value)) {
-            console.log(path.node.value);
+            customLog(config.debug, path.node.value);
             const uuid = generateUUID(filePath, fileUuid, index, config);
             const start = path.node.loc.start;
             const end = path.node.loc.end;
@@ -350,11 +354,11 @@ exports.scanChinese = async (filePath) => {
           }
         },
         TemplateLiteral(path) {
-          console.log("TemplateLiteral", path);
+          customLog(config.debug, "TemplateLiteral", path);
           path.node.quasis.forEach((quasi) => {
             if (chineseRegex.test(quasi.value.raw)) {
-              console.log("quasi", quasi);
-              console.log(quasi.value.raw);
+              customLog(config.debug, "quasi", quasi);
+              customLog(config.debug, quasi.value.raw);
               const uuid = generateUUID(filePath, fileUuid, index, config);
               const start = quasi.start + offset;
               const end = quasi.end + offset;
@@ -383,10 +387,10 @@ exports.scanChinese = async (filePath) => {
       const alreadyImported = modifiedScript.match(
         /import\s+(?:i18n)\s+from\s+['"].*['"]/
       );
-      if (!alreadyImported && hasI18nUsageInScriptSetup) {
+      if (!alreadyImported && hasI18nUsageInScript) {
         modifiedScript = `\n${config.autoImportI18n}` + modifiedScript;
       }
-      modifiedText = modifiedText.replace(scriptSetup, modifiedScript);
+      modifiedText = modifiedText.replace(script, modifiedScript);
     }
 
     if (
