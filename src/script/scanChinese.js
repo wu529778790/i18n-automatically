@@ -21,6 +21,8 @@ const {
 const chineseRegex = /[\u4e00-\u9fa5]/;
 let chineseTexts = new Map();
 let index = 0;
+let hasI18nUsageInScript = false;
+let hasI18nUsageInScriptSetup = false;
 
 /**
  * 收集中文文本
@@ -143,6 +145,8 @@ const traverseScript = (ast, script, filePath, fileUuid, config) => {
           replacement +
           modifiedScript.substring(endPos);
         offset += replacement.length - (endPos - startPos);
+        hasI18nUsageInScript = true;
+        hasI18nUsageInScriptSetup = true;
         prePath = path;
         index++;
         collectChineseText(uuid, path.node.value);
@@ -161,6 +165,8 @@ const traverseScript = (ast, script, filePath, fileUuid, config) => {
             replacement +
             modifiedScript.substring(end);
           offset += replacement.length - (end - start);
+          hasI18nUsageInScript = true;
+          hasI18nUsageInScriptSetup = true;
           index++;
           collectChineseText(uuid, quasi.value.raw);
         }
@@ -346,8 +352,6 @@ exports.scanChinese = async (filePath) => {
     const fileUuid = generateUniqueId();
     let script;
     let text;
-    let hasI18nUsageInScript = false;
-    let hasI18nUsageInScriptSetup = false;
 
     if (fileExtension === ".vue") {
       text = await readFileContent(filePath);
