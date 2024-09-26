@@ -303,6 +303,7 @@ exports.scanChinese = async (filePath) => {
     const traverseScript = (ast, script) => {
       let modifiedScript = script;
       let prePath;
+      let offset = 0;
       traverse(ast, {
         StringLiteral(path) {
           console.log("StringLiteral", path);
@@ -329,14 +330,15 @@ exports.scanChinese = async (filePath) => {
                 prePath.node.loc.end.line,
                 prePath.node.loc.end.column
               );
-              const offset = replacement.length - (preEndPos - preStartPos);
-              startPos += offset;
-              endPos += offset;
+              const lineOffset = replacement.length - (preEndPos - preStartPos);
+              startPos += lineOffset;
+              endPos += lineOffset;
             }
             modifiedScript =
               modifiedScript.substring(0, startPos) +
               replacement +
               modifiedScript.substring(endPos);
+            offset += replacement.length - (endPos - startPos);
             prePath = path;
             index++;
             collectChineseText(uuid, path.node.value);
@@ -345,18 +347,19 @@ exports.scanChinese = async (filePath) => {
         TemplateLiteral(path) {
           console.log("TemplateLiteral", path);
           path.node.quasis.forEach((quasi) => {
-            console.log("quasi", quasi);
             if (chineseRegex.test(quasi.value.raw)) {
+              console.log("quasi", quasi);
               console.log(quasi.value.raw);
               const uuid = generateUUID(filePath, fileUuid, index, config);
-              const start = quasi.start;
-              const end = quasi.end;
+              const start = quasi.start + offset;
+              const end = quasi.end + offset;
               const replacement =
                 "${" + `${config.scriptI18nCall}('${uuid}')` + "}";
               modifiedScript =
                 modifiedScript.substring(0, start) +
                 replacement +
                 modifiedScript.substring(end);
+              offset += replacement.length - (end - start);
               index++;
               collectChineseText(uuid, quasi.value.raw);
             }
