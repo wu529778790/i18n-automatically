@@ -216,44 +216,27 @@ exports.scanChinese = async (filePath) => {
           case 5: // Interpolation Node（插值节点）
             if (chineseRegex.test(node.loc.source)) {
               let content = node.loc.source;
-              const start = node.loc.start.offset + offset;
-              const end = node.loc.end.offset + offset;
+              const start = node.loc.start.offset;
               // 判断是否有插值表达式
               const hasInterpolation = node.loc.source.includes("{{");
               if (hasInterpolation) {
-                const findChineseMatches = (text) => {
-                  const chineseRegex = /[\u4e00-\u9fa5]+/g;
-                  const matches = [];
-                  let match;
-                  while ((match = chineseRegex.exec(text))) {
-                    matches.push({
-                      match: match[0],
-                      start: match.index,
-                      end: match.index + match[0].length,
-                    });
-                  }
-                  return matches;
-                };
-                const chineseMatches = findChineseMatches(content);
-                chineseMatches.forEach((item) => {
+                const chineseRegex = /[\u4e00-\u9fa5]+/g;
+                let match;
+                while ((match = chineseRegex.exec(content))) {
+                  const matchStart = start + match.index + offset;
+                  const matchEnd = matchStart + match[0].length;
                   const uuid = generateUUID(filePath, fileUuid, index, config);
-                  const replacementText = `${config.templateI18nCall}('${uuid}')`;
-                  // 下面的-1和+1假定了中文外面有字符串
-                  content =
-                    content.substring(0, item.start - 1) +
-                    replacementText +
-                    content.substring(item.end + 1);
-                  offset +=
-                    replacementText.length - (item.end - item.start) - 2; // 更新偏移量
+                  const replacement = `${config.templateI18nCall}('${uuid}')`;
+                  modifiedTemplate =
+                    modifiedTemplate.substring(0, matchStart - 1) +
+                    replacement +
+                    modifiedTemplate.substring(matchEnd + 1);
+                  offset += replacement.length - (matchEnd - matchStart) - 2; // 更新偏移量
                   index++;
-                  collectChineseText(uuid, item.match);
-                });
-
-                const replacementText = content;
-                modifiedTemplate =
-                  modifiedTemplate.substring(0, start) +
-                  replacementText +
-                  modifiedTemplate.substring(end);
+                  collectChineseText(uuid, match);
+                }
+              } else {
+                console.log("没有{{}}", content);
               }
             }
             break;
