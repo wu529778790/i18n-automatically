@@ -145,20 +145,20 @@ exports.scanChinese = async (filePath) => {
               node.props.forEach((prop) => {
                 customLog(config.debug, "prop", prop);
                 // Expression Node（表达式节点）
-                if (prop.type === 1 && prop.content) {
-                  customLog(config.debug, "未适配的prop节点", prop.type);
+                if (prop.type === 1) {
+                  console.log("未适配的prop节点", prop.type, prop);
                 }
                 // Interpolation Node（插值节点）
-                if (prop.type === 2 && prop.content) {
-                  customLog(config.debug, "未适配的prop节点", prop.type);
+                if (prop.type === 2) {
+                  console.log("未适配的prop节点", prop.type, prop);
                 }
                 // Text Node（文本节点）
-                if (prop.type === 3 && prop.content) {
-                  customLog(config.debug, "未适配的prop节点", prop.type);
+                if (prop.type === 3) {
+                  console.log("未适配的prop节点", prop.type, prop);
                 }
                 // Comment Node（注释节点）
-                if (prop.type === 4 && prop.content) {
-                  customLog(config.debug, "未适配的prop节点", prop.type);
+                if (prop.type === 4) {
+                  console.log("未适配的prop节点", prop.type, prop);
                 }
                 // Attribute Node（属性节点）
                 if (
@@ -188,8 +188,23 @@ exports.scanChinese = async (filePath) => {
                   collectChineseText(uuid, prop.value.content);
                 }
                 // Directive Node（指令节点）
-                if (prop.type === 7 && prop.content) {
-                  customLog(config.debug, "未适配的prop节点", prop.type);
+                if (
+                  prop.type === 7 &&
+                  prop.exp &&
+                  chineseRegex.test(prop.exp.content)
+                ) {
+                  console.log(prop.exp.content, prop);
+                  const start = prop.exp.loc.start.offset + offset;
+                  const end = prop.exp.loc.end.offset + offset;
+                  const uuid = generateUUID(filePath, fileUuid, index, config);
+                  const replacementText = `${config.templateI18nCall}('${uuid}')`;
+                  modifiedTemplate =
+                    modifiedTemplate.substring(0, start) +
+                    replacementText +
+                    modifiedTemplate.substring(end);
+                  offset += replacementText.length - (end - start); // 更新偏移量
+                  index++;
+                  collectChineseText(uuid, prop.exp.loc.source);
                 }
               });
             }
