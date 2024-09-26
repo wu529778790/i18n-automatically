@@ -305,7 +305,7 @@ exports.scanChinese = async (filePath) => {
       let prePath;
       traverse(ast, {
         StringLiteral(path) {
-          console.log("path", path);
+          console.log("StringLiteral", path);
           if (chineseRegex.test(path.node.value)) {
             console.log(path.node.value);
             const uuid = generateUUID(filePath, fileUuid, index, config);
@@ -341,6 +341,26 @@ exports.scanChinese = async (filePath) => {
             index++;
             collectChineseText(uuid, path.node.value);
           }
+        },
+        TemplateLiteral(path) {
+          console.log("TemplateLiteral", path);
+          path.node.quasis.forEach((quasi) => {
+            console.log("quasi", quasi);
+            if (chineseRegex.test(quasi.value.raw)) {
+              console.log(quasi.value.raw);
+              const uuid = generateUUID(filePath, fileUuid, index, config);
+              const start = quasi.start;
+              const end = quasi.end;
+              const replacement =
+                "${" + `${config.scriptI18nCall}('${uuid}')` + "}";
+              modifiedScript =
+                modifiedScript.substring(0, start) +
+                replacement +
+                modifiedScript.substring(end);
+              index++;
+              collectChineseText(uuid, quasi.value.raw);
+            }
+          });
         },
       });
 
