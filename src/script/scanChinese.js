@@ -302,6 +302,7 @@ exports.scanChinese = async (filePath) => {
     // 遍历脚本AST并修改中文文本
     const traverseScript = (ast, script) => {
       let modifiedScript = script;
+      let prePath;
       traverse(ast, {
         StringLiteral(path) {
           console.log("path", path);
@@ -310,17 +311,33 @@ exports.scanChinese = async (filePath) => {
             const uuid = generateUUID(filePath, fileUuid, index, config);
             const start = path.node.loc.start;
             const end = path.node.loc.end;
-            const startPos = getPosition(
+            let startPos = getPosition(
               modifiedScript,
               start.line,
               start.column
             );
-            const endPos = getPosition(modifiedScript, end.line, end.column);
+            let endPos = getPosition(modifiedScript, end.line, end.column);
             const replacement = `${config.scriptI18nCall}('${uuid}')`;
+            if (prePath && prePath.node.loc.start.line === start.line) {
+              const preStartPos = getPosition(
+                modifiedScript,
+                prePath.node.loc.start.line,
+                prePath.node.loc.start.column
+              );
+              const preEndPos = getPosition(
+                modifiedScript,
+                prePath.node.loc.end.line,
+                prePath.node.loc.end.column
+              );
+              const offset = replacement.length - (preEndPos - preStartPos);
+              startPos += offset;
+              endPos += offset;
+            }
             modifiedScript =
               modifiedScript.substring(0, startPos) +
               replacement +
               modifiedScript.substring(endPos);
+            prePath = path;
             index++;
             collectChineseText(uuid, path.node.value);
           }
