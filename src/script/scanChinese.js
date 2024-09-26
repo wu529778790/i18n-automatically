@@ -17,17 +17,24 @@ const {
   saveObjectToPath,
   customLog,
 } = require('../utils/index.js');
-const { handlerJsFile } = require('./scanByBabel.js');
+const chineseRegex = /[\u4e00-\u9fa5]/;
 let chineseTexts = new Map();
 let index = 0;
+let hasI18nUsageInScript = false;
+let hasI18nUsageInScriptSetup = false;
 
-const collectChineseText = (uuid, content) => {
+/**
+ * 收集中文文本
+ * @param {string} fileUuid 文件 UUID
+ * @param {string} content 文件内容
+ */
+const collectChineseText = (fileUuid, content) => {
   if (typeof content !== 'string') {
     return;
   }
   content = content.trim();
-  if (content && !chineseTexts.has(uuid)) {
-    chineseTexts.set(uuid, content);
+  if (content && !chineseTexts.has(fileUuid)) {
+    chineseTexts.set(fileUuid, content);
   }
 };
 
@@ -79,381 +86,352 @@ const generateUUID = (filePath, fileUuid, index, config) => {
   return `${selectedLevels}-${fileUuid}-${index}`;
 };
 
+/**
+ * 获取位置
+ * @param {string} code 代码
+ * @param {number} line 行号
+ * @param {number} column 列号
+ * @returns {object}
+ */
 const getPosition = (code, line, column) => {
   const lines = code.split('\n');
   let position = 0;
   for (let i = 0; i < line - 1; i++) {
-    position += lines[i].length + 1; // +1 for newline character
+    position += lines[i].length + 1;
   }
   position += column;
   return position;
 };
 
 /**
+ * 遍历脚本
+ * @param {object} ast 抽象语法树
+ * @param {string} script 脚本内容
+ * @param {string} filePath 文件路径
+ * @param {string} fileUuid 文件 UUID
+ * @param {object} config 配置
+ */
+const traverseScript = (ast, script, filePath, fileUuid, config) => {
+  let modifiedScript = script;
+  let prePath;
+  let offset = 0;
+  traverse(ast, {
+    StringLiteral(path) {
+      if (chineseRegex.test(path.node.value)) {
+        const uuid = generateUUID(filePath, fileUuid, index, config);
+        const start = path.node.loc.start;
+        const end = path.node.loc.end;
+        let startPos = getPosition(modifiedScript, start.line, start.column);
+        let endPos = getPosition(modifiedScript, end.line, end.column);
+        const replacement = `${config.scriptI18nCall}('${uuid}')`;
+        if (prePath && prePath.node.loc.start.line === start.line) {
+          const preStartPos = getPosition(
+            modifiedScript,
+            prePath.node.loc.start.line,
+            prePath.node.loc.start.column,
+          );
+          const preEndPos = getPosition(
+            modifiedScript,
+            prePath.node.loc.end.line,
+            prePath.node.loc.end.column,
+          );
+          const lineOffset = replacement.length - (preEndPos - preStartPos);
+          startPos += lineOffset;
+          endPos += lineOffset;
+        }
+        modifiedScript =
+          modifiedScript.substring(0, startPos) +
+          replacement +
+          modifiedScript.substring(endPos);
+        offset += replacement.length - (endPos - startPos);
+        hasI18nUsageInScript = true;
+        hasI18nUsageInScriptSetup = true;
+        prePath = path;
+        index++;
+        collectChineseText(uuid, path.node.value);
+      }
+    },
+    TemplateLiteral(path) {
+      path.node.quasis.forEach((quasi) => {
+        if (chineseRegex.test(quasi.value.raw)) {
+          const uuid = generateUUID(filePath, fileUuid, index, config);
+          const start = quasi.start + offset;
+          const end = quasi.end + offset;
+          const replacement =
+            '${' + `${config.scriptI18nCall}('${uuid}')` + '}';
+          modifiedScript =
+            modifiedScript.substring(0, start) +
+            replacement +
+            modifiedScript.substring(end);
+          offset += replacement.length - (end - start);
+          hasI18nUsageInScript = true;
+          hasI18nUsageInScriptSetup = true;
+          index++;
+          collectChineseText(uuid, quasi.value.raw);
+        }
+      });
+    },
+  });
+  return modifiedScript;
+};
+
+/**
+ * 遍历模板
+ * @param {object} ast 抽象语法树
+ * @param {string} template 模板内容
+ * @param {string} filePath 文件路径
+ * @param {string} fileUuid 文件 UUID
+ * @param {object} config 配置
+ */
+const traverseTemplate = (ast, template, filePath, fileUuid, config) => {
+  let modifiedTemplate = template;
+  let offset = 0;
+  const traverseNode = (node) => {
+    switch (node.type) {
+      case 0: // Root Node（根节点）
+      case 8: // Slot Node（插槽节点）
+      case 10: // For Node（循环节点）
+        if (node.children) {
+          node.children.forEach(traverseNode);
+        }
+        break;
+      case 1: // Element Node（元素节点）
+        if (node.props) {
+          node.props.forEach((prop) => {
+            // Expression Node（表达式节点）
+            if (prop.type === 1) {
+              console.log('未适配的prop节点', prop.type, prop);
+            }
+            // Interpolation Node（插值节点）
+            if (prop.type === 2) {
+              console.log('未适配的prop节点', prop.type, prop);
+            }
+            // Text Node（文本节点）
+            if (prop.type === 3) {
+              console.log('未适配的prop节点', prop.type, prop);
+            }
+            // Comment Node（注释节点）
+            if (prop.type === 4) {
+              console.log('未适配的prop节点', prop.type, prop);
+            }
+            // Attribute Node（属性节点）
+            if (
+              prop.type === 6 &&
+              prop.value &&
+              prop.value.content &&
+              chineseRegex.test(prop.value.content)
+            ) {
+              const nameStart = prop.loc.start.offset + offset;
+              modifiedTemplate =
+                modifiedTemplate.substring(0, nameStart) +
+                ':' +
+                modifiedTemplate.substring(nameStart);
+              offset++;
+              const uuid = generateUUID(filePath, fileUuid, index, config);
+              const start = prop.value.loc.start.offset + offset;
+              const end = prop.value.loc.end.offset + offset;
+              const replacementText = `"${config.templateI18nCall}('${uuid}')"`;
+              modifiedTemplate =
+                modifiedTemplate.substring(0, start) +
+                replacementText +
+                modifiedTemplate.substring(end);
+              offset += replacementText.length - (end - start);
+              index++;
+              collectChineseText(uuid, prop.value.content);
+            }
+            // Directive Node（指令节点）
+            if (
+              prop.type === 7 &&
+              prop.exp &&
+              chineseRegex.test(prop.exp.content)
+            ) {
+              const content = prop.exp.content;
+              const start = prop.exp.loc.start.offset;
+              const chineseRegex = /[\u4e00-\u9fa5]+/g;
+              let match;
+              while ((match = chineseRegex.exec(content))) {
+                const matchStart = start + match.index + offset;
+                const matchEnd = matchStart + match[0].length;
+                const uuid = generateUUID(filePath, fileUuid, index, config);
+                const replacement =
+                  '${' + `${config.templateI18nCall}('${uuid}')` + '}';
+                modifiedTemplate =
+                  modifiedTemplate.substring(0, matchStart) +
+                  replacement +
+                  modifiedTemplate.substring(matchEnd);
+                offset += replacement.length - (matchEnd - matchStart);
+                index++;
+                collectChineseText(uuid, match[0]);
+              }
+            }
+          });
+        }
+        if (node.children) node.children.forEach(traverseNode);
+        break;
+      case 2:
+        if (chineseRegex.test(node.content)) {
+          const uuid = generateUUID(filePath, fileUuid, index, config);
+          const start = node.loc.start.offset + offset;
+          const end = node.loc.end.offset + offset;
+          const replacementText = `{{ ${config.templateI18nCall}('${uuid}') }}`;
+          modifiedTemplate =
+            modifiedTemplate.substring(0, start) +
+            replacementText +
+            modifiedTemplate.substring(end);
+          offset += replacementText.length - (end - start);
+          index++;
+          collectChineseText(uuid, node.content);
+        }
+        break;
+      case 5: // Interpolation Node（插值节点）
+        if (chineseRegex.test(node.loc.source)) {
+          let content = node.loc.source;
+          const start = node.loc.start.offset;
+          // 判断是否有插值表达式
+          const hasInterpolation = node.loc.source.includes('{{');
+          if (hasInterpolation) {
+            const chineseRegex = /[\u4e00-\u9fa5]+/g;
+            let match;
+            while ((match = chineseRegex.exec(content))) {
+              const matchStart = start + match.index + offset;
+              const matchEnd = matchStart + match[0].length;
+              const uuid = generateUUID(filePath, fileUuid, index, config);
+              const replacement = `${config.templateI18nCall}('${uuid}')`;
+              modifiedTemplate =
+                modifiedTemplate.substring(0, matchStart - 1) +
+                replacement +
+                modifiedTemplate.substring(matchEnd + 1);
+              offset += replacement.length - (matchEnd - matchStart) - 2; // 更新偏移量
+              index++;
+              collectChineseText(uuid, match[0]);
+            }
+          } else {
+            console.log('没有{{}}', content);
+          }
+        }
+        break;
+      case 12: // Interpolation Node（插值节点）
+        if (chineseRegex.test(node.loc.source)) {
+          const uuid = generateUUID(filePath, fileUuid, index, config);
+          const start = node.loc.start.offset + offset;
+          const end = node.loc.end.offset + offset;
+          const replacementText = `{{ ${config.templateI18nCall}('${uuid}') }}`;
+          modifiedTemplate =
+            modifiedTemplate.substring(0, start) +
+            replacementText +
+            modifiedTemplate.substring(end);
+          offset += replacementText.length - (end - start);
+          index++;
+          collectChineseText(uuid, node.loc.source);
+        }
+        break;
+      case 9:
+        if (node.branches) node.branches.forEach(traverseNode);
+        break;
+      default:
+        customLog(config.debug, '未适配的node节点', node.type);
+        break;
+    }
+  };
+  traverseNode(ast);
+  return modifiedTemplate;
+};
+
+/**
  * 扫描中文
- * @returns {Promise<void>}
+ * @param {string} filePath 文件路径
  */
 exports.scanChinese = async (filePath) => {
   try {
-    // 读取配置文件
     const config = getConfig(true);
     const currentFilePath = vscode.window.activeTextEditor.document.uri.fsPath;
-    let modifiedText;
-    // 如果 filePath 不存在，那么获取当前操作文件的路径
     filePath = filePath || currentFilePath;
     const fileExtension = path.extname(filePath);
-    // 生成文件的唯一标识
+    if (config.excludedExtensions.includes(fileExtension)) return;
     const fileUuid = generateUniqueId();
+    let script;
+    let text;
 
-    if (['.js', '.ts'].includes(fileExtension)) {
-      const { isChanged, translations, code } = handlerJsFile(
-        filePath,
-        fileUuid,
-        config,
-        generateUUID,
-      );
-      if (isChanged) {
-        modifiedText = code;
-        chineseTexts = translations;
-      } else {
-        modifiedText = null;
-      }
-    } else {
-      const text = await readFileContent(filePath);
-
-      //vue 解析
+    if (fileExtension === '.vue') {
+      text = await readFileContent(filePath);
       const { descriptor } = parseSfc(text);
-      modifiedText = text;
-      const chineseRegex = /[\u4e00-\u9fa5]/;
-      // 解析 Vue 文件
       const template = descriptor.template ? descriptor.template.content : '';
-      const script = descriptor.script ? descriptor.script.content : '';
+      script = descriptor.script ? descriptor.script.content : '';
       const scriptSetup = descriptor.scriptSetup
         ? descriptor.scriptSetup.content
         : '';
-      // 解析模板
       const templateAst = parseTemplate(template);
-
-      // 解析脚本部分
-      const scriptAst = babelParse(script, {
-        sourceType: 'module',
-        plugins: ['jsx', 'typescript'],
-      });
-
       const scriptSetupAst = babelParse(scriptSetup, {
         sourceType: 'module',
         plugins: ['jsx', 'typescript'],
       });
 
-      const traverseTemplate = (ast, template) => {
-        let modifiedTemplate = template;
-        // 偏移量
-        let offset = 0;
-        const traverseNode = (node) => {
-          customLog(config.debug, 'node', node);
-          switch (node.type) {
-            case 0: // Root Node（根节点）
-              if (node.children) {
-                node.children.forEach(traverseNode);
-              }
-              break;
-
-            case 1: // Element Node（元素节点）
-              if (node.props) {
-                node.props.forEach((prop) => {
-                  customLog(config.debug, 'prop', prop);
-                  // Expression Node（表达式节点）
-                  if (prop.type === 1 && prop.content) {
-                    customLog(config.debug, '未适配的prop节点', prop.type);
-                  }
-                  // Interpolation Node（插值节点）
-                  if (prop.type === 2 && prop.content) {
-                    customLog(config.debug, '未适配的prop节点', prop.type);
-                  }
-                  // Text Node（文本节点）
-                  if (prop.type === 3 && prop.content) {
-                    customLog(config.debug, '未适配的prop节点', prop.type);
-                  }
-                  // Comment Node（注释节点）
-                  if (prop.type === 4 && prop.content) {
-                    customLog(config.debug, '未适配的prop节点', prop.type);
-                  }
-                  // Attribute Node（属性节点）
-                  if (
-                    prop.type === 6 &&
-                    prop.value &&
-                    prop.value.content &&
-                    chineseRegex.test(prop.value.content)
-                  ) {
-                    // name
-                    const nameStart = prop.loc.start.offset + offset;
-                    modifiedTemplate =
-                      modifiedTemplate.substring(0, nameStart) +
-                      ':' +
-                      modifiedTemplate.substring(nameStart);
-                    offset++;
-                    // 属性值
-                    const uuid = generateUUID(
-                      filePath,
-                      fileUuid,
-                      index,
-                      config,
-                    );
-                    const start = prop.value.loc.start.offset + offset;
-                    const end = prop.value.loc.end.offset + offset;
-                    const replacementText = `"${config.templateI18nCall}('${uuid}')"`;
-                    modifiedTemplate =
-                      modifiedTemplate.substring(0, start) +
-                      replacementText +
-                      modifiedTemplate.substring(end);
-                    offset += replacementText.length - (end - start); // 更新偏移量
-                    index++;
-                    collectChineseText(uuid, prop.value.content);
-                  }
-                  // Directive Node（指令节点）
-                  if (prop.type === 7 && prop.content) {
-                    customLog(config.debug, '未适配的prop节点', prop.type);
-                  }
-                });
-              }
-              if (node.children) {
-                node.children.forEach(traverseNode);
-              }
-              break;
-
-            case 2: // Text Node（文本节点）
-              if (chineseRegex.test(node.content)) {
-                const uuid = generateUUID(filePath, fileUuid, index, config);
-                const start = node.loc.start.offset + offset;
-                const end = node.loc.end.offset + offset;
-                const replacementText = `{{ ${config.templateI18nCall}('${uuid}') }}`;
-                modifiedTemplate =
-                  modifiedTemplate.substring(0, start) +
-                  replacementText +
-                  modifiedTemplate.substring(end);
-                offset += replacementText.length - (end - start); // 更新偏移量
-                index++;
-                collectChineseText(uuid, node.content);
-              }
-              break;
-            case 5: // Interpolation Node（插值节点）
-              if (chineseRegex.test(node.loc.source)) {
-                let content = node.loc.source;
-                const start = node.loc.start.offset + offset;
-                const end = node.loc.end.offset + offset;
-                // 判断是否有插值表达式
-                const hasInterpolation = node.loc.source.includes('{{');
-                if (hasInterpolation) {
-                  const findChineseMatches = (text) => {
-                    const chineseRegex = /[\u4e00-\u9fa5]+/g;
-                    const matches = [];
-                    let match;
-                    while ((match = chineseRegex.exec(text))) {
-                      matches.push({
-                        match: match[0],
-                        start: match.index,
-                        end: match.index + match[0].length,
-                      });
-                    }
-                    return matches;
-                  };
-                  const chineseMatches = findChineseMatches(content);
-                  chineseMatches.forEach((item) => {
-                    const uuid = generateUUID(
-                      filePath,
-                      fileUuid,
-                      index,
-                      config,
-                    );
-                    const replacementText = `${config.templateI18nCall}('${uuid}')`;
-                    // 下面的-1和+1假定了中文外面有字符串
-                    content =
-                      content.substring(0, item.start - 1) +
-                      replacementText +
-                      content.substring(item.end + 1);
-                    offset +=
-                      replacementText.length - (item.end - item.start) - 2; // 更新偏移量
-                    index++;
-                    collectChineseText(uuid, item.match);
-                  });
-
-                  const replacementText = content;
-                  modifiedTemplate =
-                    modifiedTemplate.substring(0, start) +
-                    replacementText +
-                    modifiedTemplate.substring(end);
-                }
-              }
-              break;
-            case 12: // Interpolation Node（插值节点）
-              if (chineseRegex.test(node.loc.source)) {
-                const uuid = generateUUID(filePath, fileUuid, index, config);
-                const start = node.loc.start.offset + offset;
-                const end = node.loc.end.offset + offset;
-                const replacementText = `{{ ${config.templateI18nCall}('${uuid}') }}`;
-                modifiedTemplate =
-                  modifiedTemplate.substring(0, start) +
-                  replacementText +
-                  modifiedTemplate.substring(end);
-                offset += replacementText.length - (end - start); // 更新偏移量
-                index++;
-                collectChineseText(uuid, node.loc.source);
-              }
-              break;
-
-            case 8: // Slot Node（插槽节点）
-            case 10: // For Node（循环节点）
-              if (node.children) {
-                node.children.forEach(traverseNode);
-              }
-              break;
-
-            case 9: // If Node（条件节点）
-              if (node.branches) {
-                node.branches.forEach(traverseNode);
-              }
-              break;
-
-            default:
-              customLog(config.debug, '未适配的node节点', node.type);
-              break;
-          }
-        };
-
-        traverseNode(ast);
-
-        return modifiedTemplate;
-      };
-
-      // 遍历 AST 并生成修改后的模板字符串
       if (templateAst) {
-        const modifiedTemplate = traverseTemplate(templateAst, template);
-        modifiedText = modifiedText.replace(template, modifiedTemplate);
-      }
-
-      let hasI18nUsageInScript = false;
-      let hasI18nUsageInScriptSetup = false;
-
-      // 遍历脚本AST并修改中文文本
-      const traverseScript = (ast, script) => {
-        let modifiedScript = script;
-        let prePath;
-        let offset = 0;
-        traverse(ast, {
-          StringLiteral(path) {
-            customLog(config.debug, 'StringLiteral', path);
-            if (chineseRegex.test(path.node.value)) {
-              customLog(config.debug, path.node.value);
-              const uuid = generateUUID(filePath, fileUuid, index, config);
-              const start = path.node.loc.start;
-              const end = path.node.loc.end;
-              let startPos = getPosition(
-                modifiedScript,
-                start.line,
-                start.column,
-              );
-              let endPos = getPosition(modifiedScript, end.line, end.column);
-              const replacement = `${config.scriptI18nCall}('${uuid}')`;
-              if (prePath && prePath.node.loc.start.line === start.line) {
-                const preStartPos = getPosition(
-                  modifiedScript,
-                  prePath.node.loc.start.line,
-                  prePath.node.loc.start.column,
-                );
-                const preEndPos = getPosition(
-                  modifiedScript,
-                  prePath.node.loc.end.line,
-                  prePath.node.loc.end.column,
-                );
-                const lineOffset =
-                  replacement.length - (preEndPos - preStartPos);
-                startPos += lineOffset;
-                endPos += lineOffset;
-              }
-              modifiedScript =
-                modifiedScript.substring(0, startPos) +
-                replacement +
-                modifiedScript.substring(endPos);
-              offset += replacement.length - (endPos - startPos);
-              hasI18nUsageInScriptSetup = true;
-              hasI18nUsageInScript = true;
-              prePath = path;
-              index++;
-              collectChineseText(uuid, path.node.value);
-            }
-          },
-          TemplateLiteral(path) {
-            customLog(config.debug, 'TemplateLiteral', path);
-            path.node.quasis.forEach((quasi) => {
-              if (chineseRegex.test(quasi.value.raw)) {
-                customLog(config.debug, 'quasi', quasi);
-                customLog(config.debug, quasi.value.raw);
-                const uuid = generateUUID(filePath, fileUuid, index, config);
-                const start = quasi.start + offset;
-                const end = quasi.end + offset;
-                const replacement =
-                  '${' + `${config.scriptI18nCall}('${uuid}')` + '}';
-                modifiedScript =
-                  modifiedScript.substring(0, start) +
-                  replacement +
-                  modifiedScript.substring(end);
-                offset += replacement.length - (end - start);
-                hasI18nUsageInScriptSetup = true;
-                hasI18nUsageInScript = true;
-                index++;
-                collectChineseText(uuid, quasi.value.raw);
-              }
-            });
-          },
-        });
-
-        return modifiedScript;
-      };
-
-      if (scriptAst && scriptAst.program && scriptAst.program.body.length > 0) {
-        let modifiedScript = traverseScript(scriptAst, script);
-        // 如果在 script 标签中没有找到 i18n 引用，并且有 i18n 的用法，就插入到引入 i18n 的语句
-        const alreadyImported = modifiedScript.match(
-          /import\s+(?:i18n)\s+from\s+['"].*['"]/,
+        const modifiedTemplate = traverseTemplate(
+          templateAst,
+          template,
+          filePath,
+          fileUuid,
+          config,
         );
-        if (!alreadyImported && hasI18nUsageInScript) {
-          modifiedScript = `\n${config.autoImportI18n}` + modifiedScript;
-        }
-        modifiedText = modifiedText.replace(script, modifiedScript);
+        text = text.replace(template, modifiedTemplate);
       }
-
       if (
         scriptSetupAst &&
         scriptSetupAst.program &&
         scriptSetupAst.program.body.length > 0
       ) {
-        let modifiedScript = traverseScript(scriptSetupAst, scriptSetup);
-        // 如果在 script 标签中没有找到 i18n 引用，并且有 i18n 的用法，就插入到引入 i18n 的语句
+        let modifiedScript = traverseScript(
+          scriptSetupAst,
+          scriptSetup,
+          filePath,
+          fileUuid,
+          config,
+        );
         const alreadyImported = modifiedScript.match(
           /import\s+(?:i18n)\s+from\s+['"].*['"]/,
         );
         if (!alreadyImported && hasI18nUsageInScriptSetup) {
           modifiedScript = `\n${config.autoImportI18n}` + modifiedScript;
         }
-        modifiedText = modifiedText.replace(scriptSetup, modifiedScript);
+        text = text.replace(scriptSetup, modifiedScript);
       }
+    } else {
+      text = await readFileContent(filePath);
+      script = text;
     }
 
-    if (modifiedText) {
-      // 保存文件
-      await saveFileContent(filePath, modifiedText);
-      // 保存语言包
-      const obj = Object.fromEntries(chineseTexts);
-      await saveObjectToPath(obj, `${config.i18nFilePath}/locale/zh.json`);
+    const scriptAst = babelParse(script, {
+      sourceType: 'module',
+      plugins: ['jsx', 'typescript'],
+    });
+
+    if (scriptAst && scriptAst.program && scriptAst.program.body.length > 0) {
+      let modifiedScript = traverseScript(
+        scriptAst,
+        script,
+        filePath,
+        fileUuid,
+        config,
+      );
+      const alreadyImported = modifiedScript.match(
+        /import\s+(?:i18n)\s+from\s+['"].*['"]/,
+      );
+      if (!alreadyImported && hasI18nUsageInScript) {
+        modifiedScript = `\n${config.autoImportI18n}` + modifiedScript;
+      }
+      text = text.replace(script, modifiedScript);
     }
 
-    // 如果是当前文件，更新装饰器
+    await saveFileContent(filePath, text);
+    const obj = Object.fromEntries(chineseTexts);
+    await saveObjectToPath(obj, `${config.i18nFilePath}/locale/zh.json`);
+
     if (filePath === currentFilePath) {
       setTimeout(() => {
         updateDecorations();
       }, 300);
     }
-    // 重置索引和状态
     index = 0;
     chineseTexts = new Map();
   } catch (error) {
