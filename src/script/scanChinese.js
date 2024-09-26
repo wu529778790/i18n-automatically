@@ -299,6 +299,9 @@ exports.scanChinese = async (filePath) => {
       modifiedText = modifiedText.replace(template, modifiedTemplate);
     }
 
+    let hasI18nUsageInScript = false;
+    let hasI18nUsageInScriptSetup = false;
+
     // 遍历脚本AST并修改中文文本
     const traverseScript = (ast, script) => {
       let modifiedScript = script;
@@ -339,6 +342,8 @@ exports.scanChinese = async (filePath) => {
               replacement +
               modifiedScript.substring(endPos);
             offset += replacement.length - (endPos - startPos);
+            hasI18nUsageInScriptSetup = true;
+            hasI18nUsageInScript = true;
             prePath = path;
             index++;
             collectChineseText(uuid, path.node.value);
@@ -360,6 +365,8 @@ exports.scanChinese = async (filePath) => {
                 replacement +
                 modifiedScript.substring(end);
               offset += replacement.length - (end - start);
+              hasI18nUsageInScriptSetup = true;
+              hasI18nUsageInScript = true;
               index++;
               collectChineseText(uuid, quasi.value.raw);
             }
@@ -371,7 +378,14 @@ exports.scanChinese = async (filePath) => {
     };
 
     if (scriptAst && scriptAst.program && scriptAst.program.body.length > 0) {
-      const modifiedScript = traverseScript(scriptAst, script);
+      let modifiedScript = traverseScript(scriptAst, script);
+      // 如果在 script 标签中没有找到 i18n 引用，并且有 i18n 的用法，就插入到引入 i18n 的语句
+      const alreadyImported = modifiedScript.match(
+        /import\s+(?:i18n)\s+from\s+['"].*['"]/
+      );
+      if (!alreadyImported && hasI18nUsageInScriptSetup) {
+        modifiedScript = `\n${config.autoImportI18n}` + modifiedScript;
+      }
       modifiedText = modifiedText.replace(scriptSetup, modifiedScript);
     }
 
@@ -380,7 +394,14 @@ exports.scanChinese = async (filePath) => {
       scriptSetupAst.program &&
       scriptSetupAst.program.body.length > 0
     ) {
-      const modifiedScript = traverseScript(scriptSetupAst, scriptSetup);
+      let modifiedScript = traverseScript(scriptSetupAst, scriptSetup);
+      // 如果在 script 标签中没有找到 i18n 引用，并且有 i18n 的用法，就插入到引入 i18n 的语句
+      const alreadyImported = modifiedScript.match(
+        /import\s+(?:i18n)\s+from\s+['"].*['"]/
+      );
+      if (!alreadyImported && hasI18nUsageInScriptSetup) {
+        modifiedScript = `\n${config.autoImportI18n}` + modifiedScript;
+      }
       modifiedText = modifiedText.replace(scriptSetup, modifiedScript);
     }
 
