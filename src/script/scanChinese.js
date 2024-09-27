@@ -342,7 +342,7 @@ const traverseTemplate = (ast, template, filePath, fileUuid, config) => {
  * 扫描中文
  * @param {string} filePath 文件路径
  */
-exports.scanChinese = async (filePath) => {
+exports.scanChinese = async (filePath = undefined) => {
   try {
     const config = getConfig(true);
     const currentFilePath = vscode.window.activeTextEditor.document.uri.fsPath;
@@ -426,7 +426,9 @@ exports.scanChinese = async (filePath) => {
 
     await saveFileContent(filePath, text);
     const obj = Object.fromEntries(chineseTexts);
-    await saveObjectToPath(obj, `${config.i18nFilePath}/locale/zh.json`);
+    if (Object.keys(obj).length > 0) {
+      await saveObjectToPath(obj, `${config.i18nFilePath}/locale/zh.json`);
+    }
 
     if (filePath === currentFilePath) {
       setTimeout(() => {
