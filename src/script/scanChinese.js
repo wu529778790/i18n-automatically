@@ -291,20 +291,52 @@ const traverseTemplate = (ast, template, filePath, fileUuid, config) => {
           // 判断是否有插值表达式
           const hasInterpolation = node.loc.source.includes("{{");
           if (hasInterpolation) {
-            const chineseRegex = /[\u4e00-\u9fa5]+/g;
-            let match;
-            while ((match = chineseRegex.exec(content))) {
-              const matchStart = start + match.index + offset;
-              const matchEnd = matchStart + match[0].length;
-              const uuid = generateUUID(filePath, fileUuid, index, config);
-              const replacement = `${config.templateI18nCall}('${uuid}')`;
-              modifiedTemplate =
-                modifiedTemplate.substring(0, matchStart - 1) +
-                replacement +
-                modifiedTemplate.substring(matchEnd + 1);
-              offset += replacement.length - (matchEnd - matchStart) - 2; // 更新偏移量
-              index++;
-              collectChineseText(uuid, match[0]);
+            // 判断是否有`
+            const hasPoint = node.loc.source.includes("`");
+            if (hasPoint) {
+              const chineseRegex = /[\u4e00-\u9fa5]+/g;
+              let match;
+              while ((match = chineseRegex.exec(content))) {
+                const matchStart = start + match.index + offset;
+                const matchEnd = matchStart + match[0].length;
+                const uuid = generateUUID(filePath, fileUuid, index, config);
+                const replacement =
+                  "${" + `${config.templateI18nCall}('${uuid}')` + "}";
+                modifiedTemplate =
+                  modifiedTemplate.substring(0, matchStart) +
+                  replacement +
+                  modifiedTemplate.substring(matchEnd);
+                offset += replacement.length - (matchEnd - matchStart); // 更新偏移量
+                index++;
+                collectChineseText(uuid, match[0]);
+              }
+            } else {
+              const chineseRegex = /[\u4e00-\u9fa5]+/g;
+              let match;
+              while ((match = chineseRegex.exec(content))) {
+                console.log("match", match);
+                let matchStart = start + match.index + offset;
+                let matchEnd = matchStart + match[0].length;
+                // 判断match前后是不是引号
+                if (
+                  (modifiedTemplate[matchStart - 1] === "'" &&
+                    modifiedTemplate[matchEnd + 1] === "'") ||
+                  (modifiedTemplate[matchStart - 1] === '"' &&
+                    modifiedTemplate[matchEnd + 1] === '"')
+                ) {
+                  matchStart = matchStart - 1;
+                  matchEnd = matchEnd + 1;
+                }
+                const uuid = generateUUID(filePath, fileUuid, index, config);
+                const replacement = `${config.templateI18nCall}('${uuid}')`;
+                modifiedTemplate =
+                  modifiedTemplate.substring(0, matchStart) +
+                  replacement +
+                  modifiedTemplate.substring(matchEnd);
+                offset += replacement.length - (matchEnd - matchStart); // 更新偏移量
+                index++;
+                collectChineseText(uuid, match[0]);
+              }
             }
           } else {
             console.log("没有{{}}", content);
