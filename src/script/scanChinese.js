@@ -379,8 +379,11 @@ exports.scanChinese = async (filePath = undefined) => {
   hasI18nUsageInScriptSetup = false;
   try {
     const config = getConfig(true);
-    const currentFilePath = vscode.window.activeTextEditor.document.uri.fsPath;
-    filePath = filePath || currentFilePath;
+    let currentFilePath;
+    if (!filePath) {
+      currentFilePath = vscode.window.activeTextEditor.document.uri.fsPath;
+      filePath = currentFilePath;
+    }
     const fileExtension = path.extname(filePath);
     if (config.excludedExtensions.includes(fileExtension)) return;
     const fileUuid = generateUniqueId();
