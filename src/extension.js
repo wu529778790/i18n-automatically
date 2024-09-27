@@ -13,10 +13,10 @@ const {
  * @param {vscode.ExtensionContext} context
  */
 exports.activate = (context) => {
-  // 更新装饰器
-  setTimeout(() => {
-    updateDecorations();
-  }, 300);
+  // // 更新装饰器
+  // setTimeout(() => {
+  //   updateDecorations();
+  // }, 300);
 
   // 当编辑器中的选择发生变化时，更新装饰器
   vscode.window.onDidChangeVisibleTextEditors(() => {
