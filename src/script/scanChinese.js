@@ -354,6 +354,7 @@ exports.scanChinese = async (filePath = undefined) => {
     const fileUuid = generateUniqueId();
     let script;
     let text;
+    let autoImportI18n;
 
     if (fileExtension === ".vue") {
       text = await readFileContent(filePath);
@@ -379,6 +380,7 @@ exports.scanChinese = async (filePath = undefined) => {
         );
         text = text.replace(template, modifiedTemplate);
       }
+      // script setup标签的
       if (
         scriptSetupAst &&
         scriptSetupAst.program &&
@@ -395,11 +397,18 @@ exports.scanChinese = async (filePath = undefined) => {
           /import\s+(?:i18n)\s+from\s+['"].*['"]/
         );
         if (!alreadyImported && hasI18nUsageInScriptSetup) {
-          modifiedScript = `\n${config.autoImportI18n}` + modifiedScript;
+          autoImportI18n = `\n${config.autoImportI18n}`;
+          modifiedScript = autoImportI18n + modifiedScript;
         }
         text = text.replace(scriptSetup, modifiedScript);
       }
+      // script标签的
+      if (script) {
+        autoImportI18n = `\n${config.autoImportI18n}`;
+      }
     } else {
+      // 纯js
+      autoImportI18n = `${config.autoImportI18n}\n`;
       text = await readFileContent(filePath);
       script = text;
     }
@@ -421,7 +430,7 @@ exports.scanChinese = async (filePath = undefined) => {
         /import\s+(?:i18n)\s+from\s+['"].*['"]/
       );
       if (!alreadyImported && hasI18nUsageInScript) {
-        modifiedScript = `${config.autoImportI18n}\n` + modifiedScript;
+        modifiedScript = autoImportI18n + modifiedScript;
       }
       text = text.replace(script, modifiedScript);
     }
