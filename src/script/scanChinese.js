@@ -1,23 +1,22 @@
-const vscode = require("vscode");
-const fs = require("fs");
-const path = require("path");
-const { parse: parseSfc } = require("@vue/compiler-sfc");
+const vscode = require('vscode');
+const fs = require('fs');
+const path = require('path');
+const { parse: parseSfc } = require('@vue/compiler-sfc');
 const {
   parse: parseTemplate,
   // compile: compileDom,
   // generate: generateDom,
-} = require("@vue/compiler-dom");
-const { parse: babelParse } = require("@babel/parser");
-const { default: traverse } = require("@babel/traverse");
+} = require('@vue/compiler-dom');
+const { parse: babelParse } = require('@babel/parser');
+const { default: traverse } = require('@babel/traverse');
 // const { default: generate } = require("@babel/generator");
-const { getConfig } = require("./setting.js");
-const { updateDecorations } = require("./switchLanguage.js");
+const { getConfig } = require('./setting.js');
+const { updateDecorations } = require('./switchLanguage.js');
 const {
   generateUniqueId,
   saveObjectToPath,
   customLog,
-} = require("../utils/index.js");
-
+} = require('../utils/index.js');
 const chineseRegex = /[\u4e00-\u9fa5]/;
 let chineseTexts = new Map();
 let index = 0;
@@ -30,7 +29,7 @@ let hasI18nUsageInScriptSetup = false;
  * @param {string} content 文件内容
  */
 const collectChineseText = (fileUuid, content) => {
-  if (typeof content !== "string") {
+  if (typeof content !== 'string') {
     return;
   }
   content = content.trim();
@@ -46,7 +45,7 @@ const collectChineseText = (fileUuid, content) => {
  */
 const readFileContent = async (filePath) => {
   try {
-    return await fs.promises.readFile(filePath, "utf-8");
+    return await fs.promises.readFile(filePath, 'utf-8');
   } catch (error) {
     throw new Error(`无法读取文件 ${filePath}: ${error.message}`);
   }
@@ -60,7 +59,7 @@ const readFileContent = async (filePath) => {
  */
 const saveFileContent = async (filePath, content) => {
   try {
-    await fs.promises.writeFile(filePath, content, "utf-8");
+    await fs.promises.writeFile(filePath, content, 'utf-8');
   } catch (error) {
     throw new Error(`无法保存文件 ${filePath}: ${error.message}`);
   }
@@ -78,11 +77,11 @@ const generateUUID = (filePath, fileUuid, index, config) => {
   const pathParts = filePath.split(path.sep);
   const selectedLevelsParts = pathParts.slice(-config.keyFilePathLevel);
   const lastLevelWithoutExtension =
-    selectedLevelsParts[selectedLevelsParts.length - 1].split(".")[0];
+    selectedLevelsParts[selectedLevelsParts.length - 1].split('.')[0];
   const selectedLevels = selectedLevelsParts
     .slice(0, -1)
     .concat(lastLevelWithoutExtension)
-    .join("-");
+    .join('-');
   index++;
   return `${selectedLevels}-${fileUuid}-${index}`;
 };
@@ -95,7 +94,7 @@ const generateUUID = (filePath, fileUuid, index, config) => {
  * @returns {object}
  */
 const getPosition = (code, line, column) => {
-  const lines = code.split("\n");
+  const lines = code.split('\n');
   let position = 0;
   for (let i = 0; i < line - 1; i++) {
     position += lines[i].length + 1;
@@ -129,12 +128,12 @@ const traverseScript = (ast, script, filePath, fileUuid, config) => {
           const preStartPos = getPosition(
             modifiedScript,
             prePath.node.loc.start.line,
-            prePath.node.loc.start.column
+            prePath.node.loc.start.column,
           );
           const preEndPos = getPosition(
             modifiedScript,
             prePath.node.loc.end.line,
-            prePath.node.loc.end.column
+            prePath.node.loc.end.column,
           );
           const lineOffset = replacement.length - (preEndPos - preStartPos);
           startPos += lineOffset;
@@ -159,7 +158,7 @@ const traverseScript = (ast, script, filePath, fileUuid, config) => {
           const start = quasi.start + offset;
           const end = quasi.end + offset;
           const replacement =
-            "${" + `${config.scriptI18nCall}('${uuid}')` + "}";
+            '${' + `${config.scriptI18nCall}('${uuid}')` + '}';
           modifiedScript =
             modifiedScript.substring(0, start) +
             replacement +
@@ -201,19 +200,19 @@ const traverseTemplate = (ast, template, filePath, fileUuid, config) => {
           node.props.forEach((prop) => {
             // Expression Node（表达式节点）
             if (prop.type === 1) {
-              console.log("未适配的prop节点", prop.type, prop);
+              console.log('未适配的prop节点', prop.type, prop);
             }
             // Interpolation Node（插值节点）
             if (prop.type === 2) {
-              console.log("未适配的prop节点", prop.type, prop);
+              console.log('未适配的prop节点', prop.type, prop);
             }
             // Text Node（文本节点）
             if (prop.type === 3) {
-              console.log("未适配的prop节点", prop.type, prop);
+              console.log('未适配的prop节点', prop.type, prop);
             }
             // Comment Node（注释节点）
             if (prop.type === 4) {
-              console.log("未适配的prop节点", prop.type, prop);
+              console.log('未适配的prop节点', prop.type, prop);
             }
             // Attribute Node（属性节点）
             if (
@@ -225,7 +224,7 @@ const traverseTemplate = (ast, template, filePath, fileUuid, config) => {
               const nameStart = prop.loc.start.offset + offset;
               modifiedTemplate =
                 modifiedTemplate.substring(0, nameStart) +
-                ":" +
+                ':' +
                 modifiedTemplate.substring(nameStart);
               offset++;
               const uuid = generateUUID(filePath, fileUuid, index, config);
@@ -265,7 +264,7 @@ const traverseTemplate = (ast, template, filePath, fileUuid, config) => {
                 }
                 const uuid = generateUUID(filePath, fileUuid, index, config);
                 const replacement =
-                  "${" + `${config.templateI18nCall}('${uuid}')` + "}";
+                  '${' + `${config.templateI18nCall}('${uuid}')` + '}';
                 modifiedTemplate =
                   modifiedTemplate.substring(0, matchStart) +
                   replacement +
@@ -299,7 +298,7 @@ const traverseTemplate = (ast, template, filePath, fileUuid, config) => {
           let content = node.loc.source;
           const start = node.loc.start.offset;
           // 判断是否有插值表达式
-          const hasInterpolation = node.loc.source.includes("{{");
+          const hasInterpolation = node.loc.source.includes('{{');
           if (hasInterpolation) {
             // 判断是否有`
             const hasPoint = node.loc.source.includes("`");
@@ -348,7 +347,7 @@ const traverseTemplate = (ast, template, filePath, fileUuid, config) => {
               }
             }
           } else {
-            console.log("没有{{}}", content);
+            console.log('没有{{}}', content);
           }
         }
         break;
@@ -371,7 +370,7 @@ const traverseTemplate = (ast, template, filePath, fileUuid, config) => {
         if (node.branches) node.branches.forEach(traverseNode);
         break;
       default:
-        customLog(config.debug, "未适配的node节点", node.type);
+        customLog(config.debug, '未适配的node节点', node.type);
         break;
     }
   };
@@ -400,18 +399,18 @@ exports.scanChinese = async (filePath = undefined) => {
     let text;
     let autoImportI18n;
 
-    if (fileExtension === ".vue") {
+    if (fileExtension === '.vue') {
       text = await readFileContent(filePath);
       const { descriptor } = parseSfc(text);
-      const template = descriptor.template ? descriptor.template.content : "";
-      script = descriptor.script ? descriptor.script.content : "";
+      const template = descriptor.template ? descriptor.template.content : '';
+      script = descriptor.script ? descriptor.script.content : '';
       const scriptSetup = descriptor.scriptSetup
         ? descriptor.scriptSetup.content
-        : "";
+        : '';
       const templateAst = parseTemplate(template);
       const scriptSetupAst = babelParse(scriptSetup, {
-        sourceType: "module",
-        plugins: ["jsx", "typescript"],
+        sourceType: 'module',
+        plugins: ['jsx', 'typescript'],
       });
 
       if (templateAst) {
@@ -420,7 +419,7 @@ exports.scanChinese = async (filePath = undefined) => {
           template,
           filePath,
           fileUuid,
-          config
+          config,
         );
         text = text.replace(template, modifiedTemplate);
       }
@@ -435,10 +434,10 @@ exports.scanChinese = async (filePath = undefined) => {
           scriptSetup,
           filePath,
           fileUuid,
-          config
+          config,
         );
         const alreadyImported = modifiedScript.match(
-          /import\s+(?:i18n)\s+from\s+['"].*['"]/
+          /import\s+(?:i18n)\s+from\s+['"].*['"]/,
         );
         if (!alreadyImported && hasI18nUsageInScriptSetup) {
           autoImportI18n = `\n${config.autoImportI18n}`;
@@ -458,8 +457,8 @@ exports.scanChinese = async (filePath = undefined) => {
     }
 
     const scriptAst = babelParse(script, {
-      sourceType: "module",
-      plugins: ["jsx", "typescript"],
+      sourceType: 'module',
+      plugins: ['jsx', 'typescript'],
     });
 
     if (scriptAst && scriptAst.program && scriptAst.program.body.length > 0) {
@@ -468,10 +467,10 @@ exports.scanChinese = async (filePath = undefined) => {
         script,
         filePath,
         fileUuid,
-        config
+        config,
       );
       const alreadyImported = modifiedScript.match(
-        /import\s+(?:i18n)\s+from\s+['"].*['"]/
+        /import\s+(?:i18n)\s+from\s+['"].*['"]/,
       );
       if (!alreadyImported && hasI18nUsageInScript) {
         modifiedScript = autoImportI18n + modifiedScript;
