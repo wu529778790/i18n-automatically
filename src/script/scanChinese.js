@@ -246,14 +246,11 @@ const traverseTemplate = (ast, template, filePath, fileUuid, config) => {
               prop.exp &&
               chineseRegex.test(prop.exp.content)
             ) {
-              console.log("prop", prop);
-
               const content = prop.exp.content;
               const start = prop.exp.loc.start.offset;
               const chineseRegex = /[\u4e00-\u9fa5]+/g;
               let match;
               while ((match = chineseRegex.exec(content))) {
-                console.log("match", match);
                 let matchStart = start + match.index + offset;
                 let matchEnd = matchStart + match[0].length;
                 // 判断match前后是不是引号
@@ -327,7 +324,6 @@ const traverseTemplate = (ast, template, filePath, fileUuid, config) => {
               const chineseRegex = /[\u4e00-\u9fa5]+/g;
               let match;
               while ((match = chineseRegex.exec(content))) {
-                console.log("match", match);
                 let matchStart = start + match.index + offset;
                 let matchEnd = matchStart + match[0].length;
                 // 判断match前后是不是引号

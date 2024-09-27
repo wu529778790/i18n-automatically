@@ -2,7 +2,7 @@ const vscode = require("vscode");
 const fs = require("fs");
 const path = require("path");
 const { getConfig } = require("./setting.js");
-const { getRootPath, customLog } = require("../utils/index.js");
+const { getRootPath } = require("../utils/index.js");
 
 let cachedLanguage = "zh.json"; // 初始化缓存变量
 
@@ -11,7 +11,6 @@ const getLanguagePack = async (language = cachedLanguage) => {
   // 读取配置文件
   const config = getConfig();
   if (!config) {
-    customLog("未找到配置文件");
     return;
   }
   // 获取根路径
@@ -35,7 +34,6 @@ const getLanguagePack = async (language = cachedLanguage) => {
   // 异步读取文件内容
   const languagePack = await fs.promises.readFile(i18nFilePath, "utf-8");
   if (!languagePack) {
-    customLog(config.debug, "未找到语言包文件");
     return;
   }
   const languagePackObj = JSON.parse(languagePack);
@@ -83,7 +81,6 @@ exports.updateDecorations = async (language = cachedLanguage) => {
   // 读取配置文件
   const config = getConfig();
   if (!config) {
-    customLog("未找到配置文件");
     return;
   }
   // 获取当前文件
@@ -111,23 +108,10 @@ exports.updateDecorations = async (language = cachedLanguage) => {
       const text = line.text;
       let match;
       while ((match = regex.exec(text)) !== null) {
-        customLog(config.debug, "匹配结果：", match);
         const contentText = languagePackObj[match[0]];
-        customLog(config.debug, "获取的内容文本：", contentText);
         if (!contentText) {
           continue;
         }
-        const startIndex = match.index;
-        const endIndex = startIndex + match[0].length;
-        customLog(
-          config.debug,
-          "行号：",
-          i,
-          "起始位置：",
-          startIndex,
-          "结束位置：",
-          endIndex
-        );
         decorations.push({
           range: new vscode.Range(
             i,
@@ -156,7 +140,6 @@ exports.switchLanguage = async () => {
   const rootPath = getRootPath();
   const allFiles = fs.readdirSync(`${rootPath}${config.i18nFilePath}/locale`);
   const languageFiles = allFiles.filter((file) => file.endsWith(".json"));
-  customLog(config.debug, "语言文件列表：", languageFiles);
   if (!languageFiles.length) {
     vscode.window.showInformationMessage(
       `在 ${config.i18nFilePath}/locale/ 文件夹下面未找到语言包文件，请先扫描中文`
