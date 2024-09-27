@@ -343,6 +343,8 @@ const traverseTemplate = (ast, template, filePath, fileUuid, config) => {
  * @param {string} filePath 文件路径
  */
 exports.scanChinese = async (filePath = undefined) => {
+  hasI18nUsageInScript = false;
+  hasI18nUsageInScriptSetup = false;
   try {
     const config = getConfig(true);
     const currentFilePath = vscode.window.activeTextEditor.document.uri.fsPath;
