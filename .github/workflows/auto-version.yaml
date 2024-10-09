@@ -21,7 +21,7 @@ jobs:
           node-version: "19"
 
       - name: Install dependencies
-        run: npm install
+        run: yarn install
 
       - name: Update version
         run: npm version patch -m "chore(release)： %s [skip ci]"
