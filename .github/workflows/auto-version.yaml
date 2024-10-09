@@ -23,18 +23,18 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
-      - name: Push changes to GitHub
+      - name: Update version and commit
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
+          npm version patch -m "chore(release): v%s [skip ci]"
+          git add .
+          git commit -m "chore: auto-version"
+          git push
+          npm version patch -m "chore(release)： %s [skip ci]"
           git push
 
-      - name: Update version
-        run: npm version patch -m "chore(release)： %s [skip ci]"
-
-      - name: Publish to marketplace
-        run: |
-          yarn global add @vscode/vsce
-          vsce publish --packagePath ./package.json
-        env:
-          VSCE_PUBLISHER_TOKEN: ${{ secrets.VSCE_PUBLISHER_TOKEN }}
+      - name: Publish VS Code Extension
+        uses: HaaLeo/publish-vscode-extension@v1.6.2
+        with:
+          pat: ${{ secrets.OPEN_VSX_TOKEN }}
