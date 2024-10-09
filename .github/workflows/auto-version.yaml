@@ -28,11 +28,12 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           npm version patch -m "chore(release): v%s [skip ci]"
-          git add .
-          git commit -m "chore: auto-version"
-          git push
 
       - name: Publish VS Code Extension
         uses: HaaLeo/publish-vscode-extension@v1.6.2
         with:
           pat: ${{ secrets.OPEN_VSX_TOKEN }}
+
+      - name: Push changes
+        run: |
+          git push
