@@ -34,7 +34,7 @@ jobs:
 
       - name: Publish to marketplace
         run: |
-          npm install -g @vscode/vsce
+          yarn global add @vscode/vsce
           vsce publish --packagePath ./package.json
         env:
           VSCE_PUBLISHER_TOKEN: ${{ secrets.VSCE_PUBLISHER_TOKEN }}
