@@ -32,7 +32,8 @@ jobs:
       - name: Publish VS Code Extension
         uses: HaaLeo/publish-vscode-extension@v1.6.2
         with:
-          pat: ${{ secrets.OPEN_VSX_TOKEN }}
+          pat: ${{ secrets.VS_MARKETPLACE_TOKEN }}
+          registryUrl: https://marketplace.visualstudio.com
 
       - name: Push changes
         run: |
