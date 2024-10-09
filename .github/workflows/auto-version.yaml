@@ -31,8 +31,6 @@ jobs:
           git add .
           git commit -m "chore: auto-version"
           git push
-          npm version patch -m "chore(release)： %s [skip ci]"
-          git push
 
       - name: Publish VS Code Extension
         uses: HaaLeo/publish-vscode-extension@v1.6.2
