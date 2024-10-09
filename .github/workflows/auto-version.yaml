@@ -1,0 +1,40 @@
+# .github/workflows/auto-version.yml
+
+name: Auto Versioning and Publishing
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '19'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Update version
+      run: npm version patch -m "chore(release): %s [skip ci]"
+
+    - name: Push changes to GitHub
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git push
+
+    - name: Publish to marketplace
+      run: |
+        npm install -g vsce
+        vsce publish --packagePath ./package.json
+      env:
+        VSCE_PUBLISHER_TOKEN: ${{ secrets.VSCE_PUBLISHER_TOKEN }}
