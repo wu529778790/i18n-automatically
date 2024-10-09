@@ -59,6 +59,15 @@
 
 ![20240910201237](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20240910201237.png)
 
+> 提示：这里要选择高级版本。只要实名认证了，都可以高级版本，api没有那么多限制
+
+![20241009144522](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241009144522.png)
+
+## 未开发功能
+
+- template解析之后，里面再当成js用babel解析
+- 增加其他翻译api，比如deepl，谷歌等
+
 ## 开发
 
 <https://github.com/wu529778790/i18n-automatically>
