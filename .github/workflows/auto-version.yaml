@@ -28,8 +28,8 @@ jobs:
 
       - name: Push changes to GitHub
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git config --global user.name 'wu529778790'
+          git config --global user.email '529778790@qq.com'
           git push
 
       - name: Publish to marketplace
