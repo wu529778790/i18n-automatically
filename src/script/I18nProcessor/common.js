@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const generate = require("@babel/generator").default;
 const vscode = require("vscode");
-const { generateUniqueId } = require("../utils");
+const { generateUniqueId } = require("../../utils");
 
 const defaultConfig = {
   i18nImportPath: "@/i18n",

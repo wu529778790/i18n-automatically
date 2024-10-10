@@ -1,5 +1,5 @@
 const vscode = require("vscode");
-const { processFile } = require("../I18nProcessor/index.js");
+const { processFile } = require("./I18nProcessor/index.js");
 const { updateDecorations } = require("./switchLanguage.js");
 
 /**
