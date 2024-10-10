@@ -1,5 +1,6 @@
 const vscode = require("vscode");
 const { processFile } = require("../I18nProcessor/index.js");
+const { updateDecorations } = require("./switchLanguage.js");
 
 /**
  * 扫描中文
@@ -7,12 +8,13 @@ const { processFile } = require("../I18nProcessor/index.js");
  */
 exports.scanChinese = async (filePath = undefined) => {
   try {
-    let currentFilePath;
     if (!filePath) {
-      currentFilePath = vscode.window.activeTextEditor.document.uri.fsPath;
-      filePath = currentFilePath;
+      filePath = vscode.window.activeTextEditor.document.uri.fsPath;
     }
     await processFile(filePath);
+    setTimeout(() => {
+      updateDecorations();
+    }, 300);
   } catch (error) {
     console.error(`发生未知错误：${error}`);
   }
