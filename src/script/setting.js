@@ -4,12 +4,11 @@ const vscode = require("vscode");
 const { getRootPath } = require("../utils");
 
 const defaultConfig = {
-  i18nImportPath: "@/i18n",
   enableI18n: true,
   i18nFilePath: "/src/i18n",
   templateI18nCall: "$t",
   scriptI18nCall: "i18n.t",
-  autoImportI18n: "import i18n from '@/i18n';",
+  i18nImportPath: "@/i18n",
   keyFilePathLevel: 2,
   excludedExtensions: [
     ".svg",
