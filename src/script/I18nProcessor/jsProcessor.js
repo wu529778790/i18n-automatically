@@ -38,7 +38,7 @@ function processJsAst(context, customContent) {
     if (
       context.index > 0 &&
       !context.hasPluginImport &&
-      context.config.enableI18n
+      context.config.isAutoImportI18n
     ) {
       addI18nImport(ast, context);
     }

@@ -11,7 +11,7 @@ const { processJsAst } = require("./jsProcessor");
 
 async function processVueAst(context) {
   try {
-    context.config.enableI18n = false;
+    context.config.isAutoImportI18n = false;
     const { descriptor } = parseSfc(context.contentSource);
     const templateAst = descriptor.template && descriptor.template.ast.children;
     const scriptAst = descriptor.script && descriptor.script.content;
@@ -54,7 +54,7 @@ async function processVueTemplate(templateAst, context, descriptor) {
 async function processVueScript(scriptAst, context, scriptType) {
   if (scriptAst) {
     try {
-      context.config.enableI18n = true;
+      context.config.isAutoImportI18n = true;
       const processedScript = processJsAst(context, scriptAst);
       logger.debug(`${scriptType}Ast`, processedScript);
       context.contentChanged = context.contentSource.replace(
