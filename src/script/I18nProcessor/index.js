@@ -5,8 +5,6 @@ const handleVueFile = require("./vueProcessor");
 const { handleJsFile } = require("./jsProcessor");
 const { readConfig } = require("../setting");
 
-const config = readConfig();
-
 /**
  * 处理单个文件
  * @param {string} filePath 文件路径
@@ -24,6 +22,7 @@ async function processFile(filePath) {
   }
 
   try {
+    const config = readConfig();
     const { translations, contentChanged } = await processor(filePath, config);
     if (contentChanged) {
       await fs.writeFile(filePath, contentChanged, "utf-8");
@@ -60,6 +59,7 @@ function getFileProcessor(fileExt) {
  */
 async function outputTranslations(translations) {
   const translationManager = new TranslationManager();
+  const config = readConfig();
   await translationManager.outputTranslationFile(translations, config);
 }
 
