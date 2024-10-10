@@ -1,14 +1,14 @@
-const traverse = require('@babel/traverse').default;
-const parser = require('@babel/parser');
-const t = require('@babel/types');
-const { JSDOM } = require('jsdom');
+const traverse = require("@babel/traverse").default;
+const parser = require("@babel/parser");
+const t = require("@babel/types");
+const { JSDOM } = require("jsdom");
 const {
   createI18nProcessor,
   generateKey,
   containsChinese,
   generateCode,
   logger,
-} = require('./common');
+} = require("./common");
 
 /**
  * 处理 JavaScript AST
@@ -20,8 +20,8 @@ function processJsAst(context, customContent) {
   try {
     context.hasPluginImport = false;
     const ast = parser.parse(customContent || context.contentSource, {
-      sourceType: 'module',
-      plugins: ['jsx', 'typescript'],
+      sourceType: "module",
+      plugins: ["jsx", "typescript"],
     });
 
     if (!ast) {
@@ -49,7 +49,7 @@ function processJsAst(context, customContent) {
     }
     return context;
   } catch (error) {
-    logger.error('Error in processJsAst:', error);
+    logger.error("Error in processJsAst:", error);
     throw error;
   }
 }
@@ -62,7 +62,7 @@ function processJsAst(context, customContent) {
 function checkForI18nImport(path, context) {
   context.hasPluginImport = path.node.body.some(
     (node) =>
-      node.type === 'ImportDeclaration' && node.source.value.includes('i18n'),
+      node.type === "ImportDeclaration" && node.source.value.includes("i18n")
   );
 }
 
@@ -75,7 +75,7 @@ function handleStringLiteral(path, context) {
   try {
     if (
       containsChinese(path.node.value) &&
-      path?.parent?.type !== 'ImportDeclaration'
+      path.parent.type !== "ImportDeclaration"
     ) {
       if (/<[a-z][\s\S]*>/i.test(path.node.value)) {
         handleStringWithHTML(path, context);
@@ -84,7 +84,7 @@ function handleStringLiteral(path, context) {
       }
     }
   } catch (error) {
-    logger.error('Error in handleStringLiteral:', error);
+    logger.error("Error in handleStringLiteral:", error);
   }
 }
 
@@ -113,7 +113,7 @@ function handleChineseString(path, context, isTemplateLiteral = false) {
     }
     return true;
   } catch (error) {
-    logger.error('Error in handleChineseString:', error);
+    logger.error("Error in handleChineseString:", error);
     return false;
   }
 }
@@ -127,8 +127,8 @@ function isInConsoleCall(path) {
   return path.findParent(
     (p) =>
       p.isCallExpression() &&
-      p.get('callee').isMemberExpression() &&
-      p.get('callee.object').isIdentifier({ name: 'console' }),
+      p.get("callee").isMemberExpression() &&
+      p.get("callee.object").isIdentifier({ name: "console" })
   );
 }
 
@@ -142,7 +142,7 @@ function replaceWithI18nCall(path, context, key) {
   path.replaceWith(
     t.callExpression(t.identifier(context.config.scriptI18nCall), [
       t.stringLiteral(key),
-    ]),
+    ])
   );
 }
 
@@ -155,7 +155,7 @@ function replaceWithI18nCall(path, context, key) {
 function handleTemplateLiteral(path, context, key) {
   const newExpression = t.callExpression(
     t.identifier(context.config.scriptI18nCall),
-    [t.stringLiteral(key)],
+    [t.stringLiteral(key)]
   );
 
   const templateLiteral = path.parentPath;
@@ -186,7 +186,7 @@ function handleTemplateLiteral(path, context, key) {
   templateLiteral.node.expressions = sortedExpressions;
   templateLiteral.node.quasis = sortedQuasis;
 
-  path.node.value.raw = path.node.value.cooked = '';
+  path.node.value.raw = path.node.value.cooked = "";
 }
 
 /**
@@ -217,7 +217,7 @@ function adjustQuasisAndExpressions(sortedQuasis, sortedExpressions) {
  * @returns {object} 新的 quasi 元素
  */
 function createQuasi(start, tail = false) {
-  const quasi = t.templateElement({ raw: '', cooked: '' }, tail);
+  const quasi = t.templateElement({ raw: "", cooked: "" }, tail);
   quasi.start = start;
   return quasi;
 }
@@ -235,7 +235,7 @@ function handleStringWithHTML(path, context) {
 
   const dom = new JSDOM(`<div id="root">${value}</div>`);
   const document = dom.window.document;
-  const root = document.getElementById('root');
+  const root = document.getElementById("root");
 
   let isChanged = false;
 
@@ -245,7 +245,7 @@ function handleStringWithHTML(path, context) {
         const key = generateKey(context);
         context.translations.set(key, node.textContent.trim());
         const placeholder = document.createTextNode(
-          `{${context.config.scriptI18nCall}('${key}')}`,
+          `{${context.config.scriptI18nCall}('${key}')}`
         );
         node.parentNode.replaceChild(placeholder, node);
         isChanged = true;
@@ -270,8 +270,8 @@ function handleStringWithHTML(path, context) {
     path.replaceWith(templateLiteral);
     return true;
   } catch (e) {
-    console.error('Error in AST manipulation:', e);
-    console.error('Stack trace:', e.stack);
+    console.error("Error in AST manipulation:", e);
+    console.error("Stack trace:", e.stack);
     return false;
   }
 }
@@ -287,21 +287,21 @@ function createQuasisAndExpressions(parts, context) {
   const expressions = [];
 
   parts.forEach((part, index) => {
-    if (part.startsWith('{') && part.endsWith('}')) {
+    if (part.startsWith("{") && part.endsWith("}")) {
       const expressionContent = part.slice(1, -1);
       expressions.push(
         t.callExpression(t.identifier(context.config.scriptI18nCall), [
           t.stringLiteral(expressionContent.match(/'([^']+)'/)[1]),
-        ]),
+        ])
       );
 
       if (index === 0) {
-        quasis.push(t.templateElement({ raw: '', cooked: '' }));
+        quasis.push(t.templateElement({ raw: "", cooked: "" }));
       }
       if (index === parts.length - 1) {
-        quasis.push(t.templateElement({ raw: '', cooked: '' }, true));
+        quasis.push(t.templateElement({ raw: "", cooked: "" }, true));
       } else {
-        quasis.push(t.templateElement({ raw: '', cooked: '' }));
+        quasis.push(t.templateElement({ raw: "", cooked: "" }));
       }
     } else {
       if (quasis.length === expressions.length) {
@@ -309,7 +309,7 @@ function createQuasisAndExpressions(parts, context) {
       } else {
         quasis[quasis.length - 1] = t.templateElement(
           { raw: part, cooked: part },
-          index === parts.length - 1,
+          index === parts.length - 1
         );
       }
     }
@@ -324,12 +324,11 @@ function createQuasisAndExpressions(parts, context) {
  * @param {object} context 处理上下文
  */
 function addI18nImport(ast, context) {
-  logger.info('i18n插件未安装，自动安装中...');
   ast.program.body.unshift(
     t.importDeclaration(
-      [t.importDefaultSpecifier(t.identifier('i18n'))],
-      t.stringLiteral(context.config.i18nImportPath),
-    ),
+      [t.importDefaultSpecifier(t.identifier("i18n"))],
+      t.stringLiteral(context.config.i18nImportPath)
+    )
   );
 }
 

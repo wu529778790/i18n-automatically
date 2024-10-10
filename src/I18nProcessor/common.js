@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const generate = require("@babel/generator").default;
 const vscode = require("vscode");
+const { generateUniqueId } = require("../utils");
 
 const defaultConfig = {
   i18nImportPath: "@/i18n",
@@ -42,16 +43,10 @@ const logger = {
   error: (message, ...args) => console.error(message, ...args),
 };
 
-function generateShortId() {
-  const timestamp = Date.now().toString(36);
-  const randomPart = Math.random().toString(36).substr(2, 5);
-  return `${timestamp}${randomPart}`;
-}
-
 function createContext(filePath, config) {
   return {
     filePath,
-    fileUuid: generateShortId(),
+    fileUuid: generateUniqueId(),
     config,
     index: 0,
     translations: new Map(),
