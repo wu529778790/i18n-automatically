@@ -22,7 +22,7 @@ async function processFile(filePath) {
   }
 
   try {
-    const config = readConfig();
+    const config = readConfig(true);
     const { translations, contentChanged } = await processor(filePath, config);
     if (contentChanged) {
       await fs.writeFile(filePath, contentChanged, "utf-8");

@@ -4,38 +4,6 @@ const generate = require("@babel/generator").default;
 const vscode = require("vscode");
 const { generateUniqueId } = require("../../utils");
 
-const defaultConfig = {
-  i18nImportPath: "@/i18n",
-  enableI18n: true,
-  i18nFilePath: "/src/i18n",
-  templateI18nCall: "$t",
-  scriptI18nCall: "i18n.t",
-  autoImportI18n: "import i18n from '@/i18n';",
-  keyFilePathLevel: 2,
-  excludedExtensions: [
-    ".svg",
-    ".png",
-    ".jpg",
-    ".jpeg",
-    ".gif",
-    ".bmp",
-    ".ico",
-    ".md",
-    ".txt",
-    ".json",
-    ".css",
-    ".scss",
-    ".less",
-    ".sass",
-    ".styl",
-  ],
-  debug: false,
-  baidu: {
-    appid: "",
-    secretKey: "",
-  },
-};
-
 const logger = {
   debug: (message, ...args) => console.debug(message, ...args),
   info: (message, ...args) => console.log(message, ...args),
@@ -96,40 +64,6 @@ function containsChinese(str) {
 
   // 返回true如果包含中文且不是图片资源
   return chineseRegex.test(str) && !imageExtensionRegex.test(str);
-}
-
-function readConfig(initConfigFile = true) {
-  try {
-    const rootPath = getRootPath();
-    const configFilePath = path.join(
-      rootPath,
-      "automatically-i18n-config.json"
-    );
-
-    if (!fs.existsSync(configFilePath)) {
-      return handleMissingConfig(configFilePath, initConfigFile);
-    }
-
-    const config = JSON.parse(fs.readFileSync(configFilePath, "utf8"));
-    return { ...defaultConfig, ...config };
-  } catch (error) {
-    logger.error("Error reading config:", error);
-    return defaultConfig;
-  }
-}
-
-function handleMissingConfig(configFilePath, initConfigFile) {
-  if (initConfigFile) {
-    try {
-      fs.writeFileSync(configFilePath, JSON.stringify(defaultConfig, null, 2));
-      logger.info("Created default config file");
-      return defaultConfig;
-    } catch (error) {
-      logger.error("Error creating config file:", error);
-    }
-  }
-  logger.warn("Config file not found and not initialized");
-  return;
 }
 
 const getRootPath = () => {
@@ -209,7 +143,6 @@ module.exports = {
   generateKey,
   generateCode,
   containsChinese,
-  readConfig,
   TranslationManager,
   logger,
 };

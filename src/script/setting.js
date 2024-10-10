@@ -58,7 +58,7 @@ exports.setting = () => {
 /**
  * 获取最新的配置文件
  */
-exports.readConfig = (initConfigFile = false) => {
+exports.readConfig = (initConfigFile = true) => {
   try {
     const rootPath = getRootPath();
     const configFilePath = path.join(
