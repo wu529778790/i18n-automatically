@@ -18,14 +18,15 @@ async function processVueAst(context) {
     const scriptSetupAst =
       descriptor.scriptSetup && descriptor.scriptSetup.content;
 
-    if (!templateAst) {
-      logger.warn("No template found, skipping processing.");
-      return;
+    if (templateAst) {
+      await processVueTemplate(templateAst, context, descriptor);
     }
-
-    await processVueTemplate(templateAst, context, descriptor);
-    await processVueScript(scriptAst, context, "script");
-    await processVueScript(scriptSetupAst, context, "scriptSetup");
+    if (scriptAst) {
+      await processVueScript(scriptAst, context, "script");
+    }
+    if (scriptSetupAst) {
+      await processVueScript(scriptSetupAst, context, "scriptSetup");
+    }
 
     return context.translations.size > 0 ? context : undefined;
   } catch (error) {
