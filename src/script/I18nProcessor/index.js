@@ -1,8 +1,9 @@
 const path = require("path");
 const fs = require("fs").promises;
-const { TranslationManager, readConfig, logger } = require("./common");
+const { TranslationManager, logger } = require("./common");
 const handleVueFile = require("./vueProcessor");
 const { handleJsFile } = require("./jsProcessor");
+const { readConfig } = require("../setting");
 
 const config = readConfig();
 

@@ -1,8 +1,11 @@
 const fs = require("fs");
+const path = require("path");
 const vscode = require("vscode");
 const { getRootPath } = require("../utils");
 
 const defaultConfig = {
+  i18nImportPath: "@/i18n",
+  enableI18n: true,
   i18nFilePath: "/src/i18n",
   templateI18nCall: "$t",
   scriptI18nCall: "i18n.t",
@@ -55,29 +58,34 @@ exports.setting = () => {
 /**
  * 获取最新的配置文件
  */
-exports.getConfig = (initConfigFile = false) => {
-  const rootPath = getRootPath();
-  const configFilePath = rootPath + "/automatically-i18n-config.json";
-  // 检查配置文件是否存在
-  if (!fs.existsSync(configFilePath)) {
-    // 需要初始化配置文件
-    if (initConfigFile) {
-      try {
-        fs.writeFileSync(
-          configFilePath,
-          JSON.stringify(defaultConfig, null, 2)
-        );
-      } catch (error) {
-        console.error("创建配置文件时出现错误：", error);
-      }
-      return defaultConfig;
+exports.readConfig = (initConfigFile = false) => {
+  try {
+    const rootPath = getRootPath();
+    const configFilePath = path.join(
+      rootPath,
+      "/automatically-i18n-config.json"
+    );
+    // 检查配置文件是否存在
+    if (!fs.existsSync(configFilePath)) {
+      return handleMissingConfig(configFilePath, initConfigFile);
     }
-    return;
+    // 如果存在, 读取配置文件并返回
+    const config = JSON.parse(fs.readFileSync(configFilePath, "utf8"));
+    return { ...defaultConfig, ...config };
+  } catch (error) {
+    console.error("读取配置文件时出现错误：", error);
+    return defaultConfig;
   }
-  // 如果存在, 读取配置文件并返回
-  const config = JSON.parse(fs.readFileSync(configFilePath, "utf8"));
-  return {
-    ...defaultConfig,
-    ...config,
-  };
 };
+
+function handleMissingConfig(configFilePath, initConfigFile) {
+  if (initConfigFile) {
+    try {
+      fs.writeFileSync(configFilePath, JSON.stringify(defaultConfig, null, 2));
+      return defaultConfig;
+    } catch (error) {
+      console.error("创建配置文件时出现错误：", error);
+    }
+  }
+  return;
+}

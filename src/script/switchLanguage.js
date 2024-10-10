@@ -1,7 +1,7 @@
 const vscode = require("vscode");
 const fs = require("fs");
 const path = require("path");
-const { getConfig } = require("./setting.js");
+const { readConfig } = require("./setting.js");
 const { getRootPath } = require("../utils/index.js");
 
 let cachedLanguage = "zh.json"; // 初始化缓存变量
@@ -9,7 +9,7 @@ let cachedLanguage = "zh.json"; // 初始化缓存变量
 // 获取语言包
 const getLanguagePack = async (language = cachedLanguage) => {
   // 读取配置文件
-  const config = getConfig();
+  const config = readConfig();
   if (!config) {
     return;
   }
@@ -79,7 +79,7 @@ function getDecorationType() {
 
 exports.updateDecorations = async (language = cachedLanguage) => {
   // 读取配置文件
-  const config = getConfig();
+  const config = readConfig();
   if (!config) {
     return;
   }
@@ -135,7 +135,7 @@ exports.updateDecorations = async (language = cachedLanguage) => {
 
 exports.switchLanguage = async () => {
   // 读取配置文件
-  const config = getConfig(true);
+  const config = readConfig(true);
   // 读取 i18n 文件夹下 locale 目录下的文件，并过滤出.json 文件
   const rootPath = getRootPath();
   const allFiles = fs.readdirSync(`${rootPath}${config.i18nFilePath}/locale`);

@@ -1,6 +1,6 @@
 const axios = require("axios");
 const md5 = require("md5");
-const { getConfig } = require("../script/setting.js");
+const { readConfig } = require("../script/setting.js");
 
 // 生成签名
 const generateSign = (appid, q, salt, secretKey) => {
@@ -8,7 +8,7 @@ const generateSign = (appid, q, salt, secretKey) => {
 };
 
 exports.baiduTranslateApi = async (q, language = "en") => {
-  const config = getConfig();
+  const config = readConfig();
   if (!config) {
     console.error("未找到配置文件");
     return;

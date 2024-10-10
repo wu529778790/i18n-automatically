@@ -1,12 +1,12 @@
 const vscode = require("vscode");
 const fs = require("fs");
 const path = require("path");
-const { getConfig } = require("./setting.js");
+const { readConfig } = require("./setting.js");
 const { scanChinese } = require("./scanChinese.js");
 
 exports.scanChineseBatch = async () => {
   // 读取配置文件
-  const config = getConfig(true);
+  const config = readConfig(true);
 
   // 调用 vscode API 打开文件夹选择对话框
   const folder = await vscode.window.showOpenDialog({
