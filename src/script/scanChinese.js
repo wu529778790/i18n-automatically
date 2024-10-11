@@ -77,14 +77,12 @@ const saveFileContent = async (filePath, content) => {
 const generateUUID = (filePath, fileUuid, index, config) => {
   const pathParts = filePath.split(path.sep);
   const selectedLevelsParts = pathParts.slice(-config.keyFilePathLevel);
-  const lastLevelWithoutExtension =
-    selectedLevelsParts[selectedLevelsParts.length - 1].split(".")[0];
-  const selectedLevels = selectedLevelsParts
-    .slice(0, -1)
-    .concat(lastLevelWithoutExtension)
-    .join("-");
-  index++;
-  return `${selectedLevels}-${fileUuid}-${index}`;
+  const lastLevelWithoutExtension = selectedLevelsParts.pop().split(".");
+  const selectedLevels = [
+    ...selectedLevelsParts,
+    lastLevelWithoutExtension,
+  ].join("-");
+  return `${selectedLevels}-${fileUuid}-${index + 1}`;
 };
 
 /**
