@@ -1,21 +1,19 @@
 const vscode = require("vscode");
-const fs = require("fs");
 const path = require("path");
 const { parse: parseSfc } = require("@vue/compiler-sfc");
-const {
-  parse: parseTemplate,
-  // compile: compileDom,
-  // generate: generateDom,
-} = require("@vue/compiler-dom");
+const { parse: parseTemplate } = require("@vue/compiler-dom");
 const { parse: babelParse } = require("@babel/parser");
 const { default: traverse } = require("@babel/traverse");
-// const { default: generate } = require("@babel/generator");
 const { getConfig } = require("./setting.js");
 const { updateDecorations } = require("./switchLanguage.js");
 const {
   generateUniqueId,
   saveObjectToPath,
   customLog,
+  readFileContent,
+  saveFileContent,
+  generateFileUUID,
+  getPosition,
 } = require("../utils/index.js");
 
 const chineseRegex = /[\u4e00-\u9fa5]/;
@@ -40,69 +38,6 @@ const collectChineseText = (fileUuid, content) => {
 };
 
 /**
- * 读取文件内容
- * @param {string} filePath 文件路径
- * @returns {Promise<string>}
- */
-const readFileContent = async (filePath) => {
-  try {
-    return await fs.promises.readFile(filePath, "utf-8");
-  } catch (error) {
-    throw new Error(`无法读取文件 ${filePath}: ${error.message}`);
-  }
-};
-
-/**
- * 保存文件内容
- * @param {string} filePath 文件路径
- * @param {string} content 文件内容
- * @returns {Promise<void>}
- */
-const saveFileContent = async (filePath, content) => {
-  try {
-    await fs.promises.writeFile(filePath, content, "utf-8");
-  } catch (error) {
-    throw new Error(`无法保存文件 ${filePath}: ${error.message}`);
-  }
-};
-
-/**
- * 生成唯一的 UUID
- * @param {string} filePath 文件路径
- * @param {string} fileUuid 文件 UUID
- * @param {number} index 索引
- * @param {object} config 配置
- * @returns {string}
- */
-const generateUUID = (filePath, fileUuid, index, config) => {
-  const pathParts = filePath.split(path.sep);
-  const selectedLevelsParts = pathParts.slice(-config.keyFilePathLevel);
-  const lastLevelWithoutExtension = selectedLevelsParts.pop().split(".");
-  const selectedLevels = [
-    ...selectedLevelsParts,
-    lastLevelWithoutExtension,
-  ].join("-");
-  return `${selectedLevels}-${fileUuid}-${index + 1}`;
-};
-
-/**
- * 获取位置
- * @param {string} code 代码
- * @param {number} line 行号
- * @param {number} column 列号
- * @returns {object}
- */
-const getPosition = (code, line, column) => {
-  const lines = code.split("\n");
-  let position = 0;
-  for (let i = 0; i < line - 1; i++) {
-    position += lines[i].length + 1;
-  }
-  position += column;
-  return position;
-};
-
-/**
  * 遍历脚本
  * @param {object} ast 抽象语法树
  * @param {string} script 脚本内容
@@ -117,7 +52,7 @@ const traverseScript = (ast, script, filePath, fileUuid, config) => {
   traverse(ast, {
     StringLiteral(path) {
       if (chineseRegex.test(path.node.value)) {
-        const uuid = generateUUID(filePath, fileUuid, index, config);
+        const uuid = generateFileUUID(filePath, fileUuid, index, config);
         const start = path.node.loc.start;
         const end = path.node.loc.end;
         let startPos = getPosition(modifiedScript, start.line, start.column);
@@ -153,7 +88,7 @@ const traverseScript = (ast, script, filePath, fileUuid, config) => {
     TemplateLiteral(path) {
       path.node.quasis.forEach((quasi) => {
         if (chineseRegex.test(quasi.value.raw)) {
-          const uuid = generateUUID(filePath, fileUuid, index, config);
+          const uuid = generateFileUUID(filePath, fileUuid, index, config);
           const start = quasi.start + offset;
           const end = quasi.end + offset;
           const replacement =
@@ -226,7 +161,7 @@ const traverseTemplate = (ast, template, filePath, fileUuid, config) => {
                 ":" +
                 modifiedTemplate.substring(nameStart);
               offset++;
-              const uuid = generateUUID(filePath, fileUuid, index, config);
+              const uuid = generateFileUUID(filePath, fileUuid, index, config);
               const start = prop.value.loc.start.offset + offset;
               const end = prop.value.loc.end.offset + offset;
               const replacementText = `"${config.templateI18nCall}('${uuid}')"`;
@@ -261,7 +196,12 @@ const traverseTemplate = (ast, template, filePath, fileUuid, config) => {
                   matchStart = matchStart - 1;
                   matchEnd = matchEnd + 1;
                 }
-                const uuid = generateUUID(filePath, fileUuid, index, config);
+                const uuid = generateFileUUID(
+                  filePath,
+                  fileUuid,
+                  index,
+                  config
+                );
                 const replacement =
                   "${" + `${config.templateI18nCall}('${uuid}')` + "}";
                 modifiedTemplate =
@@ -279,7 +219,7 @@ const traverseTemplate = (ast, template, filePath, fileUuid, config) => {
         break;
       case 2:
         if (chineseRegex.test(node.content)) {
-          const uuid = generateUUID(filePath, fileUuid, index, config);
+          const uuid = generateFileUUID(filePath, fileUuid, index, config);
           const start = node.loc.start.offset + offset;
           const end = node.loc.end.offset + offset;
           const replacementText = `{{ ${config.templateI18nCall}('${uuid}') }}`;
@@ -307,7 +247,12 @@ const traverseTemplate = (ast, template, filePath, fileUuid, config) => {
               while ((match = chineseRegex.exec(content))) {
                 const matchStart = start + match.index + offset;
                 const matchEnd = matchStart + match[0].length;
-                const uuid = generateUUID(filePath, fileUuid, index, config);
+                const uuid = generateFileUUID(
+                  filePath,
+                  fileUuid,
+                  index,
+                  config
+                );
                 const replacement =
                   "${" + `${config.templateI18nCall}('${uuid}')` + "}";
                 modifiedTemplate =
@@ -334,7 +279,12 @@ const traverseTemplate = (ast, template, filePath, fileUuid, config) => {
                   matchStart = matchStart - 1;
                   matchEnd = matchEnd + 1;
                 }
-                const uuid = generateUUID(filePath, fileUuid, index, config);
+                const uuid = generateFileUUID(
+                  filePath,
+                  fileUuid,
+                  index,
+                  config
+                );
                 const replacement = `${config.templateI18nCall}('${uuid}')`;
                 modifiedTemplate =
                   modifiedTemplate.substring(0, matchStart) +
@@ -352,7 +302,7 @@ const traverseTemplate = (ast, template, filePath, fileUuid, config) => {
         break;
       case 12: // Interpolation Node（插值节点）
         if (chineseRegex.test(node.loc.source)) {
-          const uuid = generateUUID(filePath, fileUuid, index, config);
+          const uuid = generateFileUUID(filePath, fileUuid, index, config);
           const start = node.loc.start.offset + offset;
           const end = node.loc.end.offset + offset;
           const replacementText = `{{ ${config.templateI18nCall}('${uuid}') }}`;
