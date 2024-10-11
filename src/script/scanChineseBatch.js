@@ -2,7 +2,7 @@ const vscode = require("vscode");
 const fs = require("fs");
 const path = require("path");
 const { getConfig } = require("./setting.js");
-const { scanChinese } = require("./scanChinese.js");
+const { scanChinese } = require("./scanChinese/index.js");
 
 exports.scanChineseBatch = async () => {
   // 读取配置文件

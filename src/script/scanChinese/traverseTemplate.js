@@ -1,113 +1,7 @@
-const vscode = require("vscode");
-const path = require("path");
-const { parse: parseSfc } = require("@vue/compiler-sfc");
-const { parse: parseTemplate } = require("@vue/compiler-dom");
-const { parse: babelParse } = require("@babel/parser");
-const { default: traverse } = require("@babel/traverse");
-const { getConfig } = require("./setting.js");
-const { updateDecorations } = require("./switchLanguage.js");
-const {
-  generateUniqueId,
-  saveObjectToPath,
-  customLog,
-  readFileContent,
-  saveFileContent,
-  generateFileUUID,
-  getPosition,
-} = require("../utils/index.js");
+const { customLog, generateFileUUID } = require("../../utils/index.js");
+const { collectChineseText } = require("./collectChineseText.js");
 
 const chineseRegex = /[\u4e00-\u9fa5]/;
-let chineseTexts = new Map();
-let index = 0;
-let hasI18nUsageInScript = false;
-let hasI18nUsageInScriptSetup = false;
-
-/**
- * 收集中文文本
- * @param {string} fileUuid 文件 UUID
- * @param {string} content 文件内容
- */
-const collectChineseText = (fileUuid, content) => {
-  if (typeof content !== "string") {
-    return;
-  }
-  content = content.trim();
-  if (content && !chineseTexts.has(fileUuid)) {
-    chineseTexts.set(fileUuid, content);
-  }
-};
-
-/**
- * 遍历脚本
- * @param {object} ast 抽象语法树
- * @param {string} script 脚本内容
- * @param {string} filePath 文件路径
- * @param {string} fileUuid 文件 UUID
- * @param {object} config 配置
- */
-const traverseScript = (ast, script, filePath, fileUuid, config) => {
-  let modifiedScript = script;
-  let prePath;
-  let offset = 0;
-  traverse(ast, {
-    StringLiteral(path) {
-      if (chineseRegex.test(path.node.value)) {
-        const uuid = generateFileUUID(filePath, fileUuid, index, config);
-        const start = path.node.loc.start;
-        const end = path.node.loc.end;
-        let startPos = getPosition(modifiedScript, start.line, start.column);
-        let endPos = getPosition(modifiedScript, end.line, end.column);
-        const replacement = `${config.scriptI18nCall}('${uuid}')`;
-        if (prePath && prePath.node.loc.start.line === start.line) {
-          const preStartPos = getPosition(
-            modifiedScript,
-            prePath.node.loc.start.line,
-            prePath.node.loc.start.column
-          );
-          const preEndPos = getPosition(
-            modifiedScript,
-            prePath.node.loc.end.line,
-            prePath.node.loc.end.column
-          );
-          const lineOffset = replacement.length - (preEndPos - preStartPos);
-          startPos += lineOffset;
-          endPos += lineOffset;
-        }
-        modifiedScript =
-          modifiedScript.substring(0, startPos) +
-          replacement +
-          modifiedScript.substring(endPos);
-        offset += replacement.length - (endPos - startPos);
-        hasI18nUsageInScript = true;
-        hasI18nUsageInScriptSetup = true;
-        prePath = path;
-        index++;
-        collectChineseText(uuid, path.node.value);
-      }
-    },
-    TemplateLiteral(path) {
-      path.node.quasis.forEach((quasi) => {
-        if (chineseRegex.test(quasi.value.raw)) {
-          const uuid = generateFileUUID(filePath, fileUuid, index, config);
-          const start = quasi.start + offset;
-          const end = quasi.end + offset;
-          const replacement =
-            "${" + `${config.scriptI18nCall}('${uuid}')` + "}";
-          modifiedScript =
-            modifiedScript.substring(0, start) +
-            replacement +
-            modifiedScript.substring(end);
-          offset += replacement.length - (end - start);
-          hasI18nUsageInScript = true;
-          hasI18nUsageInScriptSetup = true;
-          index++;
-          collectChineseText(uuid, quasi.value.raw);
-        }
-      });
-    },
-  });
-  return modifiedScript;
-};
 
 /**
  * 遍历模板
@@ -117,7 +11,14 @@ const traverseScript = (ast, script, filePath, fileUuid, config) => {
  * @param {string} fileUuid 文件 UUID
  * @param {object} config 配置
  */
-const traverseTemplate = (ast, template, filePath, fileUuid, config) => {
+exports.traverseTemplate = (
+  ast,
+  template,
+  filePath,
+  fileUuid,
+  config,
+  index
+) => {
   let modifiedTemplate = template;
   let offset = 0;
   const traverseNode = (node) => {
@@ -325,122 +226,4 @@ const traverseTemplate = (ast, template, filePath, fileUuid, config) => {
   };
   traverseNode(ast);
   return modifiedTemplate;
-};
-
-/**
- * 扫描中文
- * @param {string} filePath 文件路径
- */
-exports.scanChinese = async (filePath = undefined) => {
-  hasI18nUsageInScript = false;
-  hasI18nUsageInScriptSetup = false;
-  try {
-    const config = getConfig(true);
-    let currentFilePath;
-    if (!filePath) {
-      currentFilePath = vscode.window.activeTextEditor.document.uri.fsPath;
-      filePath = currentFilePath;
-    }
-    const fileExtension = path.extname(filePath);
-    if (config.excludedExtensions.includes(fileExtension)) return;
-    const fileUuid = generateUniqueId();
-    let script;
-    let text;
-    let autoImportI18n;
-
-    if (fileExtension === ".vue") {
-      text = await readFileContent(filePath);
-      const { descriptor } = parseSfc(text);
-      const template = descriptor.template ? descriptor.template.content : "";
-      script = descriptor.script ? descriptor.script.content : "";
-      const scriptSetup = descriptor.scriptSetup
-        ? descriptor.scriptSetup.content
-        : "";
-      const templateAst = parseTemplate(template);
-      const scriptSetupAst = babelParse(scriptSetup, {
-        sourceType: "module",
-        plugins: ["jsx", "typescript"],
-      });
-
-      if (templateAst) {
-        const modifiedTemplate = traverseTemplate(
-          templateAst,
-          template,
-          filePath,
-          fileUuid,
-          config
-        );
-        text = text.replace(template, modifiedTemplate);
-      }
-      // script setup标签的
-      if (
-        scriptSetupAst &&
-        scriptSetupAst.program &&
-        scriptSetupAst.program.body.length > 0
-      ) {
-        let modifiedScript = traverseScript(
-          scriptSetupAst,
-          scriptSetup,
-          filePath,
-          fileUuid,
-          config
-        );
-        const alreadyImported = modifiedScript.match(
-          /import\s+(?:i18n)\s+from\s+['"].*['"]/
-        );
-        if (!alreadyImported && hasI18nUsageInScriptSetup) {
-          autoImportI18n = `\n${config.autoImportI18n}`;
-          modifiedScript = autoImportI18n + modifiedScript;
-        }
-        text = text.replace(scriptSetup, modifiedScript);
-      }
-      // script标签的
-      if (script) {
-        autoImportI18n = `\n${config.autoImportI18n}`;
-      }
-    } else {
-      // 纯js
-      autoImportI18n = `${config.autoImportI18n}\n`;
-      text = await readFileContent(filePath);
-      script = text;
-    }
-
-    const scriptAst = babelParse(script, {
-      sourceType: "module",
-      plugins: ["jsx", "typescript"],
-    });
-
-    if (scriptAst && scriptAst.program && scriptAst.program.body.length > 0) {
-      let modifiedScript = traverseScript(
-        scriptAst,
-        script,
-        filePath,
-        fileUuid,
-        config
-      );
-      const alreadyImported = modifiedScript.match(
-        /import\s+(?:i18n)\s+from\s+['"].*['"]/
-      );
-      if (!alreadyImported && hasI18nUsageInScript) {
-        modifiedScript = autoImportI18n + modifiedScript;
-      }
-      text = text.replace(script, modifiedScript);
-    }
-
-    await saveFileContent(filePath, text);
-    const obj = Object.fromEntries(chineseTexts);
-    if (Object.keys(obj).length > 0) {
-      await saveObjectToPath(obj, `${config.i18nFilePath}/locale/zh.json`);
-    }
-
-    if (filePath === currentFilePath) {
-      setTimeout(() => {
-        updateDecorations();
-      }, 300);
-    }
-    index = 0;
-    chineseTexts = new Map();
-  } catch (error) {
-    console.error(`发生未知错误：${error}`);
-  }
 };
