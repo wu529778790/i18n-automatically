@@ -40,5 +40,6 @@ exports.saveChineseTexts = async (config) => {
  * 清空收集到的中文文本
  */
 exports.clearChineseTexts = () => {
+  index = 0;
   chineseTexts.clear();
 };

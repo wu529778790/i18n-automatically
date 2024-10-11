@@ -1,5 +1,5 @@
 const { default: traverse } = require("@babel/traverse");
-const { generateFileUUID, getPosition } = require("../../utils/index.js");
+const { generateFileUUID, getPosition } = require("./utils.js");
 const { collectChineseText } = require("./collectChineseText.js");
 
 const chineseRegex = /[\u4e00-\u9fa5]/;
@@ -18,7 +18,6 @@ exports.traverseScript = (
   filePath,
   fileUuid,
   config,
-  index,
   hasI18nUsageInScript,
   hasI18nUsageInScriptSetup
 ) => {
@@ -28,7 +27,7 @@ exports.traverseScript = (
   traverse(ast, {
     StringLiteral(path) {
       if (chineseRegex.test(path.node.value)) {
-        const uuid = generateFileUUID(filePath, fileUuid, index, config);
+        const uuid = generateFileUUID(filePath, fileUuid, config);
         const start = path.node.loc.start;
         const end = path.node.loc.end;
         let startPos = getPosition(modifiedScript, start.line, start.column);
@@ -57,14 +56,13 @@ exports.traverseScript = (
         hasI18nUsageInScript = true;
         hasI18nUsageInScriptSetup = true;
         prePath = path;
-        index++;
         collectChineseText(uuid, path.node.value);
       }
     },
     TemplateLiteral(path) {
       path.node.quasis.forEach((quasi) => {
         if (chineseRegex.test(quasi.value.raw)) {
-          const uuid = generateFileUUID(filePath, fileUuid, index, config);
+          const uuid = generateFileUUID(filePath, fileUuid, config);
           const start = quasi.start + offset;
           const end = quasi.end + offset;
           const replacement =
@@ -76,7 +74,6 @@ exports.traverseScript = (
           offset += replacement.length - (end - start);
           hasI18nUsageInScript = true;
           hasI18nUsageInScriptSetup = true;
-          index++;
           collectChineseText(uuid, quasi.value.raw);
         }
       });

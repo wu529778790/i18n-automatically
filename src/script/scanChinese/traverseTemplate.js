@@ -1,4 +1,4 @@
-const { customLog, generateFileUUID } = require("../../utils/index.js");
+const { generateFileUUID } = require("./utils.js");
 const { collectChineseText } = require("./collectChineseText.js");
 
 const chineseRegex = /[\u4e00-\u9fa5]/;
@@ -11,14 +11,7 @@ const chineseRegex = /[\u4e00-\u9fa5]/;
  * @param {string} fileUuid 文件 UUID
  * @param {object} config 配置
  */
-exports.traverseTemplate = (
-  ast,
-  template,
-  filePath,
-  fileUuid,
-  config,
-  index
-) => {
+exports.traverseTemplate = (ast, template, filePath, fileUuid, config) => {
   let modifiedTemplate = template;
   let offset = 0;
   const traverseNode = (node) => {
@@ -62,7 +55,7 @@ exports.traverseTemplate = (
                 ":" +
                 modifiedTemplate.substring(nameStart);
               offset++;
-              const uuid = generateFileUUID(filePath, fileUuid, index, config);
+              const uuid = generateFileUUID(filePath, fileUuid, config);
               const start = prop.value.loc.start.offset + offset;
               const end = prop.value.loc.end.offset + offset;
               const replacementText = `"${config.templateI18nCall}('${uuid}')"`;
@@ -71,7 +64,6 @@ exports.traverseTemplate = (
                 replacementText +
                 modifiedTemplate.substring(end);
               offset += replacementText.length - (end - start);
-              index++;
               collectChineseText(uuid, prop.value.content);
             }
             // Directive Node（指令节点）
@@ -97,12 +89,7 @@ exports.traverseTemplate = (
                   matchStart = matchStart - 1;
                   matchEnd = matchEnd + 1;
                 }
-                const uuid = generateFileUUID(
-                  filePath,
-                  fileUuid,
-                  index,
-                  config
-                );
+                const uuid = generateFileUUID(filePath, fileUuid, config);
                 const replacement =
                   "${" + `${config.templateI18nCall}('${uuid}')` + "}";
                 modifiedTemplate =
@@ -110,7 +97,6 @@ exports.traverseTemplate = (
                   replacement +
                   modifiedTemplate.substring(matchEnd);
                 offset += replacement.length - (matchEnd - matchStart);
-                index++;
                 collectChineseText(uuid, match[0]);
               }
             }
@@ -120,7 +106,7 @@ exports.traverseTemplate = (
         break;
       case 2:
         if (chineseRegex.test(node.content)) {
-          const uuid = generateFileUUID(filePath, fileUuid, index, config);
+          const uuid = generateFileUUID(filePath, fileUuid, config);
           const start = node.loc.start.offset + offset;
           const end = node.loc.end.offset + offset;
           const replacementText = `{{ ${config.templateI18nCall}('${uuid}') }}`;
@@ -129,7 +115,6 @@ exports.traverseTemplate = (
             replacementText +
             modifiedTemplate.substring(end);
           offset += replacementText.length - (end - start);
-          index++;
           collectChineseText(uuid, node.content);
         }
         break;
@@ -148,12 +133,7 @@ exports.traverseTemplate = (
               while ((match = chineseRegex.exec(content))) {
                 const matchStart = start + match.index + offset;
                 const matchEnd = matchStart + match[0].length;
-                const uuid = generateFileUUID(
-                  filePath,
-                  fileUuid,
-                  index,
-                  config
-                );
+                const uuid = generateFileUUID(filePath, fileUuid, config);
                 const replacement =
                   "${" + `${config.templateI18nCall}('${uuid}')` + "}";
                 modifiedTemplate =
@@ -161,7 +141,6 @@ exports.traverseTemplate = (
                   replacement +
                   modifiedTemplate.substring(matchEnd);
                 offset += replacement.length - (matchEnd - matchStart); // 更新偏移量
-                index++;
                 collectChineseText(uuid, match[0]);
               }
             } else {
@@ -180,19 +159,13 @@ exports.traverseTemplate = (
                   matchStart = matchStart - 1;
                   matchEnd = matchEnd + 1;
                 }
-                const uuid = generateFileUUID(
-                  filePath,
-                  fileUuid,
-                  index,
-                  config
-                );
+                const uuid = generateFileUUID(filePath, fileUuid, config);
                 const replacement = `${config.templateI18nCall}('${uuid}')`;
                 modifiedTemplate =
                   modifiedTemplate.substring(0, matchStart) +
                   replacement +
                   modifiedTemplate.substring(matchEnd);
                 offset += replacement.length - (matchEnd - matchStart); // 更新偏移量
-                index++;
                 collectChineseText(uuid, match[0]);
               }
             }
@@ -203,7 +176,7 @@ exports.traverseTemplate = (
         break;
       case 12: // Interpolation Node（插值节点）
         if (chineseRegex.test(node.loc.source)) {
-          const uuid = generateFileUUID(filePath, fileUuid, index, config);
+          const uuid = generateFileUUID(filePath, fileUuid, config);
           const start = node.loc.start.offset + offset;
           const end = node.loc.end.offset + offset;
           const replacementText = `{{ ${config.templateI18nCall}('${uuid}') }}`;
@@ -212,7 +185,6 @@ exports.traverseTemplate = (
             replacementText +
             modifiedTemplate.substring(end);
           offset += replacementText.length - (end - start);
-          index++;
           collectChineseText(uuid, node.loc.source);
         }
         break;
@@ -220,7 +192,6 @@ exports.traverseTemplate = (
         if (node.branches) node.branches.forEach(traverseNode);
         break;
       default:
-        customLog(config.debug, "未适配的node节点", node.type);
         break;
     }
   };

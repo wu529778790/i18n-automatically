@@ -14,7 +14,6 @@ import { traverseTemplate } from "./traverseTemplate.js";
 import { traverseScript } from "./traverseScript.js";
 import { saveChineseTexts, clearChineseTexts } from "./collectChineseText.js";
 
-let index = 0;
 let hasI18nUsageInScript = false;
 let hasI18nUsageInScriptSetup = false;
 
@@ -59,8 +58,7 @@ exports.scanChinese = async (filePath = undefined) => {
           template,
           filePath,
           fileUuid,
-          config,
-          index
+          config
         );
         text = text.replace(template, modifiedTemplate);
       }
@@ -76,7 +74,6 @@ exports.scanChinese = async (filePath = undefined) => {
           filePath,
           fileUuid,
           config,
-          index,
           hasI18nUsageInScript,
           hasI18nUsageInScriptSetup
         );
@@ -112,7 +109,6 @@ exports.scanChinese = async (filePath = undefined) => {
         filePath,
         fileUuid,
         config,
-        index,
         hasI18nUsageInScript,
         hasI18nUsageInScriptSetup
       );
@@ -133,7 +129,6 @@ exports.scanChinese = async (filePath = undefined) => {
         updateDecorations();
       }, 300);
     }
-    index = 0;
     await clearChineseTexts();
   } catch (error) {
     console.error(`发生未知错误：${error}`);
