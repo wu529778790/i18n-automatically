@@ -1,4 +1,4 @@
-const { saveObjectToPath } = require("../../utils/index.js");
+const { saveObjectToPath } = require("./utils.js");
 
 let chineseTexts = new Map();
 let index = 0;
