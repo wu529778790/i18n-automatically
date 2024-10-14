@@ -1,31 +1,62 @@
-const path = require("path");
-const fs = require("fs").promises;
-const { TranslationManager, logger } = require("./common");
-const handleVueFile = require("./vueProcessor");
-const { handleJsFile } = require("./jsProcessor");
-const { readConfig } = require("../setting");
-
+const path = require('path');
+const fs = require('fs').promises;
+const { TranslationManager, logger } = require('./common');
+const handleVueFile = require('./vueProcessor');
+const { handleJsFile } = require('./jsProcessor');
+const { readConfig } = require('../setting');
+const prettier = require('prettier');
+const config = readConfig();
+/**
+ *
+ * @param {string} fileExt
+ * @returns
+ */
+function getParserForFile(fileExt) {
+  switch (fileExt.toLowerCase()) {
+    case '.ts':
+    case '.tsx':
+      return 'typescript';
+    case '.vue':
+      return 'vue';
+    default:
+      return 'babel'; // 默认使用 babel 解析器
+  }
+}
 /**
  * 处理单个文件
  * @param {string} filePath 文件路径
  * @returns {Promise<void>}
  */
 async function processFile(filePath) {
-  // 后缀名
   const fileExt = path.extname(filePath).toLowerCase();
-  // 文件处理器
   const processor = getFileProcessor(fileExt);
 
   if (!processor) {
-    logger.info(`不支持的文件类型: ${fileExt}`);
+    logger.info(`Unsupported file type: ${fileExt}`);
     return;
   }
 
   try {
-    const config = readConfig(true);
-    const { translations, contentChanged } = await processor(filePath, config);
+    const processResult = await processor(filePath, config);
+    const { contentChanged, translations } = processResult || {};
     if (contentChanged) {
-      await fs.writeFile(filePath, contentChanged, "utf-8");
+      // try {
+      //格式化代码
+      const formatContent = await prettier.format(contentChanged, {
+        parser: getParserForFile(fileExt),
+        printWidth: 120,
+        semi: false,
+        singleQuote: true,
+        arrowParens: 'avoid',
+        trailingComma: 'none',
+        endOfLine: 'auto',
+      });
+      await fs.writeFile(filePath, formatContent, 'utf-8');
+      // } catch (e) {
+      //   console.log('format出错', e);
+      //   await fs.writeFile(filePath, contentChanged, 'utf-8');
+      // }
+
       await outputTranslations(translations);
       logger.info(`Processed and updated: ${filePath}`);
     } else {
@@ -43,11 +74,11 @@ async function processFile(filePath) {
  */
 function getFileProcessor(fileExt) {
   const processors = {
-    ".vue": handleVueFile,
-    ".js": handleJsFile,
-    ".jsx": handleJsFile,
-    ".ts": handleJsFile,
-    ".tsx": handleJsFile,
+    '.vue': handleVueFile,
+    '.js': handleJsFile,
+    '.jsx': handleJsFile,
+    '.ts': handleJsFile,
+    '.tsx': handleJsFile,
   };
   return processors[fileExt] || null;
 }
@@ -59,7 +90,7 @@ function getFileProcessor(fileExt) {
  */
 async function outputTranslations(translations) {
   const translationManager = new TranslationManager();
-  const config = readConfig();
+  // const config = readConfig();
   await translationManager.outputTranslationFile(translations, config);
 }
 
@@ -98,9 +129,9 @@ async function main(inputPath) {
     } else {
       await processFile(inputPath);
     }
-    logger.info("Processing completed.");
+    logger.info('Processing completed.');
   } catch (error) {
-    logger.error("An error occurred:", error);
+    logger.error('An error occurred:', error);
     process.exit(1);
   }
 }
@@ -109,12 +140,12 @@ async function main(inputPath) {
 if (require.main === module) {
   const inputPath = process.argv[2];
   if (!inputPath) {
-    logger.error("Please provide a file or directory path as an argument.");
+    logger.error('Please provide a file or directory path as an argument.');
     process.exit(1);
   }
 
   main(inputPath).catch((error) => {
-    logger.error("An error occurred:", error);
+    logger.error('An error occurred:', error);
     process.exit(1);
   });
 }
