@@ -1,9 +1,18 @@
-const fs = require("fs");
-const path = require("path");
-const generate = require("@babel/generator").default;
-const vscode = require("vscode");
-const { generateUniqueId } = require("../../utils");
+const fs = require('fs');
+const path = require('path');
+const generate = require('@babel/generator').default;
+const vscode = require('vscode');
+const { generateUniqueId } = require('../../utils');
+const { readConfig } = require('../setting');
+//缓存配置数据
+let cachedConfig = null;
 
+function getConfig() {
+  if (!cachedConfig) {
+    cachedConfig = readConfig();
+  }
+  return cachedConfig;
+}
 const logger = {
   debug: (message, ...args) => console.debug(message, ...args),
   info: (message, ...args) => console.log(message, ...args),
@@ -21,8 +30,8 @@ function createContext(filePath, config) {
     },
     index: 0,
     translations: new Map(),
-    contentSource: fs.readFileSync(filePath, "utf-8"),
-    contentChanged: "",
+    contentSource: fs.readFileSync(filePath, 'utf-8'),
+    contentChanged: '',
     ast: null,
   };
 }
@@ -39,11 +48,11 @@ function generateKey(context) {
   const pathParts = filePath.split(path.sep);
   const selectedLevelsParts = pathParts.slice(-config.keyFilePathLevel);
   const lastLevelWithoutExtension =
-    selectedLevelsParts[selectedLevelsParts.length - 1].split(".")[0];
+    selectedLevelsParts[selectedLevelsParts.length - 1].split('.')[0];
   const selectedLevels = selectedLevelsParts
     .slice(0, -1)
     .concat(lastLevelWithoutExtension)
-    .join("-");
+    .join('-');
   context.index++;
   return `${selectedLevels}-${fileUuid}-${context.index}`;
 }
@@ -56,6 +65,10 @@ function generateCode(ast, content) {
   };
   return generate(ast, opts, content).code;
 }
+function stringWithDom(str) {
+  // /<\/?[a-z][\s\S]*?>/i.test(value)
+  return /<\/?[a-z][\s\S]*?>/i.test(str);
+}
 
 function containsChinese(str) {
   // 匹配中文字符
@@ -63,10 +76,23 @@ function containsChinese(str) {
 
   // 匹配常见图片文件扩展名,增加引号的匹配考虑
   // const imageExtensionRegex = /\.(png|jpe?g|gif|svg|webp)$/i;
-  const imageExtensionRegex = /\.(png|jpe?g|gif|svg|webp)(['"])?$/i;
+  // const imageExtensionRegex = /\.(png|jpe?g|gif|svg|webp)(['"])?$/i;
+  const imageExtensionRegex = /\.(png|jpe?g|gif|svg|webp)(['"]|\?[^'"\s]*)?$/i;
+
+  const isChinese = chineseRegex.test(str);
+  // 确保配置已加载
+  const config = getConfig();
+
+  // 首先使用 includes 进行快速检查
+  const isExcludedByIncludes = isChinese
+    ? config.excludedStrings.some((excluded) => str.includes(excluded))
+    : false;
+
+  // 如果快速检查未排除，则使用正则表达式进行更复杂的检查
+  // const isExcluded = isExcludedByIncludes;//|| excludedRegex.test(str);
 
   // 返回true如果包含中文且不是图片资源
-  return chineseRegex.test(str) && !imageExtensionRegex.test(str);
+  return isChinese && !imageExtensionRegex.test(str) && !isExcludedByIncludes;
 }
 
 const getRootPath = () => {
@@ -91,12 +117,12 @@ class TranslationManager {
    */
   outputTranslationFile(translations, config) {
     const rootPath = this.getRootPath();
-    const locale = config.locale || "zh";
+    const locale = config.locale || 'zh';
     const filePath = path.join(
       rootPath,
       config.i18nFilePath,
-      "locale",
-      `${locale}.json`
+      'locale',
+      `${locale}.json`,
     );
 
     // 确保传入的 translations 是一个对象
@@ -115,14 +141,14 @@ class TranslationManager {
       if (fs.existsSync(filePath)) {
         try {
           const fileContent = fs.readFileSync(filePath, {
-            encoding: "utf-8",
-            flag: "r",
+            encoding: 'utf-8',
+            flag: 'r',
           });
           const fileContentObj = JSON.parse(fileContent);
           updatedContent = { ...fileContentObj, ...translationObj };
         } catch (error) {
           throw new Error(
-            `Error reading or parsing file: ${filePath}. ${error.message}`
+            `Error reading or parsing file: ${filePath}. ${error.message}`,
           );
         }
       }
@@ -131,7 +157,7 @@ class TranslationManager {
       fs.writeFileSync(
         filePath,
         JSON.stringify(updatedContent, null, 2),
-        "utf-8"
+        'utf-8',
       );
       console.log(`Successfully updated translation file: ${filePath}`);
     } catch (error) {
@@ -148,4 +174,5 @@ module.exports = {
   containsChinese,
   TranslationManager,
   logger,
+  stringWithDom,
 };

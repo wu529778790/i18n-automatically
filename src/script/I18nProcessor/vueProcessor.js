@@ -1,66 +1,81 @@
-const { parse: parseSfc } = require("@vue/compiler-sfc");
-const prettier = require("prettier");
+const { parse: parseSfc } = require('@vue/compiler-sfc');
 const {
   createI18nProcessor,
   generateKey,
   containsChinese,
   generateCode,
   logger,
-} = require("./common");
-const { processJsAst } = require("./jsProcessor");
+  stringWithDom,
+} = require('./common');
+const { processJsAst, handlerDomNode } = require('./jsProcessor');
 
+/**
+ * 处理Vue AST
+ * @param {Object} context - 处理上下文
+ * @returns {Object|undefined} - 处理后的上下文或undefined
+ */
 async function processVueAst(context) {
   try {
-    context.config.isAutoImportI18n = false;
+    context.config.enableI18n = false;
     const { descriptor } = parseSfc(context.contentSource);
-    const templateAst = descriptor.template && descriptor.template.ast.children;
-    const scriptAst = descriptor.script && descriptor.script.content;
-    const scriptSetupAst =
-      descriptor.scriptSetup && descriptor.scriptSetup.content;
+    const templateAst = descriptor.template?.ast.children;
+    const scriptAst = descriptor.script?.content;
+    const scriptSetupAst = descriptor.scriptSetup?.content;
 
-    if (templateAst) {
-      await processVueTemplate(templateAst, context, descriptor);
+    if (!templateAst) {
+      logger.warn('No template found, skipping processing.');
+      return;
     }
-    if (scriptAst) {
-      await processVueScript(scriptAst, context, "script");
-    }
-    if (scriptSetupAst) {
-      await processVueScript(scriptSetupAst, context, "scriptSetup");
-    }
+
+    await processVueTemplate(templateAst, context, descriptor);
+    await processVueScript(scriptAst, context, 'script');
+    await processVueScript(scriptSetupAst, context, 'scriptSetup');
 
     return context.translations.size > 0 ? context : undefined;
   } catch (error) {
-    logger.error("Error in processVueAst:", error);
+    logger.error('Error in processVueAst:', error);
     throw error;
   }
 }
 
+/**
+ * 处理Vue模板
+ * @param {Array} templateAst - 模板AST
+ * @param {Object} context - 处理上下文
+ * @param {Object} descriptor - Vue文件描述符
+ */
 async function processVueTemplate(templateAst, context, descriptor) {
   try {
-    const processedTemplate = await processTemplate(templateAst, context);
+    const processedTemplate = processTemplate(templateAst, context);
     if (context.translations.size > 0) {
-      const template = descriptor.template ? descriptor.template.content : "";
+      const template = descriptor.template ? descriptor.template.content : '';
       context.contentChanged = context.contentSource.replace(
         template,
-        processedTemplate
+        processedTemplate,
       );
       context.contentSource = context.contentChanged;
     }
   } catch (error) {
-    logger.error("Error in processVueTemplate:", error);
+    logger.error('Error in processVueTemplate:', error);
     throw error;
   }
 }
 
+/**
+ * 处理Vue脚本
+ * @param {string} scriptAst - 脚本AST
+ * @param {Object} context - 处理上下文
+ * @param {string} scriptType - 脚本类型
+ */
 async function processVueScript(scriptAst, context, scriptType) {
   if (scriptAst) {
     try {
-      context.config.isAutoImportI18n = true;
+      context.config.enableI18n = true;
       const processedScript = processJsAst(context, scriptAst);
       logger.debug(`${scriptType}Ast`, processedScript);
       context.contentChanged = context.contentSource.replace(
         scriptAst,
-        context.contentChanged
+        context.contentChanged,
       );
       context.contentSource = context.contentChanged;
     } catch (error) {
@@ -70,28 +85,45 @@ async function processVueScript(scriptAst, context, scriptType) {
   }
 }
 
+/**
+ * 处理模板
+ * @param {Array} templateAst - 模板AST
+ * @param {Object} context - 处理上下文
+ * @returns {string} 处理后的模板字符串
+ */
 function processTemplate(templateAst, context) {
   try {
-    const processedHtml = astArrayToTemplate(templateAst, context);
-    return formatTemplate(processedHtml);
+    return astArrayToTemplate(templateAst, context);
   } catch (error) {
-    logger.error("Error in processTemplate:", error);
+    logger.error('Error in processTemplate:', error);
     throw error;
   }
 }
 
+/**
+ * 将AST数组转换为模板字符串
+ * @param {Array} astArray - AST数组
+ * @param {Object} context - 处理上下文
+ * @returns {string} 模板字符串
+ */
 function astArrayToTemplate(astArray, context) {
   try {
-    return astArray.map((node) => astToTemplate(node, context)).join(" ");
+    return astArray.map((node) => astToTemplate(node, context)).join(' ');
   } catch (error) {
-    logger.error("Error in astArrayToTemplate:", error);
-    return "";
+    logger.error('Error in astArrayToTemplate:', error);
+    return '';
   }
 }
 
+/**
+ * 将单个AST节点转换为模板字符串
+ * @param {Object} node - AST节点
+ * @param {Object} context - 处理上下文
+ * @returns {string} 模板字符串
+ */
 function astToTemplate(node, context) {
   try {
-    if (typeof node === "string") return node;
+    if (typeof node === 'string') return node;
 
     const nodeTypeHandlers = {
       3: () => node.loc.source, // Comment
@@ -100,13 +132,19 @@ function astToTemplate(node, context) {
       1: () => processElementNode(node, context),
     };
 
-    return nodeTypeHandlers[node.type]() || "";
+    return nodeTypeHandlers[node.type]?.() || '';
   } catch (error) {
-    logger.error("Error in astToTemplate:", error);
-    return "";
+    logger.error('Error in astToTemplate:', error);
+    return '';
   }
 }
 
+/**
+ * 处理文本节点
+ * @param {Object} node - 文本节点
+ * @param {Object} context - 处理上下文
+ * @returns {string} 处理后的文本
+ */
 function processTextNode(node, context) {
   if (containsChinese(node.content)) {
     const key = generateKey(context);
@@ -116,63 +154,91 @@ function processTextNode(node, context) {
   return node.content;
 }
 
+/**
+ * 处理插值节点
+ * @param {Object} node - 插值节点
+ * @param {Object} context - 处理上下文
+ * @returns {string} 处理后的插值
+ */
 function processInterpolationNode(node, context) {
   if (!containsChinese(node.content.content)) return node.loc.source;
 
   if (node.content.ast) {
-    //用js处理
-    // const processedJs = processJsAst(context, node.content.ast);
     let result = handlerForJs(node.content, context);
-    // context.config.scriptI18nCall   context.config.templateI18nCall;
-
-    return `{{${result.replace(
-      new RegExp(context.config.scriptI18nCall, "g"),
-      context.config.templateI18nCall
-    )}}}`;
+    return `{{${replaceForI18nCall(result, context)}}}`;
   } else {
     return `{{\`${interpolationStr(node.content.content, context)}\`}}`;
   }
 }
 
+/**
+ * 处理元素节点
+ * @param {Object} node - 元素节点
+ * @param {Object} context - 处理上下文
+ * @returns {string} 处理后的元素字符串
+ */
 function processElementNode(node, context) {
   let result = `<${node.tag}`;
   result += processAttributes(node.props, context);
 
-  if (node.isSelfClosing) return result + " />";
+  if (node.isSelfClosing) return result + ' />';
 
-  result += ">";
+  result += '>';
   if (node.children) {
     result += node.children
       .map((child) => astToTemplate(child, context))
-      .join(" ");
+      .join(' ');
   }
   return result + `</${node.tag}>`;
 }
 
+/**
+ * 处理属性
+ * @param {Array} props - 属性数组
+ * @param {Object} context - 处理上下文
+ * @returns {string} 处理后的属性字符串
+ */
 function processAttributes(props, context) {
-  if (!props) return "";
+  if (!props) return '';
 
   return props
     .map((prop) => {
       if (prop.type === 6) return processAttribute(prop, context);
       if (prop.type === 7) return processDirective(prop, context);
-      return "";
+      return '';
     })
-    .join(" ");
+    .join(' ');
 }
 
+/**
+ * 处理普通属性
+ * @param {Object} prop - 属性对象
+ * @param {Object} context - 处理上下文
+ * @returns {string} 处理后的属性字符串
+ */
 function processAttribute(prop, context) {
   if (!prop.value) return ` ${prop.name}`;
 
   if (containsChinese(prop.value.content)) {
-    const key = generateKey(context);
-    context.translations.set(key, prop.value.content);
-    return ` :${prop.name}="${context.config.templateI18nCall}('${key}')"`;
+    if (stringWithDom(prop.value.content)) {
+      const result = handlerDomNode(prop.value.content, context);
+      return ` :${prop.name}="\`${replaceForI18nCall(result, context)}\`"`;
+    } else {
+      const key = generateKey(context);
+      context.translations.set(key, prop.value.content);
+      return ` :${prop.name}="${context.config.templateI18nCall}('${key}')"`;
+    }
   }
 
   return ` ${prop.name}="${prop.value.content}"`;
 }
 
+/**
+ * 处理指令
+ * @param {Object} prop - 指令对象
+ * @param {Object} context - 处理上下文
+ * @returns {string} 处理后的指令字符串
+ */
 function processDirective(prop, context) {
   let directiveName = getDirectiveName(prop);
 
@@ -181,71 +247,85 @@ function processDirective(prop, context) {
   }
 
   if (prop.modifiers && prop.modifiers.length > 0) {
-    directiveName += prop.modifiers.map((mod) => `.${mod.content}`).join(" ");
+    directiveName += prop.modifiers.map((mod) => `.${mod.content}`).join(' ');
   }
 
   if (!prop.exp) return ` ${directiveName}`;
 
-  // ast: {    type: "MemberExpression",
-  // ||
-  //   (prop.exp.ast?.type &&
-  //     ![
-  //       'StringLiteral',
-  //       'TemplateElement',
-  //       'TemplateLiteral',
-  //       'ConditionalExpression',
-  //     ].includes(prop.exp.ast?.type))
-
   if (prop.exp.ast === null) {
-    return " " + prop.loc.source;
+    return ' ' + prop.loc.source;
   }
 
   if (!containsChinese(prop.exp.content)) {
     return ` ${directiveName}="${prop.exp.content}"`;
   }
-  //根据ast类型处理即可
-  // TODO 处理script中的中文  新增翻译数据bug
+
   const result = handlerForJs(prop.exp, context);
-  return ` ${directiveName}="${result.replace(
-    new RegExp(context.config.scriptI18nCall, "g"),
-    context.config.templateI18nCall
-  )}"`;
+  return ` ${directiveName}="${replaceForI18nCall(result, context)}"`;
 }
 
+/**
+ * 替换I18n调用
+ * @param {string} str - 输入字符串
+ * @param {Object} context - 处理上下文
+ * @returns {string} 替换后的字符串
+ */
+function replaceForI18nCall(str, context) {
+  return str.replace(
+    new RegExp(context.config.scriptI18nCall, 'g'),
+    context.config.templateI18nCall,
+  );
+}
+
+/**
+ * 处理JS内容
+ * @param {Object} node - AST节点
+ * @param {Object} context - 处理上下文
+ * @returns {string} 处理后的JS代码
+ */
 function handlerForJs(node, context) {
   let getAst = node.ast;
   const { ast } = processJsAst(context, node.content.trim());
-  if (getAst.type === "StringLiteral" && ast.program.body.length === 0) {
-    //不是表达式，直接当字符串处理
+  if (getAst.type === 'StringLiteral' && ast.program.body.length === 0) {
     if (containsChinese(node.content)) {
       const key = generateKey(context);
-      context.translations.set(key, node.content.replace(/'/g, ""));
+      context.translations.set(key, node.content.replace(/'/g, ''));
       return ` ${context.config.templateI18nCall}('${key}')`;
     } else {
       return ` ${node.content}`;
     }
   }
-  // processPathAst(context, getAst);
   const code = generateCode(ast, node.content.trim()).replace(
     /[,;](?=[^,;]*$)/,
-    ""
+    '',
   );
   return ` ${code.replace(/"/g, "'")}`;
 }
 
+/**
+ * 获取指令名称
+ * @param {Object} prop - 属性对象
+ * @returns {string} 指令名称
+ */
 function getDirectiveName(prop) {
   switch (prop.name) {
-    case "bind":
-      return ":";
-    case "on":
-      return "@";
-    case "slot":
-      return "#";
+    case 'bind':
+      return ':';
+    case 'on':
+      return '@';
+    case 'slot':
+      return '#';
     default:
       return `v-${prop.name}`;
   }
 }
 
+/**
+ * 处理插值字符串
+ * @param {string} strContent - 字符串内容
+ * @param {Object} context - 处理上下文
+ * @returns {string} 处理后的插值字符串
+ */
 function interpolationStr(strContent, context) {
   const parts = splitTemplateString(strContent);
   return parts
@@ -257,26 +337,18 @@ function interpolationStr(strContent, context) {
       }
       return part;
     })
-    .join(" ");
+    .join(' ');
 }
 
+/**
+ * 分割模板字符串
+ * @param {string} str - 输入字符串
+ * @returns {Array} 分割后的字符串数组
+ */
 function splitTemplateString(str) {
-  str = str.replace(/^`|`$/g, "");
+  str = str.replace(/^`|`$/g, '');
   const regex = /(\$\{[^}]*?\})|([^$]+|\$(?!\{))/g;
   return str.match(regex) || [];
-}
-
-async function formatTemplate(htmlString) {
-  try {
-    const formattedHtml = await prettier.format(
-      `<template>${htmlString}</template>`,
-      { parser: "vue" }
-    );
-    return formattedHtml.replace(/<template>([\s\S]*)<\/template>/, "$1");
-  } catch (e) {
-    console.error("Error formatting template:", e);
-    return htmlString;
-  }
 }
 
 const handleVueFile = createI18nProcessor(processVueAst);
