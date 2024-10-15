@@ -1,4 +1,4 @@
-const { readConfig } = require('../setting');
+const { readConfig } = require('../script/setting');
 
 const logger = (type) => {
   const config = readConfig();

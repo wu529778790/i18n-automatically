@@ -1,6 +1,6 @@
-const vscode = require("vscode");
-const fs = require("fs");
-const path = require("path");
+const vscode = require('vscode');
+const fs = require('fs');
+const path = require('path');
 
 /**
  * 生成唯一ID
@@ -106,7 +106,7 @@ exports.isInTemplateComment = (templateContent, target) => {
  */
 exports.isInTemplate = (text, chineseMatch) => {
   // 将输入的文本按行分割成数组
-  const lines = text.split("\n");
+  const lines = text.split('\n');
   // 用于存储已遇到的模板开始标签，以判断嵌套层次
   const templateStack = [];
   // 标志当前是否在模板区域内
@@ -134,18 +134,18 @@ exports.isInTemplate = (text, chineseMatch) => {
   // 检查潜在开始标签的函数
   function checkPotentialStartTag(line) {
     // 如果当前没有正在检查潜在开始标签且该行包含'<template'
-    if (!potentialStartTag && line.includes("<template")) {
+    if (!potentialStartTag && line.includes('<template')) {
       potentialStartTag = true;
     }
     // 如果正在检查潜在开始标签
     if (potentialStartTag) {
       // 在该行中查找'>'字符的位置，从'<template'之后开始查找
-      const endBracketIndex = line.indexOf(">", line.indexOf("<template"));
+      const endBracketIndex = line.indexOf('>', line.indexOf('<template'));
       // 如果找到了'>'，表示找到了完整的模板开始标签
       if (endBracketIndex !== -1) {
         // 将完整的模板开始标签存入栈中
         templateStack.push(
-          line.substring(line.indexOf("<template"), endBracketIndex + 1)
+          line.substring(line.indexOf('<template'), endBracketIndex + 1),
         );
         // 设置当前处于模板区域内标志为真
         inTemplate = true;
@@ -158,7 +158,7 @@ exports.isInTemplate = (text, chineseMatch) => {
   // 检查潜在结束标签的函数
   function checkPotentialEndTag(line) {
     // 如果当前没有正在检查潜在结束标签且该行包含'</template>'
-    if (!potentialEndTag && line.includes("</template>")) {
+    if (!potentialEndTag && line.includes('</template>')) {
       potentialEndTag = true;
     }
     // 如果正在检查潜在结束标签
@@ -169,7 +169,7 @@ exports.isInTemplate = (text, chineseMatch) => {
         stackTopIncludesEndTag(
           templateStack[templateStack.length - 1],
           line,
-          line.indexOf("</template>")
+          line.indexOf('</template>'),
         )
       ) {
         // 如果构建的潜在结束标签与栈顶的开始标签匹配，则弹出栈顶元素
@@ -187,7 +187,7 @@ exports.isInTemplate = (text, chineseMatch) => {
   // 判断栈顶的开始标签是否包含给定的潜在结束标签
   function stackTopIncludesEndTag(stackTop, line, endTagIndex) {
     return stackTop.includes(
-      line.substring(endTagIndex - stackTop.length, endTagIndex)
+      line.substring(endTagIndex - stackTop.length, endTagIndex),
     );
   }
 };
@@ -209,7 +209,7 @@ exports.saveObjectToPath = (obj, filePath) => {
     // 尝试读取文件内容并合并
     if (fs.existsSync(newFilePath)) {
       try {
-        const fileContent = fs.readFileSync(newFilePath, "utf-8");
+        const fileContent = fs.readFileSync(newFilePath, 'utf-8');
         const fileContentObj = fileContent ? JSON.parse(fileContent) : {};
         updatedContent = { ...fileContentObj, ...obj };
       } catch (error) {
@@ -222,7 +222,7 @@ exports.saveObjectToPath = (obj, filePath) => {
       fs.writeFileSync(
         newFilePath,
         JSON.stringify(updatedContent, null, 2),
-        "utf-8"
+        'utf-8',
       );
       resolve();
     } catch (error) {
@@ -236,12 +236,4 @@ exports.saveObjectToPath = (obj, filePath) => {
  */
 exports.getRootPath = () => {
   return vscode.workspace.workspaceFolders[0].uri.fsPath;
-};
-
-// 导出一个名为 customLog 的函数，用于有条件地记录日志
-exports.customLog = (debug, ...args) => {
-  // 如果 debug 参数为真，即开发模式下
-  if (debug) {
-    console.log(...args);
-  }
 };

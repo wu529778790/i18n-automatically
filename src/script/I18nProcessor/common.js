@@ -5,7 +5,7 @@ const vscode = require('vscode');
 const { generateUniqueId } = require('../../utils');
 const { readConfig } = require('../setting');
 
-const logger = require('./logger.js');
+const logger = require('../../utils/logger.js');
 
 function createContext(filePath, config) {
   return {
