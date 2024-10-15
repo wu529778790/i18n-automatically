@@ -1,6 +1,6 @@
 const { readConfig } = require('../script/setting');
 
-const cutomConsole = (type) => {
+const customConsole = (type) => {
   const config = readConfig();
 
   return (message, ...args) => {
@@ -24,8 +24,8 @@ const cutomConsole = (type) => {
 };
 
 module.exports = {
-  debug: cutomConsole('debug'),
-  log: cutomConsole('log'),
-  warn: cutomConsole('warn'),
-  error: cutomConsole('error'),
+  debug: customConsole('debug'),
+  log: customConsole('log'),
+  warn: customConsole('warn'),
+  error: customConsole('error'),
 };

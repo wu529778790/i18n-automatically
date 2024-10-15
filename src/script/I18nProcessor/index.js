@@ -1,6 +1,6 @@
 const path = require('path');
 const fs = require('fs').promises;
-const { TranslationManager, cutomConsole } = require('./common');
+const { TranslationManager, customConsole } = require('./common');
 const handleVueFile = require('./vueProcessor');
 const { handleJsFile } = require('./jsProcessor');
 const { readConfig } = require('../setting');
@@ -34,7 +34,7 @@ async function processFile(filePath) {
   const processor = getFileProcessor(fileExt);
 
   if (!processor) {
-    cutomConsole.log(`Unsupported file type: ${fileExt}`);
+    customConsole.log(`Unsupported file type: ${fileExt}`);
     return;
   }
 
@@ -60,12 +60,12 @@ async function processFile(filePath) {
       // }
 
       await outputTranslations(translations);
-      cutomConsole.log(`Processed and updated: ${filePath}`);
+      customConsole.log(`Processed and updated: ${filePath}`);
     } else {
-      cutomConsole.log(`No changes needed for: ${filePath}`);
+      customConsole.log(`No changes needed for: ${filePath}`);
     }
   } catch (error) {
-    cutomConsole.error(`Error processing file ${filePath}:`, error);
+    customConsole.error(`Error processing file ${filePath}:`, error);
   }
 }
 
@@ -114,7 +114,7 @@ async function processDirectory(dir) {
       }
     }
   } catch (error) {
-    cutomConsole.error(`Error processing directory ${dir}:`, error);
+    customConsole.error(`Error processing directory ${dir}:`, error);
   }
 }
 
@@ -131,9 +131,9 @@ async function main(inputPath) {
     } else {
       await processFile(inputPath);
     }
-    cutomConsole.log('Processing completed.');
+    customConsole.log('Processing completed.');
   } catch (error) {
-    cutomConsole.error('An error occurred:', error);
+    customConsole.error('An error occurred:', error);
     process.exit(1);
   }
 }
@@ -142,14 +142,14 @@ async function main(inputPath) {
 if (require.main === module) {
   const inputPath = process.argv[2];
   if (!inputPath) {
-    cutomConsole.error(
+    customConsole.error(
       'Please provide a file or directory path as an argument.',
     );
     process.exit(1);
   }
 
   main(inputPath).catch((error) => {
-    cutomConsole.error('An error occurred:', error);
+    customConsole.error('An error occurred:', error);
     process.exit(1);
   });
 }

@@ -6,7 +6,7 @@ const {
   generateKey,
   containsChinese,
   generateCode,
-  cutomConsole,
+  customConsole,
   stringWithDom,
 } = require('./common');
 
@@ -26,7 +26,7 @@ function processJsAst(context, customContent) {
     });
 
     if (!ast) {
-      cutomConsole.warn(`文件 ${context.filePath} 没有脚本部分，跳过处理。`);
+      customConsole.warn(`文件 ${context.filePath} 没有脚本部分，跳过处理。`);
       return context;
     }
 
@@ -56,7 +56,7 @@ function processJsAst(context, customContent) {
       );
     }
   } catch (error) {
-    cutomConsole.error('processJsAst 中出错:', error);
+    customConsole.error('processJsAst 中出错:', error);
   } finally {
     return context;
   }
@@ -105,7 +105,7 @@ function handleChineseString(path, context, isTemplateLiteral = false) {
       replaceWithI18nCall(path, context, key);
     }
   } catch (error) {
-    cutomConsole.error('handleChineseString 中出错:', error);
+    customConsole.error('handleChineseString 中出错:', error);
   }
 }
 /**
@@ -201,11 +201,11 @@ function convertStringLiteralToTemplateLiteral(path, context) {
     // 用新的模板字面量替换原始的字符串字面量
     path.replaceWith(templateLiteral);
   } catch (error) {
-    cutomConsole.error(
+    customConsole.error(
       'convertStringLiteralToTemplateLiteral 函数中发生错误:',
       error,
     );
-    cutomConsole.log('路径:', path);
+    customConsole.log('路径:', path);
   }
 }
 
@@ -411,7 +411,7 @@ function splitStringWithTags(str) {
  * @param {Object} context - 处理上下文。
  */
 function addI18nImport(ast, context) {
-  cutomConsole.log('i18n 插件未安装，正在自动安装...');
+  customConsole.log('i18n 插件未安装，正在自动安装...');
   ast.program.body.unshift(
     t.importDeclaration(
       [t.importDefaultSpecifier(t.identifier('i18n'))],
