@@ -51,14 +51,10 @@ const defaultConfig = {
  */
 exports.setting = () => {
   const rootPath = getRootPath();
-  const configFilePath = rootPath + '/automatically-i18n-config.json';
+  const configFilePath = path.join(rootPath, '/automatically-i18n-config.json');
   // 检查配置文件是否存在，如果不存在则创建
   if (!fs.existsSync(configFilePath)) {
-    try {
-      fs.writeFileSync(configFilePath, JSON.stringify(defaultConfig, null, 2));
-    } catch (error) {
-      console.error('创建配置文件时出现错误：', error);
-    }
+    handleMissingConfig(configFilePath, true);
   }
   // 如果存在, 打开配置文件
   vscode.workspace.openTextDocument(configFilePath).then((document) => {
