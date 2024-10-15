@@ -36,7 +36,6 @@ const getLanguagePack = async (language = cachedLanguage) => {
   if (!languagePack) {
     return;
   }
-  console.log(languagePack);
   const languagePackObj = JSON.parse(languagePack);
   return languagePackObj;
 };

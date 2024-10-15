@@ -4,7 +4,6 @@ const generate = require('@babel/generator').default;
 const vscode = require('vscode');
 const { generateUniqueId } = require('../../utils');
 const { readConfig } = require('../setting');
-
 const customConsole = require('../../utils/customConsole.js');
 
 function createContext(filePath, config) {
@@ -146,9 +145,11 @@ class TranslationManager {
         JSON.stringify(updatedContent, null, 2),
         'utf-8',
       );
-      console.log(`Successfully updated translation file: ${filePath}`);
+      customConsole.log(`Successfully updated translation file: ${filePath}`);
     } catch (error) {
-      console.error(`Failed to output translation file: ${error.message}`);
+      customConsole.error(
+        `Failed to output translation file: ${error.message}`,
+      );
       throw error; // 重新抛出错误，允许调用者进行进一步处理
     }
   }

@@ -55,11 +55,6 @@ async function processFile(filePath) {
         endOfLine: 'auto',
       });
       await fs.writeFile(filePath, formatContent, 'utf-8');
-      // } catch (e) {
-      //   console.log('format出错', e);
-      //   await fs.writeFile(filePath, contentChanged, 'utf-8');
-      // }
-
       await outputTranslations(translations);
       customConsole.log(`Processed and updated: ${filePath}`);
     } else {
