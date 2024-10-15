@@ -1,10 +1,11 @@
 const path = require('path');
 const fs = require('fs').promises;
-const { TranslationManager, customConsole } = require('./common');
+const { TranslationManager } = require('./common');
 const handleVueFile = require('./vueProcessor');
 const { handleJsFile } = require('./jsProcessor');
 const { readConfig } = require('../setting');
 const prettier = require('prettier');
+const customConsole = require('../../utils/customConsole.js');
 
 //缓存配置数据
 const config = readConfig();

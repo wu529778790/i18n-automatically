@@ -4,9 +4,9 @@ const {
   generateKey,
   containsChinese,
   generateCode,
-  customConsole,
   stringWithDom,
 } = require('./common');
+const customConsole = require('../../utils/customConsole.js');
 const { processJsAst, handlerDomNode } = require('./jsProcessor');
 
 /**

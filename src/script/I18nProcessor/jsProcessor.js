@@ -6,9 +6,9 @@ const {
   generateKey,
   containsChinese,
   generateCode,
-  customConsole,
   stringWithDom,
 } = require('./common');
+const customConsole = require('../../utils/customConsole.js');
 
 /**
  * 处理 JavaScript AST 以进行国际化。
