@@ -5,7 +5,18 @@ const handleVueFile = require('./vueProcessor');
 const { handleJsFile } = require('./jsProcessor');
 const { readConfig } = require('../setting');
 const prettier = require('prettier');
-const config = readConfig();
+
+//缓存配置数据
+let cachedConfig = null;
+
+function getConfig() {
+  if (!cachedConfig) {
+    cachedConfig = readConfig();
+  }
+  return cachedConfig;
+}
+
+const config = getConfig();
 /**
  *
  * @param {string} fileExt

@@ -28,8 +28,7 @@ async function processVueAst(context) {
     }
 
     await processVueTemplate(templateAst, context, descriptor);
-    await processVueScript(scriptAst, context, 'script');
-    await processVueScript(scriptSetupAst, context, 'scriptSetup');
+    await processVueScripts(scriptAst, scriptSetupAst, context);
 
     return context.translations.size > 0 ? context : undefined;
   } catch (error) {
@@ -48,7 +47,7 @@ async function processVueTemplate(templateAst, context, descriptor) {
   try {
     const processedTemplate = processTemplate(templateAst, context);
     if (context.translations.size > 0) {
-      const template = descriptor.template ? descriptor.template.content : '';
+      const template = descriptor.template?.content || '';
       context.contentChanged = context.contentSource.replace(
         template,
         processedTemplate,
@@ -64,24 +63,39 @@ async function processVueTemplate(templateAst, context, descriptor) {
 /**
  * 处理Vue脚本
  * @param {string} scriptAst - 脚本AST
+ * @param {string} scriptSetupAst - setup脚本AST
+ * @param {Object} context - 处理上下文
+ */
+async function processVueScripts(scriptAst, scriptSetupAst, context) {
+  context.config.enableI18n = true;
+  if (scriptAst && containsChinese(scriptAst)) {
+    await processVueScript(scriptAst, context, 'script');
+  }
+  if (scriptSetupAst && containsChinese(scriptSetupAst)) {
+    await processVueScript(scriptSetupAst, context, 'scriptSetup');
+  }
+}
+
+/**
+ * 处理单个Vue脚本
+ * @param {string} scriptAst - 脚本AST
  * @param {Object} context - 处理上下文
  * @param {string} scriptType - 脚本类型
  */
 async function processVueScript(scriptAst, context, scriptType) {
-  if (scriptAst) {
-    try {
-      context.config.enableI18n = true;
-      const processedScript = processJsAst(context, scriptAst);
-      logger.debug(`${scriptType}Ast`, processedScript);
+  try {
+    const processedScript = processJsAst(context, scriptAst);
+    logger.debug(`${scriptType}Ast`, processedScript);
+    if (context.contentChanged) {
       context.contentChanged = context.contentSource.replace(
         scriptAst,
         context.contentChanged,
       );
       context.contentSource = context.contentChanged;
-    } catch (error) {
-      logger.error(`Error in process${scriptType}:`, error);
-      throw error;
     }
+  } catch (error) {
+    logger.error(`Error in process${scriptType}:`, error);
+    throw error;
   }
 }
 
@@ -135,6 +149,7 @@ function astToTemplate(node, context) {
     return nodeTypeHandlers[node.type]?.() || '';
   } catch (error) {
     logger.error('Error in astToTemplate:', error);
+
     return '';
   }
 }
@@ -242,7 +257,7 @@ function processAttribute(prop, context) {
 function processDirective(prop, context) {
   let directiveName = getDirectiveName(prop);
 
-  if (prop.arg) {
+  if (prop.arg && !directiveName.includes(prop.arg.content)) {
     directiveName += prop.arg.content;
   }
 
@@ -283,17 +298,37 @@ function replaceForI18nCall(str, context) {
  * @param {Object} context - 处理上下文
  * @returns {string} 处理后的JS代码
  */
+
+/**
+ * 处理JS内容
+ * @param {Object} node - AST节点
+ * @param {Object} context - 处理上下文
+ * @returns {string} 处理后的JS代码
+ */
 function handlerForJs(node, context) {
-  let getAst = node.ast;
-  const { ast } = processJsAst(context, node.content.trim());
-  if (getAst.type === 'StringLiteral' && ast.program.body.length === 0) {
-    if (containsChinese(node.content)) {
-      const key = generateKey(context);
-      context.translations.set(key, node.content.replace(/'/g, ''));
-      return ` ${context.config.templateI18nCall}('${key}')`;
+  try {
+    const { ast } = processJsAst(context, node.content.trim());
+    if (ast) {
+      return handleAstResult(ast, node, context);
     } else {
-      return ` ${node.content}`;
+      return handleNonAstResult(node, context);
     }
+  } catch (e) {
+    logger.error(`handlerForJs: ${e.message}`);
+    return ` ${node.content}`;
+  }
+}
+
+/**
+ * 处理有AST结果的情况
+ * @param {Object} ast - AST对象
+ * @param {Object} node - 原始节点
+ * @param {Object} context - 处理上下文
+ * @returns {string} 处理后的JS代码
+ */
+function handleAstResult(ast, node, context) {
+  if (node.ast.type === 'StringLiteral' && ast.program.body.length === 0) {
+    return handleStringLiteral(node, context);
   }
   const code = generateCode(ast, node.content.trim()).replace(
     /[,;](?=[^,;]*$)/,
@@ -303,11 +338,60 @@ function handlerForJs(node, context) {
 }
 
 /**
+ * 处理字符串字面量
+ * @param {Object} node - 原始节点
+ * @param {Object} context - 处理上下文
+ * @returns {string} 处理后的字符串
+ */
+function handleStringLiteral(node, context) {
+  if (containsChinese(node.content)) {
+    const key = generateKey(context);
+    context.translations.set(key, node.content.replace(/'/g, ''));
+    return ` ${context.config.templateI18nCall}('${key}')`;
+  }
+  return ` ${node.content}`;
+}
+
+/**
+ * 处理没有AST结果的情况 （异常情况，vue属性赋值="{a:constA,b:'测试中文'}"，babel无法单转，需要"(代码)"可转ast，简单处理使用字符串处理）
+ * @param {Object} node - 原始节点
+ * @param {Object} context - 处理上下文
+ * @returns {string} 处理后的JS代码
+ */
+function handleNonAstResult(node, context) {
+  const changeBefore = context.index;
+  const getResult = replaceChineseWithI18nKey(node.content.trim(), context);
+  return context.index > changeBefore ? getResult : ` ${node.content}`;
+}
+
+/**
+ * 字符串处理替换，ast结果异常的情况下使用
+ * @param {string} str - 源代码字符串
+ * @param {Object} context - 绑定的上下文
+ * @returns {string} 返回替换后的字符串
+ */
+function replaceChineseWithI18nKey(str, context) {
+  return str.replace(/('[^']*[\u4e00-\u9fa5]+[^']*')/g, (match) => {
+    const chineseContent = match.slice(1, -1); // 去掉引号
+    if (containsChinese(chineseContent)) {
+      const key = generateKey(context);
+      context.translations.set(key, chineseContent);
+      return `${context.config.templateI18nCall}('${key}')`;
+    }
+    return match;
+  });
+}
+
+/**
  * 获取指令名称
  * @param {Object} prop - 属性对象
  * @returns {string} 指令名称
  */
 function getDirectiveName(prop) {
+  if (prop.rawName) {
+    //保持原有名称
+    return prop.rawName;
+  }
   switch (prop.name) {
     case 'bind':
       return ':';

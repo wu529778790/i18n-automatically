@@ -55,10 +55,10 @@ function processJsAst(context, customContent) {
         '',
       );
     }
-    return context;
   } catch (error) {
     logger.error('processJsAst 中出错:', error);
-    throw error;
+  } finally {
+    return context;
   }
 }
 
@@ -86,8 +86,8 @@ function handleChineseString(path, context, isTemplateLiteral = false) {
 
     if (!containsChinese(value) || isInDebugContext(path)) return;
 
-    if (stringWithDom(value) && path.type === 'TemplateElement') {
-      processTemplateElement(path, context);
+    if (stringWithDom(value)) {
+      handleStringWithDom(path, context, isTemplateLiteral);
       return;
     }
 
@@ -100,18 +100,112 @@ function handleChineseString(path, context, isTemplateLiteral = false) {
       path.type === 'JSXText' ||
       (path.parent && path.parent.type.includes('JSX'))
     ) {
-      path.replaceWith(
-        t.jsxExpressionContainer(
-          t.callExpression(t.identifier(context.config.scriptI18nCall), [
-            t.stringLiteral(key),
-          ]),
-        ),
-      );
+      replaceWithJSXI18nCall(path, context, key);
     } else {
       replaceWithI18nCall(path, context, key);
     }
   } catch (error) {
     logger.error('handleChineseString 中出错:', error);
+  }
+}
+/**
+ * 处理包含 DOM 的字符串。
+ * @param {Object} path - AST 路径对象。
+ * @param {Object} context - 处理上下文。
+ * @param {boolean} isTemplateLiteral - 是否为模板字面量。
+ */
+function handleStringWithDom(path, context, isTemplateLiteral) {
+  if (path.type === 'StringLiteral') {
+    convertStringLiteralToTemplateLiteral(path, context);
+  } else if (isTemplateLiteral) {
+    processTemplateElement(path, context);
+  }
+}
+
+/**
+ * 用 JSX 中的 i18n 调用替换当前路径。
+ * @param {Object} path - AST 路径对象。
+ * @param {Object} context - 处理上下文。
+ * @param {string} key - 翻译键。
+ */
+function replaceWithJSXI18nCall(path, context, key) {
+  path.replaceWith(
+    t.jsxExpressionContainer(
+      t.callExpression(t.identifier(context.config.scriptI18nCall), [
+        t.stringLiteral(key),
+      ]),
+    ),
+  );
+}
+
+/**
+ * 将字符串字面量转换为模板字面量
+ *
+ * @param {Object} path - Babel 的路径对象，表示当前遍历到的 AST 节点
+ * @param {Object} context - 上下文对象，包含处理过程中需要的信息
+ *
+ * @description
+ * 这个函数接收一个字符串字面量的 AST 节点，将其转换为等价的模板字面量。
+ * 主要用于处理包含国际化函数调用的复杂字符串。
+ *
+ * 处理步骤：
+ * 1. 使用 handlerDomNode 函数处理原始字符串
+ * 2. 将处理后的字符串分割为静态部分和表达式部分
+ * 3. 创建相应的 quasis（静态部分）和 expressions（表达式部分）
+ * 4. 使用这些 quasis 和 expressions 创建一个新的模板字面量
+ * 5. 将原始的字符串字面量替换为新创建的模板字面量
+ *
+ * @throws {Error} 如果在转换过程中发生错误，将在控制台输出错误信息
+ */
+function convertStringLiteralToTemplateLiteral(path, context) {
+  try {
+    const stringLiteral = path.node;
+    // 处理原始字符串，可能包含 DOM 节点和国际化函数调用
+    const translatedString = handlerDomNode(stringLiteral.value, context);
+
+    // 将字符串分割为静态部分和表达式部分
+    const parts = translatedString.split(/(\$\{[^}]+\})/);
+
+    const quasis = [];
+    const expressions = [];
+
+    parts.forEach((part, index) => {
+      if (part.startsWith('${') && part.endsWith('}')) {
+        // 处理表达式部分
+        const exp = part.slice(2, -1); // 移除 ${ 和 }
+        expressions.push(t.identifier(exp)); // 假设它是一个简单的标识符
+
+        // 在表达式之前添加一个空的 quasi，除非它是第一个部分
+        if (index === 0) {
+          quasis.push(t.templateElement({ raw: '', cooked: '' }));
+        }
+      } else {
+        // 处理静态字符串部分
+        quasis.push(
+          t.templateElement(
+            { raw: part, cooked: part },
+            index === parts.length - 1, // 对最后一个元素为 true
+          ),
+        );
+      }
+    });
+
+    // 使用 quasis 和 expressions 创建模板字面量
+    const templateLiteral = t.templateLiteral(quasis, expressions);
+
+    // 从原始的字符串字面量复制位置信息
+    templateLiteral.start = stringLiteral.start;
+    templateLiteral.end = stringLiteral.end;
+    templateLiteral.loc = stringLiteral.loc;
+
+    // 用新的模板字面量替换原始的字符串字面量
+    path.replaceWith(templateLiteral);
+  } catch (error) {
+    console.error(
+      'convertStringLiteralToTemplateLiteral 函数中发生错误:',
+      error,
+    );
+    console.log('路径:', path);
   }
 }
 
@@ -270,17 +364,28 @@ function processTemplateElement(path, context) {
  * @returns {string} 处理后带有翻译的字符串。
  */
 function handlerDomNode(str, context) {
+  if (!containsChinese(str)) {
+    return str; // Early return if no Chinese characters
+  }
+
   const splitArray = splitStringWithTags(str);
-  const translatedArray = splitArray.map((item) => {
+  let result = '';
+  let hasChanges = false;
+
+  for (const item of splitArray) {
     if (item.startsWith('<') && item.endsWith('>')) {
-      return item;
-    } else {
+      result += item;
+    } else if (containsChinese(item)) {
       const key = generateKey(context);
       context.translations.set(key, item.trim());
-      return `\${${context.config.scriptI18nCall}('${key}')}`;
+      result += `\${${context.config.scriptI18nCall}('${key}')}`;
+      hasChanges = true;
+    } else {
+      result += item;
     }
-  });
-  return translatedArray.join('');
+  }
+
+  return hasChanges ? result : str;
 }
 
 /**
