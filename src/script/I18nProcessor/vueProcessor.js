@@ -85,7 +85,7 @@ async function processVueScripts(scriptAst, scriptSetupAst, context) {
 async function processVueScript(scriptAst, context, scriptType) {
   try {
     const processedScript = processJsAst(context, scriptAst);
-    logger.debug(`${scriptType}Ast`, processedScript);
+    logger.info(`${scriptType}Ast`, processedScript);
     if (context.contentChanged) {
       context.contentChanged = context.contentSource.replace(
         scriptAst,
@@ -94,7 +94,7 @@ async function processVueScript(scriptAst, context, scriptType) {
       context.contentSource = context.contentChanged;
     }
   } catch (error) {
-    logger.error(`Error in process${scriptType}:`, error);
+    logger.error(`Error in process ${scriptType}:`, error);
     throw error;
   }
 }

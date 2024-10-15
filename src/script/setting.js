@@ -66,10 +66,20 @@ exports.setting = () => {
   });
 };
 
+let cacheConfig;
 /**
  * 获取最新的配置文件
  */
-exports.readConfig = (initConfigFile = true) => {
+exports.readConfig = (initConfigFile = false, clearCache = false) => {
+  if (cacheConfig && !clearCache) {
+    return cacheConfig;
+  } else {
+    cacheConfig = initConfig(initConfigFile);
+    return cacheConfig;
+  }
+};
+
+function initConfig(initConfigFile = true) {
   try {
     const rootPath = getRootPath();
     const configFilePath = path.join(
@@ -87,7 +97,7 @@ exports.readConfig = (initConfigFile = true) => {
     console.error('读取配置文件时出现错误：', error);
     return defaultConfig;
   }
-};
+}
 
 function handleMissingConfig(configFilePath, initConfigFile) {
   if (initConfigFile) {

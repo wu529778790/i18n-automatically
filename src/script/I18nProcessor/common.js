@@ -4,21 +4,8 @@ const generate = require('@babel/generator').default;
 const vscode = require('vscode');
 const { generateUniqueId } = require('../../utils');
 const { readConfig } = require('../setting');
-//缓存配置数据
-let cachedConfig = null;
 
-function getConfig() {
-  if (!cachedConfig) {
-    cachedConfig = readConfig();
-  }
-  return cachedConfig;
-}
-const logger = {
-  debug: (message, ...args) => console.debug(message, ...args),
-  info: (message, ...args) => console.log(message, ...args),
-  warn: (message, ...args) => console.warn(message, ...args),
-  error: (message, ...args) => console.error(message, ...args),
-};
+const logger = require('./logger.js');
 
 function createContext(filePath, config) {
   return {
@@ -81,7 +68,7 @@ function containsChinese(str) {
 
   const isChinese = chineseRegex.test(str);
   // 确保配置已加载
-  const config = getConfig();
+  const config = readConfig();
 
   // 首先使用 includes 进行快速检查
   const isExcludedByIncludes = isChinese
