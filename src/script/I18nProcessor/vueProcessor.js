@@ -86,7 +86,7 @@ async function processVueScripts(scriptAst, scriptSetupAst, context) {
 async function processVueScript(scriptAst, context, scriptType) {
   try {
     const processedScript = processJsAst(context, scriptAst);
-    logger.info(`${scriptType}Ast`, processedScript);
+    logger.log(`${scriptType}Ast`, processedScript);
     if (context.contentChanged) {
       context.contentChanged = context.contentSource.replace(
         scriptAst,

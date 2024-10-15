@@ -9,7 +9,7 @@ const logger = (type) => {
         case 'debug':
           console.debug(message, ...args);
           break;
-        case 'info':
+        case 'log':
           console.log(message, ...args);
           break;
         case 'warn':
@@ -25,7 +25,7 @@ const logger = (type) => {
 
 module.exports = {
   debug: logger('debug'),
-  info: logger('info'),
+  log: logger('log'),
   warn: logger('warn'),
   error: logger('error'),
 };

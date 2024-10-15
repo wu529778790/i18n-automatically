@@ -34,7 +34,7 @@ async function processFile(filePath) {
   const processor = getFileProcessor(fileExt);
 
   if (!processor) {
-    logger.info(`Unsupported file type: ${fileExt}`);
+    logger.log(`Unsupported file type: ${fileExt}`);
     return;
   }
 
@@ -60,9 +60,9 @@ async function processFile(filePath) {
       // }
 
       await outputTranslations(translations);
-      logger.info(`Processed and updated: ${filePath}`);
+      logger.log(`Processed and updated: ${filePath}`);
     } else {
-      logger.info(`No changes needed for: ${filePath}`);
+      logger.log(`No changes needed for: ${filePath}`);
     }
   } catch (error) {
     logger.error(`Error processing file ${filePath}:`, error);
@@ -131,7 +131,7 @@ async function main(inputPath) {
     } else {
       await processFile(inputPath);
     }
-    logger.info('Processing completed.');
+    logger.log('Processing completed.');
   } catch (error) {
     logger.error('An error occurred:', error);
     process.exit(1);

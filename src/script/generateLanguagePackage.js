@@ -3,7 +3,7 @@ const vscode = require('vscode');
 const { getRootPath } = require('../utils/index.js');
 const { readConfig } = require('./setting.js');
 const { baiduTranslateApi } = require('../api/baidu.js');
-const { info } = require('../utils/logger.js');
+const logger = require('../utils/logger.js');
 
 // 一次请求翻译多少个中文
 const TRANSLATE_LIMIT = 20;
@@ -105,7 +105,7 @@ exports.generateLanguagePackage = async () => {
           );
           continue;
         }
-        info(config.debug, '翻译结果', data.trans_result);
+        logger.log(config.debug, '翻译结果', data.trans_result);
         // 将翻译结果添加到目标语言包对象中
         data.trans_result.forEach((item, index) => {
           const key = keysToTranslate[i * TRANSLATE_LIMIT + index];

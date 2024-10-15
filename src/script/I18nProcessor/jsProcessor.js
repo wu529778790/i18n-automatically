@@ -205,7 +205,7 @@ function convertStringLiteralToTemplateLiteral(path, context) {
       'convertStringLiteralToTemplateLiteral 函数中发生错误:',
       error,
     );
-    logger.info('路径:', path);
+    logger.log('路径:', path);
   }
 }
 
@@ -411,7 +411,7 @@ function splitStringWithTags(str) {
  * @param {Object} context - 处理上下文。
  */
 function addI18nImport(ast, context) {
-  logger.info('i18n 插件未安装，正在自动安装...');
+  logger.log('i18n 插件未安装，正在自动安装...');
   ast.program.body.unshift(
     t.importDeclaration(
       [t.importDefaultSpecifier(t.identifier('i18n'))],
