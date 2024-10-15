@@ -2,7 +2,9 @@ const { readConfig } = require('../script/setting');
 
 const customConsole = (type) => {
   const config = readConfig();
-
+  if (!config) {
+    return;
+  }
   return (message, ...args) => {
     if (config.debug || type === 'error') {
       switch (type) {
