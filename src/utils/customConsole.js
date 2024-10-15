@@ -2,25 +2,24 @@ const { readConfig } = require('../script/setting');
 
 const customConsole = (type) => {
   const config = readConfig();
-  if (!config) {
-    return;
-  }
   return (message, ...args) => {
-    if (config.debug || type === 'error') {
-      switch (type) {
-        case 'debug':
-          console.debug(message, ...args);
-          break;
-        case 'log':
-          console.log(message, ...args);
-          break;
-        case 'warn':
-          console.warn(message, ...args);
-          break;
-        case 'error':
-          console.error(message, ...args);
-          break;
-      }
+    switch (type) {
+      case 'debug':
+        if (!config.debug) return;
+        console.debug(message, ...args);
+        break;
+      case 'log':
+        if (!config.debug) return;
+        console.log(message, ...args);
+        break;
+      case 'warn':
+        if (!config.debug) return;
+        console.warn(message, ...args);
+        break;
+      case 'error':
+        if (!config.debug) return;
+        console.error(message, ...args);
+        break;
     }
   };
 };
