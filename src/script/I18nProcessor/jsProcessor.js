@@ -201,11 +201,11 @@ function convertStringLiteralToTemplateLiteral(path, context) {
     // 用新的模板字面量替换原始的字符串字面量
     path.replaceWith(templateLiteral);
   } catch (error) {
-    console.error(
+    logger.error(
       'convertStringLiteralToTemplateLiteral 函数中发生错误:',
       error,
     );
-    console.log('路径:', path);
+    logger.info('路径:', path);
   }
 }
 

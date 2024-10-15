@@ -7,16 +7,7 @@ const { readConfig } = require('../setting');
 const prettier = require('prettier');
 
 //缓存配置数据
-let cachedConfig = null;
-
-function getConfig() {
-  if (!cachedConfig) {
-    cachedConfig = readConfig();
-  }
-  return cachedConfig;
-}
-
-const config = getConfig();
+const config = readConfig();
 /**
  *
  * @param {string} fileExt
