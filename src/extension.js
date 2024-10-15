@@ -1,6 +1,5 @@
 const vscode = require('vscode');
 const {
-  setting,
   readConfig,
   scanChinese,
   scanChineseBatch,
@@ -88,7 +87,7 @@ exports.activate = (context) => {
     vscode.commands.registerCommand(
       'extension.automatically.i18n.setting',
       async () => {
-        // setting();
+        readConfig(true, true);
       },
     ),
   );

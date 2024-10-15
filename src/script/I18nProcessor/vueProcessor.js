@@ -12,15 +12,15 @@ const { processJsAst, handlerDomNode } = require('./jsProcessor');
 /**
  * 处理Vue AST
  * @param {Object} context - 处理上下文
- * @returns {Object|undefined} - 处理后的上下文或undefined
  */
 async function processVueAst(context) {
   try {
     context.config.enableI18n = false;
     const { descriptor } = parseSfc(context.contentSource);
-    const templateAst = descriptor.template?.ast.children;
-    const scriptAst = descriptor.script?.content;
-    const scriptSetupAst = descriptor.scriptSetup?.content;
+    const templateAst = descriptor.template && descriptor.template.ast.children;
+    const scriptAst = descriptor.script && descriptor.script.content;
+    const scriptSetupAst =
+      descriptor.scriptSetup && descriptor.scriptSetup.content;
 
     if (!templateAst) {
       logger.warn('No template found, skipping processing.');
@@ -47,7 +47,8 @@ async function processVueTemplate(templateAst, context, descriptor) {
   try {
     const processedTemplate = processTemplate(templateAst, context);
     if (context.translations.size > 0) {
-      const template = descriptor.template?.content || '';
+      const template =
+        (descriptor.template && descriptor.template.content) || '';
       context.contentChanged = context.contentSource.replace(
         template,
         processedTemplate,
@@ -146,7 +147,7 @@ function astToTemplate(node, context) {
       1: () => processElementNode(node, context),
     };
 
-    return nodeTypeHandlers[node.type]?.() || '';
+    return (nodeTypeHandlers[node.type] && nodeTypeHandlers[node.type]()) || '';
   } catch (error) {
     logger.error('Error in astToTemplate:', error);
 

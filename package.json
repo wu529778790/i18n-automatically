@@ -129,8 +129,7 @@
     ]
   },
   "scripts": {
-    "lint": "eslint .",
-    "pretest": "pnpm run lint",
+    "lint": "eslint --fix .",
     "test": "vscode-test"
   },
   "devDependencies": {
@@ -139,7 +138,9 @@
     "@types/vscode": "^1.59.0",
     "@vscode/test-cli": "^0.0.9",
     "@vscode/test-electron": "^2.4.0",
-    "eslint": "^8.57.0"
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1"
   },
   "dependencies": {
     "@babel/generator": "^7.25.6",
