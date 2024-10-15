@@ -5,19 +5,19 @@ const customConsole = (type) => {
   return (message, ...args) => {
     switch (type) {
       case 'debug':
-        if (!config.debug) return;
+        if (!(config && config.debug)) return;
         console.debug(message, ...args);
         break;
       case 'log':
-        if (!config.debug) return;
+        if (!(config && config.debug)) return;
         console.log(message, ...args);
         break;
       case 'warn':
-        if (!config.debug) return;
+        if (!(config && config.debug)) return;
         console.warn(message, ...args);
         break;
       case 'error':
-        if (!config.debug) return;
+        if (!(config && config.debug)) return;
         console.error(message, ...args);
         break;
     }
