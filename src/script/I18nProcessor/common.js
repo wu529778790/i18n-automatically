@@ -5,7 +5,7 @@ const vscode = require('vscode');
 const { generateUniqueId } = require('../../utils');
 const { readConfig } = require('../setting');
 
-const logger = require('../../utils/logger.js');
+const cutomConsole = require('../../utils/cutomConsole.js');
 
 function createContext(filePath, config) {
   return {
@@ -160,6 +160,6 @@ module.exports = {
   generateCode,
   containsChinese,
   TranslationManager,
-  logger,
+  cutomConsole,
   stringWithDom,
 };

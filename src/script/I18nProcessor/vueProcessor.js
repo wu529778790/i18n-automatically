@@ -4,7 +4,7 @@ const {
   generateKey,
   containsChinese,
   generateCode,
-  logger,
+  cutomConsole,
   stringWithDom,
 } = require('./common');
 const { processJsAst, handlerDomNode } = require('./jsProcessor');
@@ -23,7 +23,7 @@ async function processVueAst(context) {
       descriptor.scriptSetup && descriptor.scriptSetup.content;
 
     if (!templateAst) {
-      logger.warn('No template found, skipping processing.');
+      cutomConsole.warn('No template found, skipping processing.');
       return;
     }
 
@@ -32,7 +32,7 @@ async function processVueAst(context) {
 
     return context.translations.size > 0 ? context : undefined;
   } catch (error) {
-    logger.error('Error in processVueAst:', error);
+    cutomConsole.error('Error in processVueAst:', error);
     throw error;
   }
 }
@@ -56,7 +56,7 @@ async function processVueTemplate(templateAst, context, descriptor) {
       context.contentSource = context.contentChanged;
     }
   } catch (error) {
-    logger.error('Error in processVueTemplate:', error);
+    cutomConsole.error('Error in processVueTemplate:', error);
     throw error;
   }
 }
@@ -86,7 +86,7 @@ async function processVueScripts(scriptAst, scriptSetupAst, context) {
 async function processVueScript(scriptAst, context, scriptType) {
   try {
     const processedScript = processJsAst(context, scriptAst);
-    logger.log(`${scriptType}Ast`, processedScript);
+    cutomConsole.log(`${scriptType}Ast`, processedScript);
     if (context.contentChanged) {
       context.contentChanged = context.contentSource.replace(
         scriptAst,
@@ -95,7 +95,7 @@ async function processVueScript(scriptAst, context, scriptType) {
       context.contentSource = context.contentChanged;
     }
   } catch (error) {
-    logger.error(`Error in process ${scriptType}:`, error);
+    cutomConsole.error(`Error in process ${scriptType}:`, error);
     throw error;
   }
 }
@@ -110,7 +110,7 @@ function processTemplate(templateAst, context) {
   try {
     return astArrayToTemplate(templateAst, context);
   } catch (error) {
-    logger.error('Error in processTemplate:', error);
+    cutomConsole.error('Error in processTemplate:', error);
     throw error;
   }
 }
@@ -125,7 +125,7 @@ function astArrayToTemplate(astArray, context) {
   try {
     return astArray.map((node) => astToTemplate(node, context)).join(' ');
   } catch (error) {
-    logger.error('Error in astArrayToTemplate:', error);
+    cutomConsole.error('Error in astArrayToTemplate:', error);
     return '';
   }
 }
@@ -149,7 +149,7 @@ function astToTemplate(node, context) {
 
     return (nodeTypeHandlers[node.type] && nodeTypeHandlers[node.type]()) || '';
   } catch (error) {
-    logger.error('Error in astToTemplate:', error);
+    cutomConsole.error('Error in astToTemplate:', error);
 
     return '';
   }
@@ -315,7 +315,7 @@ function handlerForJs(node, context) {
       return handleNonAstResult(node, context);
     }
   } catch (e) {
-    logger.error(`handlerForJs: ${e.message}`);
+    cutomConsole.error(`handlerForJs: ${e.message}`);
     return ` ${node.content}`;
   }
 }
