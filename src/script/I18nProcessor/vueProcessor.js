@@ -15,6 +15,7 @@ const { processJsAst, handlerDomNode } = require('./jsProcessor');
  */
 async function processVueAst(context) {
   try {
+    context.config.enableI18n = false;
     const { descriptor } = parseSfc(context.contentSource);
     const templateAst = descriptor.template && descriptor.template.ast.children;
     const scriptAst = descriptor.script && descriptor.script.content;
@@ -69,6 +70,7 @@ async function processVueTemplate(templateAst, context, descriptor) {
  * @param {Object} context - 处理上下文
  */
 async function processVueScripts(scriptAst, scriptSetupAst, context) {
+  context.config.enableI18n = true;
   if (scriptAst && containsChinese(scriptAst)) {
     await processVueScript(scriptAst, context, 'script');
   }
