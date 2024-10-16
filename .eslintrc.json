@@ -6,6 +6,9 @@
 		"node": true,
 		"mocha": true
 	},
+	"plugins": [
+		"prettier"
+	],
 	"parserOptions": {
 		"ecmaVersion": 2018,
 		"ecmaFeatures": {

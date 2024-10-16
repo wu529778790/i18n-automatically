@@ -1,15 +1,15 @@
-const vscode = require("vscode");
-const fs = require("fs");
-const path = require("path");
-const { getConfig } = require("./setting.js");
-const { getRootPath } = require("../utils/index.js");
+const vscode = require('vscode');
+const fs = require('fs');
+const path = require('path');
+const { readConfig } = require('./setting.js');
+const { getRootPath } = require('../utils/index.js');
 
-let cachedLanguage = "zh.json"; // 初始化缓存变量
+let cachedLanguage = 'zh.json'; // 初始化缓存变量
 
 // 获取语言包
 const getLanguagePack = async (language = cachedLanguage) => {
   // 读取配置文件
-  const config = getConfig();
+  const config = readConfig();
   if (!config) {
     return;
   }
@@ -17,14 +17,14 @@ const getLanguagePack = async (language = cachedLanguage) => {
   const rootPath = getRootPath();
   // 获取语言包绝对路径
   const i18nFilePath = path.join(
-    `${rootPath}${config.i18nFilePath}/locale/${language}`
+    `${rootPath}${config.i18nFilePath}/locale/${language}`,
   );
 
   // 判断文件是否存在
   if (!fs.existsSync(i18nFilePath)) {
-    if (language !== "zh.json") {
+    if (language !== 'zh.json') {
       vscode.window.showInformationMessage(
-        `在 ${config.i18nFilePath}/locale/ 文件夹下面未找到 ${language} 语言包文件，将使用默认语言包。`
+        `在 ${config.i18nFilePath}/locale/ 文件夹下面未找到 ${language} 语言包文件，将使用默认语言包。`,
       );
     }
     // 可以返回默认语言包数据或者空对象等，根据你的需求进行调整
@@ -32,7 +32,7 @@ const getLanguagePack = async (language = cachedLanguage) => {
   }
 
   // 异步读取文件内容
-  const languagePack = await fs.promises.readFile(i18nFilePath, "utf-8");
+  const languagePack = await fs.promises.readFile(i18nFilePath, 'utf-8');
   if (!languagePack) {
     return;
   }
@@ -45,9 +45,9 @@ const buildRegexFromLanguagePack = (languagePackObj) => {
   const keys = Object.keys(languagePackObj);
   const escapedKeys = keys.map((key) => {
     // 转义特殊字符，并添加起始和结束边界限定符
-    return `\\b${key.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}\\b`;
+    return `\\b${key.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}\\b`;
   });
-  return new RegExp(`(${escapedKeys.join("|")})`, "g");
+  return new RegExp(`(${escapedKeys.join('|')})`, 'g');
 };
 
 /**
@@ -67,10 +67,10 @@ function getDecorationType() {
     decorationType = vscode.window.createTextEditorDecorationType({
       isWholeLine: true,
       rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed,
-      overviewRulerColor: "grey",
+      overviewRulerColor: 'grey',
       overviewRulerLane: vscode.OverviewRulerLane.Left,
       after: {
-        margin: "0 0 0 5px", // 添加 margin 样式，这里设置为左右各 5 像素的边距
+        margin: '0 0 0 5px', // 添加 margin 样式，这里设置为左右各 5 像素的边距
       },
     });
   }
@@ -79,7 +79,7 @@ function getDecorationType() {
 
 exports.updateDecorations = async (language = cachedLanguage) => {
   // 读取配置文件
-  const config = getConfig();
+  const config = readConfig();
   if (!config) {
     return;
   }
@@ -98,7 +98,7 @@ exports.updateDecorations = async (language = cachedLanguage) => {
   if (!languagePackObj) {
     return;
   }
-  const foregroundColor = new vscode.ThemeColor("editorCodeLens.foreground");
+  const foregroundColor = new vscode.ThemeColor('editorCodeLens.foreground');
 
   if (editor) {
     const regex = buildRegexFromLanguagePack(languagePackObj);
@@ -117,13 +117,13 @@ exports.updateDecorations = async (language = cachedLanguage) => {
             i,
             match.index,
             i,
-            match.index + match[0].length
+            match.index + match[0].length,
           ),
           renderOptions: {
             after: {
               contentText,
               color: foregroundColor,
-              opacity: "0.6",
+              opacity: '0.6',
             },
           },
         });
@@ -135,14 +135,14 @@ exports.updateDecorations = async (language = cachedLanguage) => {
 
 exports.switchLanguage = async () => {
   // 读取配置文件
-  const config = getConfig(true);
+  const config = readConfig(true);
   // 读取 i18n 文件夹下 locale 目录下的文件，并过滤出.json 文件
   const rootPath = getRootPath();
   const allFiles = fs.readdirSync(`${rootPath}${config.i18nFilePath}/locale`);
-  const languageFiles = allFiles.filter((file) => file.endsWith(".json"));
+  const languageFiles = allFiles.filter((file) => file.endsWith('.json'));
   if (!languageFiles.length) {
     vscode.window.showInformationMessage(
-      `在 ${config.i18nFilePath}/locale/ 文件夹下面未找到语言包文件，请先扫描中文`
+      `在 ${config.i18nFilePath}/locale/ 文件夹下面未找到语言包文件，请先扫描中文`,
     );
     return;
   }

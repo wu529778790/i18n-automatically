@@ -1,11 +1,17 @@
 # i18n-automatically
 
+使用babel解析成AST，替换中文为指定的key之后，在还原。
+
+采用prettier格式化代码。默认读取项目根目录的prettier配置文件(`.prettierrc.js`)。
+
 ## 介绍
 
 一键扫描整个项目的`中文`替换成`key`，并生成指定的语言包翻译文件。
 
+- 自动检测并替换中文字符串
+- 生成唯一的翻译键
+- 支持递归处理整个项目目录
 - 支持文案回显
-- 支持一键扫描中文
 - 支持一键生成指定翻译包文件
 - 支持语言切换显示
 
@@ -38,11 +44,13 @@
 |属性|描述|默认值|
 |:--|:--|:--|
 |i18nFilePath|指定国际化文件的根目录。| '/src/i18n' |
+|autoImportI18n|是否自动导入i18n模块。| true |
+|i18nImportPath|自动导入i18n模块的路径。| '@/i18n' |
 |templateI18nCall|在 Vue 模板中调用翻译函数的语法。| '$t' |
 |scriptI18nCall|在 JavaScript 文件中调用翻译函数的语法。| 'i18n.t' |
-|autoImportI18n|自动导入i18n模块的代码。| 'import i18n from '@/i18n';' |
 |keyFilePathLevel|生成的语言包的键中文件路径的层级。| 2 |
-|excludedExtensions|在扫描和生成语言包时需要排除的文件扩展名列表。| [".svg", ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".ico", ".md", ".txt", ".json", ".css", ".scss", ".less", ".sass", ".styl"] |
+|excludedExtensions|排除的文件后缀名|[".svg",".png",".jpg",".jpeg",".gif",".bmp",".ico",".md",".txt",".json",".css",".scss",".less",".sass",".styl"] |
+|excludedStrings|排除的字符串| ["宋体","黑体","楷体","仿宋","微软雅黑","华文","方正","苹方","思源","YYYY年MM月DD日"] |
 |debug|是否开启调试模式。|  false |
 |baidu.appid|百度翻译的应用ID。| - |
 |baidu.secretKey|百度翻译的密钥。| - |
@@ -63,9 +71,16 @@
 
 ![20241009144522](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241009144522.png)
 
+## 更新日志
+
+1.1.0 版本以前是采用正则匹配的模式, 优点是不改变原有的代码结构，缺点是对于复杂的模版字符串容易有适配不完全的问题，需要手动处理一小部分
+
+1.1.0 版本以后采用babel解析成AST，替换中文为指定的key之后，在还原。优点是适配更好，缺点是会改变原有的结构，比如空格，换行等都会丢失。
+
+所以采用了prettier格式化代码。默认读取项目根目录的prettier配置文件(`.prettierrc.js`)。
+
 ## 未开发功能
 
-- template解析之后，里面再当成js用babel解析
 - 增加其他翻译api，比如deepl，谷歌等
 
 ## 开发
