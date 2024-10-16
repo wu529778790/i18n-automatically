@@ -1,8 +1,8 @@
-const vscode = require("vscode");
-const fs = require("fs");
-const path = require("path");
-const { readConfig } = require("./setting.js");
-const { scanChinese } = require("./scanChinese.js");
+const vscode = require('vscode');
+const fs = require('fs');
+const path = require('path');
+const { readConfig } = require('./setting.js');
+const { scanChinese } = require('./scanChinese.js');
 
 exports.scanChineseBatch = async () => {
   // 读取配置文件
@@ -32,18 +32,35 @@ exports.scanChineseBatch = async () => {
   await vscode.window.withProgress(
     {
       location: vscode.ProgressLocation.Notification,
-      title: "正在批量扫描中文",
+      title: '正在批量扫描中文',
       cancellable: false,
     },
     async (progress) => {
+      const totalSteps = 100; // 将总进度分为100步
+      const filesPerStep = Math.max(1, Math.floor(fileCount / totalSteps));
       let processedCount = 0;
+      let lastReportedStep = 0;
+
       for (const filePath of files) {
         await processFile(filePath);
         processedCount++;
-        const progressPercentage = (processedCount / fileCount) * 100;
-        progress.report({ increment: progressPercentage });
+
+        // 每处理 filesPerStep 个文件或达到最后一个文件时更新进度
+        if (
+          processedCount % filesPerStep === 0 ||
+          processedCount === fileCount
+        ) {
+          const currentStep = Math.min(
+            Math.floor((processedCount / fileCount) * totalSteps),
+            totalSteps,
+          );
+          if (currentStep > lastReportedStep) {
+            progress.report({ increment: currentStep - lastReportedStep });
+            lastReportedStep = currentStep;
+          }
+        }
       }
-    }
+    },
   );
 };
 
