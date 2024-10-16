@@ -32,7 +32,8 @@ function createI18nProcessor(astProcessor) {
 function generateKey(context) {
   const { filePath, fileUuid, config } = context;
   const pathParts = filePath.split(path.sep);
-  const selectedLevelsParts = pathParts.slice(-config.keyFilePathLevel);
+  const pathDeep = config.keyFilePathLevel || 2;
+  const selectedLevelsParts = pathParts.slice(-pathDeep);
   const lastLevelWithoutExtension =
     selectedLevelsParts[selectedLevelsParts.length - 1].split('.')[0];
   const selectedLevels = selectedLevelsParts
