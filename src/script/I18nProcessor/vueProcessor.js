@@ -164,7 +164,7 @@ function astToTemplate(node, context) {
 function processTextNode(node, context) {
   if (containsChinese(node.content)) {
     const key = generateKey(context);
-    context.translations.set(key, node.content);
+    context.translations.set(key, node.content.trim());
     return `{{${context.config.templateI18nCall}('${key}')}}`;
   }
   return node.content;
@@ -241,7 +241,7 @@ function processAttribute(prop, context) {
       return ` :${prop.name}="\`${replaceForI18nCall(result, context)}\`"`;
     } else {
       const key = generateKey(context);
-      context.translations.set(key, prop.value.content);
+      context.translations.set(key, prop.value.content.trim());
       return ` :${prop.name}="${context.config.templateI18nCall}('${key}')"`;
     }
   }
@@ -347,7 +347,7 @@ function handleAstResult(ast, node, context) {
 function handleStringLiteral(node, context) {
   if (containsChinese(node.content)) {
     const key = generateKey(context);
-    context.translations.set(key, node.content.replace(/'/g, ''));
+    context.translations.set(key, node.content.replace(/'/g, '').trim());
     return ` ${context.config.templateI18nCall}('${key}')`;
   }
   return ` ${node.content}`;
@@ -376,7 +376,7 @@ function replaceChineseWithI18nKey(str, context) {
     const chineseContent = match.slice(1, -1); // 去掉引号
     if (containsChinese(chineseContent)) {
       const key = generateKey(context);
-      context.translations.set(key, chineseContent);
+      context.translations.set(key, chineseContent.trim());
       return `${context.config.templateI18nCall}('${key}')`;
     }
     return match;
@@ -417,7 +417,7 @@ function interpolationStr(strContent, context) {
     .map((part) => {
       if (containsChinese(part)) {
         const key = generateKey(context);
-        context.translations.set(key, part);
+        context.translations.set(key, part.trim());
         return `\${${context.config.templateI18nCall}('${key}')}`;
       }
       return part;
