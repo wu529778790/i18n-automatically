@@ -43,7 +43,7 @@ function processJsAst(context, customContent) {
     if (
       context.index > (context.templateSize ? context.templateSize : 0) &&
       !context.hasPluginImport &&
-      context.config.enableI18n
+      context.config.autoImportI18n
     ) {
       addI18nImport(ast, context);
     }

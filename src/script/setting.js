@@ -5,6 +5,7 @@ const { getRootPath } = require('../utils');
 
 const defaultConfig = {
   i18nFilePath: '/src/i18n',
+  autoImportI18n: true,
   i18nImportPath: '@/i18n',
   templateI18nCall: '$t',
   scriptI18nCall: 'i18n.t',

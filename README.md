@@ -44,6 +44,7 @@
 |属性|描述|默认值|
 |:--|:--|:--|
 |i18nFilePath|指定国际化文件的根目录。| '/src/i18n' |
+|autoImportI18n|是否自动导入i18n模块。| true |
 |i18nImportPath|自动导入i18n模块的路径。| '@/i18n' |
 |templateI18nCall|在 Vue 模板中调用翻译函数的语法。| '$t' |
 |scriptI18nCall|在 JavaScript 文件中调用翻译函数的语法。| 'i18n.t' |
