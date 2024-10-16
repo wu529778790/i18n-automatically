@@ -70,8 +70,15 @@ function getAllFilesInFolder(folderPath, excludedExtensions) {
     const itemExtension = path.extname(item);
     return !excludedExtensions.includes(itemExtension);
   });
+
   for (const item of items) {
     const itemPath = path.join(folderPath, item);
+
+    // 如果当前路径是 node_modules 文件夹，则跳过
+    if (item === 'node_modules') {
+      continue;
+    }
+
     if (fs.statSync(itemPath).isDirectory()) {
       // 如果是文件夹，递归获取其中的文件
       files.push(...getAllFilesInFolder(itemPath, excludedExtensions));
