@@ -41,7 +41,7 @@ function processJsAst(context, customContent) {
     });
 
     if (
-      context.index > 0 &&
+      context.index > (context.templateSize ? context.templateSize : 0) &&
       !context.hasPluginImport &&
       context.config.enableI18n
     ) {
