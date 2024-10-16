@@ -1,10 +1,11 @@
 const path = require('path');
-const fs = require('fs').promises;
+const fs = require('fs');
 const { TranslationManager } = require('./common');
 const handleVueFile = require('./vueProcessor');
 const { handleJsFile } = require('./jsProcessor');
 const { readConfig } = require('../setting');
 const prettier = require('prettier');
+const { getRootPath } = require('../../utils/index');
 const customConsole = require('../../utils/customConsole.js');
 
 /**
@@ -42,18 +43,18 @@ async function processFile(filePath) {
     const processResult = await processor(filePath, config);
     const { contentChanged, translations } = processResult || {};
     if (contentChanged) {
-      // try {
+      // 判断项目根目录是否有.prettierrc.js
+      let prettierConfig = null;
+      const prettierConfigPath = path.join(getRootPath(), '.prettierrc.js');
+      if (fs.existsSync(prettierConfigPath)) {
+        prettierConfig = require(prettierConfigPath);
+      }
       //格式化代码
       const formatContent = await prettier.format(contentChanged, {
         parser: getParserForFile(fileExt),
-        printWidth: 120,
-        semi: false,
-        singleQuote: true,
-        arrowParens: 'avoid',
-        trailingComma: 'none',
-        endOfLine: 'auto',
+        ...prettierConfig,
       });
-      await fs.writeFile(filePath, formatContent, 'utf-8');
+      await fs.promises.writeFile(filePath, formatContent, 'utf8');
       await outputTranslations(translations);
       customConsole.log(`Processed and updated: ${filePath}`);
     } else {
@@ -98,10 +99,10 @@ async function outputTranslations(translations) {
  */
 async function processDirectory(dir) {
   try {
-    const files = await fs.readdir(dir);
+    const files = await fs.promises.readdir(dir);
     for (const file of files) {
       const filePath = path.join(dir, file);
-      const stat = await fs.stat(filePath);
+      const stat = await fs.promises.stat(filePath);
       if (stat.isDirectory()) {
         await processDirectory(filePath);
       } else {
@@ -120,7 +121,7 @@ async function processDirectory(dir) {
  */
 async function main(inputPath) {
   try {
-    const stat = await fs.stat(inputPath);
+    const stat = await fs.promises.stat(inputPath);
     if (stat.isDirectory()) {
       await processDirectory(inputPath);
     } else {
