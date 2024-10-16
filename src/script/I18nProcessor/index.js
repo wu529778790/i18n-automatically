@@ -7,8 +7,6 @@ const { readConfig } = require('../setting');
 const prettier = require('prettier');
 const customConsole = require('../../utils/customConsole.js');
 
-//缓存配置数据
-const config = readConfig();
 /**
  *
  * @param {string} fileExt
@@ -40,6 +38,7 @@ async function processFile(filePath) {
   }
 
   try {
+    const config = readConfig();
     const processResult = await processor(filePath, config);
     const { contentChanged, translations } = processResult || {};
     if (contentChanged) {
@@ -88,7 +87,7 @@ function getFileProcessor(fileExt) {
  */
 async function outputTranslations(translations) {
   const translationManager = new TranslationManager();
-  // const config = readConfig();
+  const config = readConfig();
   await translationManager.outputTranslationFile(translations, config);
 }
 
