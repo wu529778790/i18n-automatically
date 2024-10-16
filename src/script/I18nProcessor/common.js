@@ -131,8 +131,12 @@ class TranslationManager {
             encoding: 'utf-8',
             flag: 'r',
           });
-          const fileContentObj = JSON.parse(fileContent);
-          updatedContent = { ...fileContentObj, ...translationObj };
+          if (fileContent.trim()) {
+            const fileContentObj = JSON.parse(fileContent);
+            updatedContent = { ...fileContentObj, ...translationObj };
+          } else {
+            updatedContent = { ...translationObj };
+          }
         } catch (error) {
           throw new Error(
             `Error reading or parsing file: ${filePath}. ${error.message}`,

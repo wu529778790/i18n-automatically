@@ -49,14 +49,19 @@ async function processFile(filePath) {
       if (fs.existsSync(prettierConfigPath)) {
         prettierConfig = require(prettierConfigPath);
       }
-      //格式化代码
-      const formatContent = await prettier.format(contentChanged, {
-        parser: getParserForFile(fileExt),
-        ...prettierConfig,
-      });
-      await fs.promises.writeFile(filePath, formatContent, 'utf8');
-      await outputTranslations(translations);
-      customConsole.log(`Processed and updated: ${filePath}`);
+      try {
+        //格式化代码
+        const formatContent = await prettier.format(contentChanged, {
+          parser: getParserForFile(fileExt),
+          ...prettierConfig,
+        });
+        await fs.promises.writeFile(filePath, formatContent, 'utf8');
+        await outputTranslations(translations);
+        customConsole.log(`Processed and updated: ${filePath}`);
+      } catch (error) {
+        customConsole.error(prettierConfig, contentChanged);
+        customConsole.error(`Error processing file ${filePath}:`, error);
+      }
     } else {
       customConsole.log(`No changes needed for: ${filePath}`);
     }
