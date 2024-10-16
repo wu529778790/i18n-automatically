@@ -4,19 +4,6 @@ const vscode = require('vscode');
 const { getRootPath } = require('../utils');
 
 const defaultConfig = {
-  excludedStrings: [
-    '宋体',
-    '黑体',
-    '楷体',
-    '仿宋',
-    '微软雅黑',
-    '华文',
-    '方正',
-    '苹方',
-    '思源',
-    'YYYY年MM月DD日',
-  ],
-  enableI18n: true,
   i18nFilePath: '/src/i18n',
   i18nImportPath: '@/i18n',
   templateI18nCall: '$t',
@@ -38,6 +25,18 @@ const defaultConfig = {
     '.less',
     '.sass',
     '.styl',
+  ],
+  excludedStrings: [
+    '宋体',
+    '黑体',
+    '楷体',
+    '仿宋',
+    '微软雅黑',
+    '华文',
+    '方正',
+    '苹方',
+    '思源',
+    'YYYY年MM月DD日',
   ],
   debug: false,
   baidu: {

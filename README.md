@@ -42,11 +42,12 @@
 |属性|描述|默认值|
 |:--|:--|:--|
 |i18nFilePath|指定国际化文件的根目录。| '/src/i18n' |
+|i18nImportPath|自动导入i18n模块的路径。| '@/i18n' |
 |templateI18nCall|在 Vue 模板中调用翻译函数的语法。| '$t' |
 |scriptI18nCall|在 JavaScript 文件中调用翻译函数的语法。| 'i18n.t' |
-|i18nImportPath|自动导入i18n模块的路径。| '@/i18n' |
 |keyFilePathLevel|生成的语言包的键中文件路径的层级。| 2 |
-|excludedExtensions|在扫描和生成语言包时需要排除的文件扩展名列表。| [".svg", ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".ico", ".md", ".txt", ".json", ".css", ".scss", ".less", ".sass", ".styl"] |
+|excludedExtensions|排除的文件后缀名|[".svg",".png",".jpg",".jpeg",".gif",".bmp",".ico",".md",".txt",".json",".css",".scss",".less",".sass",".styl"] |
+|excludedStrings|排除的字符串| ["宋体","黑体","楷体","仿宋","微软雅黑","华文","方正","苹方","思源","YYYY年MM月DD日"] |
 |debug|是否开启调试模式。|  false |
 |baidu.appid|百度翻译的应用ID。| - |
 |baidu.secretKey|百度翻译的密钥。| - |
