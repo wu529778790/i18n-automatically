@@ -77,7 +77,7 @@ function getFileProcessor(fileExt) {
     '.ts': handleJsFile,
     '.tsx': handleJsFile,
   };
-  return processors[fileExt] || null;
+  return processors[fileExt] || handleJsFile;
 }
 
 /**
