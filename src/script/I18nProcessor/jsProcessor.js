@@ -438,7 +438,6 @@ function splitStringWithTags(str) {
  * @param {Object} context - 处理上下文。
  */
 function addI18nImport(ast, context) {
-  customConsole.log('i18n 插件未安装，正在自动安装...');
   ast.program.body.unshift(
     t.importDeclaration(
       [t.importDefaultSpecifier(t.identifier('i18n'))],
