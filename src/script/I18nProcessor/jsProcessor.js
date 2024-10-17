@@ -374,25 +374,45 @@ function handlerDomNode(str, context) {
 
   for (const item of splitArray) {
     if (item.startsWith('<') && item.endsWith('>')) {
+      // HTML tag
       result += item;
-    } else if (containsChinese(item)) {
-      const key = generateKey(context);
-      context.translations.set(key, item.trim());
-      result += `\${${context.config.scriptI18nCall}('${key}')}`;
-      hasChanges = true;
     } else {
-      result += item;
+      // Text content (may include Chinese and/or JavaScript expressions)
+      const processedItem = processTextContent(item, context);
+      result += processedItem;
+      if (processedItem !== item) {
+        hasChanges = true;
+      }
     }
   }
 
   return hasChanges ? result : str;
 }
 
-/**
- * 将字符串分割为标签和文本内容的数组。
- * @param {string} str - 要分割的输入字符串。
- * @returns {Array} 标签和文本内容的数组。
- */
+function processTextContent(text, context) {
+  const regex = /(\${[^}]+})|([^$]+)/g;
+  let result = '';
+  let match;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match[1]) {
+      // JavaScript expression
+      result += match[1];
+    } else if (match[2] && containsChinese(match[2])) {
+      // Chinese text
+      const key = generateKey(context);
+      context.translations.set(key, match[2].trim());
+      result += `\${${context.config.scriptI18nCall}('${key}')}`;
+    } else {
+      // Other text
+      result += match[2] || '';
+    }
+  }
+
+  return result;
+}
+
+// Existing splitStringWithTags function
 function splitStringWithTags(str) {
   const regex = /(<\/?[^>]+>)|([^<]+)/g;
   const result = [];

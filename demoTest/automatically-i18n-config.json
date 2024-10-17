@@ -1,0 +1,42 @@
+{
+  "i18nFilePath": "/src/i18n",
+  "autoImportI18n": true,
+  "i18nImportPath": "@/i18n",
+  "templateI18nCall": "$t",
+  "scriptI18nCall": "i18n.t",
+  "keyFilePathLevel": 2,
+  "excludedExtensions": [
+    ".svg",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".bmp",
+    ".ico",
+    ".md",
+    ".txt",
+    ".json",
+    ".css",
+    ".scss",
+    ".less",
+    ".sass",
+    ".styl"
+  ],
+  "excludedStrings": [
+    "宋体",
+    "黑体",
+    "楷体",
+    "仿宋",
+    "微软雅黑",
+    "华文",
+    "方正",
+    "苹方",
+    "思源",
+    "YYYY年MM月DD日"
+  ],
+  "debug": false,
+  "baidu": {
+    "appid": "",
+    "secretKey": ""
+  }
+}

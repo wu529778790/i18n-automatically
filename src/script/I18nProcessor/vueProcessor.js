@@ -235,20 +235,20 @@ function processAttributes(props, context) {
  * @returns {string} 处理后的属性字符串
  */
 function processAttribute(prop, context) {
-  if (!prop.value) return ` ${prop.name}`;
+  if (!prop.value) return `\n${prop.name}`;
 
   if (containsChinese(prop.value.content)) {
     if (stringWithDom(prop.value.content)) {
       const result = handlerDomNode(prop.value.content, context);
-      return ` :${prop.name}="\`${replaceForI18nCall(result, context)}\`"`;
+      return `\n:${prop.name}="\`${replaceForI18nCall(result, context)}\`"`;
     } else {
       const key = generateKey(context);
       context.translations.set(key, prop.value.content.trim());
-      return ` :${prop.name}="${context.config.templateI18nCall}('${key}')"`;
+      return `\n:${prop.name}="${context.config.templateI18nCall}('${key}')"`;
     }
   }
 
-  return ` ${prop.name}="${prop.value.content}"`;
+  return `\n${prop.name}="${prop.value.content}"`;
 }
 
 /**
@@ -268,18 +268,31 @@ function processDirective(prop, context) {
   //   directiveName += prop.modifiers.map((mod) => `.${mod.content}`).join(' ');
   // }
 
-  if (!prop.exp) return ` ${directiveName}`;
+  if (!prop.exp) return `\n${directiveName}`;
 
   if (prop.exp.ast === null) {
     return ' ' + prop.loc.source;
   }
 
   if (!containsChinese(prop.exp.content)) {
-    return ` ${directiveName}="${prop.exp.content}"`;
+    return `\n${directiveName}="${prop.exp.content}"`;
   }
 
-  const result = handlerForJs(prop.exp, context);
-  return ` ${directiveName}="${replaceForI18nCall(result, context)}"`;
+  //处理dom节点
+  let result;
+  if (stringWithDom(prop.exp.content)) {
+    //去掉字符串本身前后的单/双引号/模版符号，处理完成最后统一换成模版字符串符号``
+    const handlerContent = prop.exp.content
+      .trim()
+      .replace(/^[\s\n]*[`'"]|[`'"][\s\n]*$/gm, '');
+    // .replace(/^[`'"]|[`'"]$/g, '');
+
+    result = handlerDomNode(handlerContent, context);
+    return `\n${directiveName}="\`${replaceForI18nCall(result, context)}\`"`;
+  } else {
+    result = handlerForJs(prop.exp, context);
+    return `\n${directiveName}="${replaceForI18nCall(result, context)}"`;
+  }
 }
 
 /**
@@ -318,7 +331,7 @@ function handlerForJs(node, context) {
     }
   } catch (e) {
     customConsole.error(`handlerForJs: ${e.message}`);
-    return ` ${node.content}`;
+    return `\n${node.content}`;
   }
 }
 
@@ -337,7 +350,7 @@ function handleAstResult(ast, node, context) {
     /[,;](?=[^,;]*$)/,
     '',
   );
-  return ` ${code.replace(/"/g, "'")}`;
+  return `\n${code.replace(/"/g, "'")}`;
 }
 
 /**
@@ -350,9 +363,9 @@ function handleStringLiteral(node, context) {
   if (containsChinese(node.content)) {
     const key = generateKey(context);
     context.translations.set(key, node.content.replace(/'/g, '').trim());
-    return ` ${context.config.templateI18nCall}('${key}')`;
+    return `\n${context.config.templateI18nCall}('${key}')`;
   }
-  return ` ${node.content}`;
+  return `\n${node.content}`;
 }
 
 /**
@@ -364,7 +377,7 @@ function handleStringLiteral(node, context) {
 function handleNonAstResult(node, context) {
   const changeBefore = context.index;
   const getResult = replaceChineseWithI18nKey(node.content.trim(), context);
-  return context.index > changeBefore ? getResult : ` ${node.content}`;
+  return context.index > changeBefore ? getResult : `\n${node.content}`;
 }
 
 /**
