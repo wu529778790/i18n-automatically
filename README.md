@@ -17,6 +17,9 @@
 
 ## 结果对比
 
+![20241017104707](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017104707.png)
+
+更多对比结果：
 <https://www.diffchecker.com/rcHhMsOF/>
 
 ### 扫描中文
