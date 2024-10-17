@@ -1,4 +1,4 @@
-// 之前的测试文件内容保持不变
+import i18n from '@/i18n'; // 之前的测试文件内容保持不变
 
 // test.js
 // 这是一个用于测试中文国际化处理的 JavaScript 文件
@@ -7,7 +7,7 @@
 import { translate } from './i18n-helper';
 
 // 常量和变量声明
-const APP_NAME = '我的应用';
+const APP_NAME = i18n.t('demoTest-test-js-before-19299734e410bfd44-1');
 let userCount = 0;
 
 /**
@@ -27,12 +27,13 @@ class User {
 
   // 静态方法
   static getGreeting() {
-    return '欢迎使用我们的系统！';
+    return i18n.t('demoTest-test-js-before-19299734e410bfd44-2');
   }
 }
 
 // 箭头函数
-const greet = (name) => `你好，${name}！`;
+const greet = (name) =>
+  `${i18n.t('demoTest-test-js-before-19299734e410bfd44-3')}${name}！`;
 
 // 异步函数
 async function fetchData(url) {
@@ -49,28 +50,33 @@ async function fetchData(url) {
 
 // 对象字面量
 const config = {
-  language: '中文',
-  region: '中国',
+  language: i18n.t('demoTest-test-js-before-19299734e410bfd44-4'),
+  region: i18n.t('demoTest-test-js-before-19299734e410bfd44-5'),
   settings: {
-    theme: '暗色',
-    fontSize: '中',
+    theme: i18n.t('demoTest-test-js-before-19299734e410bfd44-6'),
+    fontSize: i18n.t('demoTest-test-js-before-19299734e410bfd44-7'),
   },
 };
 
 // 数组和数组方法
-const fruits = ['苹果', '香蕉', '橙子', '葡萄'];
+const fruits = [
+  i18n.t('demoTest-test-js-before-19299734e410bfd44-8'),
+  i18n.t('demoTest-test-js-before-19299734e410bfd44-9'),
+  i18n.t('demoTest-test-js-before-19299734e410bfd44-10'),
+  i18n.t('demoTest-test-js-before-19299734e410bfd44-11'),
+];
 console.log('水果列表：', fruits.join('、'));
 
 // 模板字符串和函数调用
 function processUser(user) {
-  const message = `处理用户：${user.name}，年龄：${user.age}`;
+  const message = `${i18n.t('demoTest-test-js-before-19299734e410bfd44-12')}${user.name}${i18n.t('demoTest-test-js-before-19299734e410bfd44-13')}${user.age}`;
   console.log(message);
 
   if (user.age < 18) {
-    return `抱歉，${user.name}还未成年，不能使用此服务。`;
+    return `${i18n.t('demoTest-test-js-before-19299734e410bfd44-14')}${user.name}${i18n.t('demoTest-test-js-before-19299734e410bfd44-15')}`;
   }
 
-  return `欢迎，${user.name}！您已经成功注册。`;
+  return `${i18n.t('demoTest-test-js-before-19299734e410bfd44-16')}${user.name}${i18n.t('demoTest-test-js-before-19299734e410bfd44-17')}`;
 }
 
 // 条件语句和错误处理
@@ -109,9 +115,9 @@ import { ApiClient } from './api-client';
 
 // 用户角色枚举
 const UserRole = {
-  ADMIN: '管理员',
-  EDITOR: '编辑',
-  VIEWER: '查看者',
+  ADMIN: i18n.t('demoTest-test-js-before-19299734e410bfd44-18'),
+  EDITOR: i18n.t('demoTest-test-js-before-19299734e410bfd44-19'),
+  VIEWER: i18n.t('demoTest-test-js-before-19299734e410bfd44-20'),
 };
 
 // 模拟 API 客户端
@@ -188,8 +194,16 @@ class UserManager {
 const userManager = new UserManager();
 
 // 添加测试用户
-userManager.addUser({ id: 1, name: '张三', role: UserRole.ADMIN });
-userManager.addUser({ id: 2, name: '李四', role: UserRole.EDITOR });
+userManager.addUser({
+  id: 1,
+  name: i18n.t('demoTest-test-js-before-19299734e410bfd44-21'),
+  role: UserRole.ADMIN,
+});
+userManager.addUser({
+  id: 2,
+  name: i18n.t('demoTest-test-js-before-19299734e410bfd44-22'),
+  role: UserRole.EDITOR,
+});
 
 // 列出所有用户
 userManager.listAllUsers();
@@ -218,34 +232,34 @@ fetchUserData(1)
 // 条件语句中的字符串
 function checkUserRole(user) {
   if (user.role === UserRole.ADMIN) {
-    return '这是管理员账户';
+    return i18n.t('demoTest-test-js-before-19299734e410bfd44-23');
   } else if (user.role === UserRole.EDITOR) {
-    return '这是编辑账户';
+    return i18n.t('demoTest-test-js-before-19299734e410bfd44-24');
   } else {
-    return '这是普通账户';
+    return i18n.t('demoTest-test-js-before-19299734e410bfd44-25');
   }
 }
 
 // 对象字面量中的字符串
 const messages = {
-  welcome: '欢迎使用用户管理系统',
-  goodbye: '感谢使用，再见',
+  welcome: i18n.t('demoTest-test-js-before-19299734e410bfd44-26'),
+  goodbye: i18n.t('demoTest-test-js-before-19299734e410bfd44-27'),
 };
 
 // 数组中的字符串
 const chineseZodiac = [
-  '鼠',
-  '牛',
-  '虎',
-  '兔',
-  '龙',
-  '蛇',
-  '马',
-  '羊',
-  '猴',
-  '鸡',
-  '狗',
-  '猪',
+  i18n.t('demoTest-test-js-before-19299734e410bfd44-28'),
+  i18n.t('demoTest-test-js-before-19299734e410bfd44-29'),
+  i18n.t('demoTest-test-js-before-19299734e410bfd44-30'),
+  i18n.t('demoTest-test-js-before-19299734e410bfd44-31'),
+  i18n.t('demoTest-test-js-before-19299734e410bfd44-32'),
+  i18n.t('demoTest-test-js-before-19299734e410bfd44-33'),
+  i18n.t('demoTest-test-js-before-19299734e410bfd44-34'),
+  i18n.t('demoTest-test-js-before-19299734e410bfd44-35'),
+  i18n.t('demoTest-test-js-before-19299734e410bfd44-36'),
+  i18n.t('demoTest-test-js-before-19299734e410bfd44-37'),
+  i18n.t('demoTest-test-js-before-19299734e410bfd44-38'),
+  i18n.t('demoTest-test-js-before-19299734e410bfd44-39'),
 ];
 
 // 正则表达式中的中文
@@ -268,12 +282,15 @@ function debugUser(user) {
  */
 
 // 使用模板字符串的复杂字符串
-const userSummary = `
-  用户总结:
-  - 总用户数: ${userManager.users.length}
-  - 管理员数: ${userManager.users.filter((u) => u.role === UserRole.ADMIN).length}
-  - 编辑数: ${userManager.users.filter((u) => u.role === UserRole.EDITOR).length}
-  - 查看者数: ${userManager.users.filter((u) => u.role === UserRole.VIEWER).length}
+const userSummary = `${i18n.t('demoTest-test-js-before-19299734e410bfd44-40')}${
+  userManager.users.length
+}${i18n.t('demoTest-test-js-before-19299734e410bfd44-41')}${
+  userManager.users.filter((u) => u.role === UserRole.ADMIN).length
+}${i18n.t('demoTest-test-js-before-19299734e410bfd44-42')}${
+  userManager.users.filter((u) => u.role === UserRole.EDITOR).length
+}${i18n.t('demoTest-test-js-before-19299734e410bfd44-43')}${
+  userManager.users.filter((u) => u.role === UserRole.VIEWER).length
+}
 `;
 
 console.log(userSummary);

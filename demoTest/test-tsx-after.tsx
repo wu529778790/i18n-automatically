@@ -1,10 +1,11 @@
+import i18n from '@/i18n';
 import React, { useState, useEffect, useCallback } from 'react';
 
 // 用户角色枚举
 enum UserRole {
-  ADMIN = '管理员',
-  USER = '普通用户',
-  GUEST = '访客',
+  ADMIN = i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-1'),
+  USER = i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-2'),
+  GUEST = i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-3'),
 }
 
 // 用户接口
@@ -25,9 +26,9 @@ interface Props {
 
 // 错误信息对象
 const ERROR_MESSAGES = {
-  EMPTY_FIELDS: '请填写所有必填字段',
-  INVALID_EMAIL: '请输入有效的电子邮箱地址',
-  USER_EXISTS: '该用户已存在',
+  EMPTY_FIELDS: i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-7'),
+  INVALID_EMAIL: i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-8'),
+  USER_EXISTS: i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-9'),
 };
 
 // 用户管理组件
@@ -37,14 +38,14 @@ const UserManagement: React.FC<Props> = ({ initialUsers, companyName }) => {
     name: '',
     email: '',
     role: UserRole.GUEST,
-    description: '这是一个新用户', // 默认描述
+    description: i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-10'), // 默认描述
   });
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // 设置页面标题
   useEffect(() => {
-    document.title = `${companyName} - 用户管理系统`;
+    document.title = `${companyName}${i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-11')}`;
   }, [companyName]);
 
   // 添加用户
@@ -72,10 +73,12 @@ const UserManagement: React.FC<Props> = ({ initialUsers, companyName }) => {
       name: '',
       email: '',
       role: UserRole.GUEST,
-      description: '这是一个新用户',
+      description: i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-12'),
     });
     setError(null);
-    setSuccessMessage(`用户 "${newUser.name}" 已成功添加`);
+    setSuccessMessage(
+      `${i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-13')}${newUser.name}${i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-14')}`,
+    );
 
     // 3秒后清除成功消息
     setTimeout(() => setSuccessMessage(null), 3000);
@@ -86,7 +89,9 @@ const UserManagement: React.FC<Props> = ({ initialUsers, companyName }) => {
     setUsers((prevUsers) => {
       const updatedUsers = prevUsers.filter((user) => user.id !== id);
       if (updatedUsers.length < prevUsers.length) {
-        setSuccessMessage(`用户已成功删除`);
+        setSuccessMessage(
+          `${i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-15')}`,
+        );
         setTimeout(() => setSuccessMessage(null), 3000);
       }
       return updatedUsers;
@@ -103,20 +108,24 @@ const UserManagement: React.FC<Props> = ({ initialUsers, companyName }) => {
   const getRoleDescription = (role: UserRole): string => {
     switch (role) {
       case UserRole.ADMIN:
-        return '具有所有权限';
+        return i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-16');
       case UserRole.USER:
-        return '具有基本操作权限';
+        return i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-17');
       case UserRole.GUEST:
-        return '仅具有查看权限';
+        return i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-18');
       default:
-        return '未知角色';
+        return i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-19');
     }
   };
 
   // 渲染用户列表
   const renderUserList = () => {
     if (users.length === 0) {
-      return <p className="no-data">暂无用户数据</p>;
+      return (
+        <p className="no-data">
+          {i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-20')}
+        </p>
+      );
     }
 
     return (
@@ -124,11 +133,11 @@ const UserManagement: React.FC<Props> = ({ initialUsers, companyName }) => {
         <thead>
           <tr>
             <th>ID</th>
-            <th>姓名</th>
-            <th>电子邮箱</th>
-            <th>角色</th>
-            <th>描述</th>
-            <th>操作</th>
+            <th>{i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-21')}</th>
+            <th>{i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-22')}</th>
+            <th>{i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-23')}</th>
+            <th>{i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-24')}</th>
+            <th>{i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-25')}</th>
           </tr>
         </thead>
         <tbody>
@@ -140,7 +149,9 @@ const UserManagement: React.FC<Props> = ({ initialUsers, companyName }) => {
               <td>{user.role}</td>
               <td>{user.description || getRoleDescription(user.role)}</td>
               <td>
-                <button onClick={() => deleteUser(user.id)}>删除</button>
+                <button onClick={() => deleteUser(user.id)}>
+                  {i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-26')}
+                </button>
               </td>
             </tr>
           ))}
@@ -151,46 +162,60 @@ const UserManagement: React.FC<Props> = ({ initialUsers, companyName }) => {
 
   return (
     <div className="user-management">
-      <h1>{`${companyName} 用户管理`}</h1>
+      <h1>{`${companyName}${i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-27')}`}</h1>
       <div className="user-form">
         <input
           type="text"
-          placeholder="姓名"
+          placeholder={i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-28')}
           value={newUser.name}
           onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
         />
+
         <input
           type="email"
-          placeholder="电子邮箱"
+          placeholder={i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-29')}
           value={newUser.email}
           onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
         />
+
         <select
           value={newUser.role}
           onChange={(e) =>
             setNewUser({ ...newUser, role: e.target.value as UserRole })
           }
         >
-          <option value={UserRole.GUEST}>访客</option>
-          <option value={UserRole.USER}>普通用户</option>
-          <option value={UserRole.ADMIN}>管理员</option>
+          <option value={UserRole.GUEST}>
+            {i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-30')}
+          </option>
+          <option value={UserRole.USER}>
+            {i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-31')}
+          </option>
+          <option value={UserRole.ADMIN}>
+            {i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-32')}
+          </option>
         </select>
         <input
           type="text"
-          placeholder="用户描述（选填）"
+          placeholder={i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-33')}
           value={newUser.description}
           onChange={(e) =>
             setNewUser({ ...newUser, description: e.target.value })
           }
         />
-        <button onClick={addUser}>添加用户</button>
+
+        <button onClick={addUser}>
+          {i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-34')}
+        </button>
       </div>
       {error && <p className="error">{error}</p>}
       {successMessage && <p className="success">{successMessage}</p>}
       {renderUserList()}
       <footer>
-        <p>总用户数: {users.length}</p>
-        <p>{`© ${new Date().getFullYear()} ${companyName}用户管理系统. 保留所有权利.`}</p>
+        <p>
+          {i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-35')}
+          {users.length}
+        </p>
+        <p>{`© ${new Date().getFullYear()} ${companyName}${i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-36')}`}</p>
       </footer>
     </div>
   );
@@ -198,7 +223,7 @@ const UserManagement: React.FC<Props> = ({ initialUsers, companyName }) => {
 
 // 默认属性
 UserManagement.defaultProps = {
-  companyName: '未知公司',
+  companyName: i18n.t('demoTest-test-tsx-before-1929975eba0a6e4a0-37'),
 };
 
 export default UserManagement;
