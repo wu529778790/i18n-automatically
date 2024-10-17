@@ -266,6 +266,12 @@ function isInDebugContext(path) {
  * @param {string} key - 翻译键。
  */
 function replaceWithI18nCall(path, context, key) {
+  // 检查当前节点是否是TSLiteralType，如果是则跳过替换
+  // if (path.parentPath.isTSLiteralType()) {
+  //   return;
+  // }
+
+  // 执行替换为i18n函数调用
   path.replaceWith(
     t.callExpression(t.identifier(context.config.scriptI18nCall), [
       t.stringLiteral(key),
@@ -433,7 +439,6 @@ function splitStringWithTags(str) {
  * @param {Object} context - 处理上下文。
  */
 function addI18nImport(ast, context) {
-  customConsole.log('i18n 插件未安装，正在自动安装...');
   ast.program.body.unshift(
     t.importDeclaration(
       [t.importDefaultSpecifier(t.identifier('i18n'))],

@@ -34,7 +34,7 @@
     "思源",
     "YYYY年MM月DD日"
   ],
-  "debug": false,
+  "debug": true,
   "baidu": {
     "appid": "",
     "secretKey": ""

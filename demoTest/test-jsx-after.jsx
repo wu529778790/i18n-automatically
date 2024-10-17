@@ -7,9 +7,9 @@ const fetchUserData = () => {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve({
-        name: i18n.t('demoTest-test-jsx-befor-192986d8015688a74-1'),
+        name: i18n.t('demoTest-test-jsx-befor-192991598bc5aa541-1'),
         age: 30,
-        occupation: i18n.t('demoTest-test-jsx-befor-192986d8015688a74-2'),
+        occupation: i18n.t('demoTest-test-jsx-befor-192991598bc5aa541-2'),
       });
     }, 1000);
   });
@@ -34,7 +34,7 @@ class ErrorBoundary extends React.Component {
     if (this.state.hasError) {
       return (
         <h2>
-          {i18n.t('demoTest-test-jsx-befor-192986d8015688a74-3')}
+          {i18n.t('demoTest-test-jsx-befor-192991598bc5aa541-3')}
           {this.state.error.message}
         </h2>
       );
@@ -51,17 +51,17 @@ const Header = ({ title }) => (
       <ul>
         <li>
           <a href="#home">
-            {i18n.t('demoTest-test-jsx-befor-192986d8015688a74-4')}
+            {i18n.t('demoTest-test-jsx-befor-192991598bc5aa541-4')}
           </a>
         </li>
         <li>
           <a href="#about">
-            {i18n.t('demoTest-test-jsx-befor-192986d8015688a74-5')}
+            {i18n.t('demoTest-test-jsx-befor-192991598bc5aa541-5')}
           </a>
         </li>
         <li>
           <a href="#contact">
-            {i18n.t('demoTest-test-jsx-befor-192986d8015688a74-6')}
+            {i18n.t('demoTest-test-jsx-befor-192991598bc5aa541-6')}
           </a>
         </li>
       </ul>
@@ -78,14 +78,14 @@ const UserInfo = ({ user }) => (
   <div className="user-info">
     <h3>
       {user.name}
-      {i18n.t('demoTest-test-jsx-befor-192986d8015688a74-7')}
+      {i18n.t('demoTest-test-jsx-befor-192991598bc5aa541-7')}
     </h3>
     <p>
-      {i18n.t('demoTest-test-jsx-befor-192986d8015688a74-8')}
+      {i18n.t('demoTest-test-jsx-befor-192991598bc5aa541-8')}
       {user.age}
     </p>
     <p>
-      {i18n.t('demoTest-test-jsx-befor-192986d8015688a74-9')}
+      {i18n.t('demoTest-test-jsx-befor-192991598bc5aa541-9')}
       {user.occupation}
     </p>
   </div>
@@ -100,16 +100,16 @@ const Counter = () => {
 
   return (
     <div>
-      <h3>{i18n.t('demoTest-test-jsx-befor-192986d8015688a74-10')}</h3>
+      <h3>{i18n.t('demoTest-test-jsx-befor-192991598bc5aa541-10')}</h3>
       <p>
-        {i18n.t('demoTest-test-jsx-befor-192986d8015688a74-11')}
+        {i18n.t('demoTest-test-jsx-befor-192991598bc5aa541-11')}
         {count}
       </p>
       <button onClick={increment}>
-        {i18n.t('demoTest-test-jsx-befor-192986d8015688a74-12')}
+        {i18n.t('demoTest-test-jsx-befor-192991598bc5aa541-12')}
       </button>
       <button onClick={decrement}>
-        {i18n.t('demoTest-test-jsx-befor-192986d8015688a74-13')}
+        {i18n.t('demoTest-test-jsx-befor-192991598bc5aa541-13')}
       </button>
     </div>
   );
@@ -143,17 +143,17 @@ const TodoList = () => {
 
   return (
     <div>
-      <h3>{i18n.t('demoTest-test-jsx-befor-192986d8015688a74-14')}</h3>
+      <h3>{i18n.t('demoTest-test-jsx-befor-192991598bc5aa541-14')}</h3>
       <form onSubmit={handleSubmit}>
         <input
           type="text"
           value={inputValue}
           onChange={handleInputChange}
-          placeholder={i18n.t('demoTest-test-jsx-befor-192986d8015688a74-15')}
+          placeholder={i18n.t('demoTest-test-jsx-befor-192991598bc5aa541-15')}
         />
 
         <button type="submit">
-          {i18n.t('demoTest-test-jsx-befor-192986d8015688a74-16')}
+          {i18n.t('demoTest-test-jsx-befor-192991598bc5aa541-16')}
         </button>
       </form>
       <ul>
@@ -184,7 +184,7 @@ const App = () => {
         setIsLoading(false);
       })
       .catch((err) => {
-        setError(i18n.t('demoTest-test-jsx-befor-192986d8015688a74-17'));
+        setError(i18n.t('demoTest-test-jsx-befor-192991598bc5aa541-17'));
         setIsLoading(false);
         console.error('获取用户数据失败:', err);
       });
@@ -192,8 +192,8 @@ const App = () => {
 
   const welcomeMessage = useMemo(() => {
     return user
-      ? `${i18n.t('demoTest-test-jsx-befor-192986d8015688a74-18')}${user.name}！`
-      : i18n.t('demoTest-test-jsx-befor-192986d8015688a74-19');
+      ? `${i18n.t('demoTest-test-jsx-befor-192991598bc5aa541-18')}${user.name}！`
+      : i18n.t('demoTest-test-jsx-befor-192991598bc5aa541-19');
   }, [user]);
 
   const handleError = useCallback(() => {
@@ -201,11 +201,11 @@ const App = () => {
   }, []);
 
   if (isLoading)
-    return <div>{i18n.t('demoTest-test-jsx-befor-192986d8015688a74-20')}</div>;
+    return <div>{i18n.t('demoTest-test-jsx-befor-192991598bc5aa541-20')}</div>;
   if (error)
     return (
       <div>
-        {i18n.t('demoTest-test-jsx-befor-192986d8015688a74-21')}
+        {i18n.t('demoTest-test-jsx-befor-192991598bc5aa541-21')}
         {error}
       </div>
     );
@@ -214,7 +214,7 @@ const App = () => {
     <ErrorBoundary>
       <div className="app">
         <Header
-          title={i18n.t('demoTest-test-jsx-befor-192986d8015688a74-22')}
+          title={i18n.t('demoTest-test-jsx-befor-192991598bc5aa541-22')}
         />
         <main>
           <h2>{welcomeMessage}</h2>
@@ -222,11 +222,11 @@ const App = () => {
           <Counter />
           <TodoList />
           <button onClick={handleError}>
-            {i18n.t('demoTest-test-jsx-befor-192986d8015688a74-23')}
+            {i18n.t('demoTest-test-jsx-befor-192991598bc5aa541-23')}
           </button>
         </main>
         <footer>
-          <p>{i18n.t('demoTest-test-jsx-befor-192986d8015688a74-24')}</p>
+          <p>{i18n.t('demoTest-test-jsx-befor-192991598bc5aa541-24')}</p>
         </footer>
       </div>
     </ErrorBoundary>

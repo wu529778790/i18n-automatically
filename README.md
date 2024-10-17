@@ -17,13 +17,26 @@
 
 ## 结果对比
 
-![20241017104707](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017104707.png)
-
 vue对比图：
-<https://www.diffchecker.com/dE0cl1Kp/>
+
+![20241017155847](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017155847.png)
+
+点击链接查看完整对比图：<https://www.diffchecker.com/WjmYT5g4/>
 
 jsx对比图：
-<https://www.diffchecker.com/fhjj4fAg/>
+
+![20241017155908](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017155908.png)
+
+点击链接查看完整对比图：<https://www.diffchecker.com/bYgP5eUP/>
+
+<!-- ![20241017155929](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017155929.png) -->
+ts对比图：<https://www.diffchecker.com/IRWBVjHe/>
+
+<!-- ![20241017155823](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017155823.png) -->
+js对比图：<https://www.diffchecker.com/VyO3Zw6b/>
+
+<!-- ![20241017160240](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017160240.png) -->
+tsx对比图：<https://www.diffchecker.com/OaZLu99x/>
 
 ### 扫描中文
 
