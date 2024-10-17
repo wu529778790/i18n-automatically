@@ -19,8 +19,11 @@
 
 ![20241017104707](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017104707.png)
 
-更多对比结果：
-<https://www.diffchecker.com/rcHhMsOF/>
+vue对比图：
+<https://www.diffchecker.com/dE0cl1Kp/>
+
+jsx对比图：
+<https://www.diffchecker.com/fhjj4fAg/>
 
 ### 扫描中文
 
