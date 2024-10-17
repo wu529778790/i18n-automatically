@@ -15,6 +15,16 @@
 - 支持一键生成指定翻译包文件
 - 支持语言切换显示
 
+## 结果对比
+
+![20241017104707](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017104707.png)
+
+vue对比图：
+<https://www.diffchecker.com/dE0cl1Kp/>
+
+jsx对比图：
+<https://www.diffchecker.com/fhjj4fAg/>
+
 ### 扫描中文
 
 扫描当前文件的所有的中文，并替换成`key`，并生成 `zh.json` 文件。
