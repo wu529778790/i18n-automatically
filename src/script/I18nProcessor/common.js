@@ -57,7 +57,7 @@ function stringWithDom(str) {
   return /<\/?[a-z][\s\S]*?>/i.test(str);
 }
 
-function containsChinese(str) {
+function containsChinese(str, isExcluded = false) {
   // 匹配中文字符
   const chineseRegex = /[\u4e00-\u9fa5]/;
 
@@ -71,9 +71,10 @@ function containsChinese(str) {
   const config = readConfig();
 
   // 首先使用 includes 进行快速检查
-  const isExcludedByIncludes = isChinese
-    ? config.excludedStrings.some((excluded) => str.includes(excluded))
-    : false;
+  const isExcludedByIncludes =
+    isChinese && !isExcluded
+      ? config.excludedStrings.some((excluded) => str.includes(excluded))
+      : false;
 
   // 如果快速检查未排除，则使用正则表达式进行更复杂的检查
   // const isExcluded = isExcludedByIncludes;//|| excludedRegex.test(str);
