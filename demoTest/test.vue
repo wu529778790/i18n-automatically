@@ -1,17 +1,17 @@
 <template>
   <div>
     <!-- 1. 测试普通文本节点 -->
-    <h1>{{ $t("demoTest-test-19295c377b3c0e68c-1") }}</h1>
+    <h1>{{ $t('demoTest-test-19295c377b3c0e68c-1') }}</h1>
     <!-- 2. 测试属性中的中文 -->
     <input
       :placeholder="$t('demoTest-test-19295c377b3c0e68c-2')"
       :title="$t('demoTest-test-19295c377b3c0e68c-3')"
     />
     <!-- 3. 测试 v-bind 中的中文 -->
-    <p :title="chineseTitle">{{ $t("demoTest-test-19295c377b3c0e68c-4") }}</p>
+    <p :title="chineseTitle">{{ $t('demoTest-test-19295c377b3c0e68c-4') }}</p>
     <!-- 4. 测试 v-if 中的中文 -->
     <span v-if="showChinese">{{
-      $t("demoTest-test-19295c377b3c0e68c-5")
+      $t('demoTest-test-19295c377b3c0e68c-5')
     }}</span>
     <!-- 5. 测试 v-for 中的中文 -->
     <ul>
@@ -19,14 +19,14 @@
     </ul>
     <!-- 6. 测试事件处理器中的中文 -->
     <button @click="handleClick($t('demoTest-test-19295c377b3c0e68c-6'))">
-      {{ $t("demoTest-test-19295c377b3c0e68c-7") }}
+      {{ $t('demoTest-test-19295c377b3c0e68c-7') }}
     </button>
     <!-- 7. 测试插值中的中文 -->
     <p>{{ chineseMessage }}</p>
     <!-- 8. 测试混合了变量的中文字符串 -->
     <p>
-      {{ $t("demoTest-test-19295c377b3c0e68c-8") }} {{ username }}
-      {{ $t("demoTest-test-19295c377b3c0e68c-9") }} {{ today }} 。
+      {{ $t('demoTest-test-19295c377b3c0e68c-8') }} {{ username }}
+      {{ $t('demoTest-test-19295c377b3c0e68c-9') }} {{ today }} 。
     </p>
     <!-- 9. 测试包含 HTML 的中文字符串 -->
     <div
@@ -38,10 +38,10 @@
     <custom-component
       :custom-prop="$t('demoTest-test-19295c377b3c0e68c-11')"
       :custom-attr="$t('demoTest-test-19295c377b3c0e68c-12')"
-      >{{ $t("demoTest-test-19295c377b3c0e68c-13") }}</custom-component
+      >{{ $t('demoTest-test-19295c377b3c0e68c-13') }}</custom-component
     >
     <!-- 11. 测试模板字符串 -->
-    <p>{{ `${$t("demoTest-test-19295c377b3c0e68c-14")}${username}` }}</p>
+    <p>{{ `${$t('demoTest-test-19295c377b3c0e68c-14')}${username}` }}</p>
     <!-- 12. 测试带 DOM 节点和中文内容的混合字符串 -->
     <div
       v-html="
@@ -55,7 +55,7 @@
     <!-- 14. 测试更复杂的模板字符串场景 -->
     <p>
       {{
-        `${$t("demoTest-test-19295c377b3c0e68c-20")}，${today}${username}${$t("demoTest-test-19295c377b3c0e68c-21")}${todoCount}${$t("demoTest-test-19295c377b3c0e68c-22")}${todoList.join("、")}`
+        `${$t('demoTest-test-19295c377b3c0e68c-20')}，${today}${username}${$t('demoTest-test-19295c377b3c0e68c-21')}${todoCount}${$t('demoTest-test-19295c377b3c0e68c-22')}${todoList.join('、')}`
       }}
     </p>
     <!-- 15. 测试 v-bind 对象语法中的中文 -->
@@ -64,7 +64,7 @@
         `${$t('demoTest-test-19295c377b3c0e68c-20')}，${today}${username}${$t('demoTest-test-19295c377b3c0e68c-21')}${todoCount}${$t('demoTest-test-19295c377b3c0e68c-22')}${todoList.join('、')}`
       "
     >
-      {{ $t("demoTest-test-19295c377b3c0e68c-23") }}
+      {{ $t('demoTest-test-19295c377b3c0e68c-23') }}
     </div>
     <!-- 16. 测试复杂的属性绑定with HTML和模板字符串 -->
     <custom-component
@@ -104,7 +104,7 @@
       <li v-for="item in complexList" :key="item.id">
         <span v-html="`${item.name}: <strong>${item.value}</strong>`"></span>
         <p>
-          {{ `${$t("demoTest-test-19295c377b3c0e68c-38")}${item.description}` }}
+          {{ `${$t('demoTest-test-19295c377b3c0e68c-38')}${item.description}` }}
         </p>
       </li>
     </ul>
@@ -131,11 +131,11 @@
       ></span>
     </div>
     <!-- 24. 测试特殊字符和HTML实体的处理 -->
-    <p>{{ `${$t("demoTest-test-19295c377b3c0e68c-42")}${specialChar}` }}</p>
+    <p>{{ `${$t('demoTest-test-19295c377b3c0e68c-42')}${specialChar}` }}</p>
     <!-- 25. 测试嵌套的模板字符串 -->
     <p>
       {{
-        `${$t("demoTest-test-19295c377b3c0e68c-43")}${`${$t("demoTest-test-19295c377b3c0e68c-45")}${`${$t("demoTest-test-19295c377b3c0e68c-46")}${deepNestedContent}`}`}${$t("demoTest-test-19295c377b3c0e68c-44")}`
+        `${$t('demoTest-test-19295c377b3c0e68c-43')}${`${$t('demoTest-test-19295c377b3c0e68c-45')}${`${$t('demoTest-test-19295c377b3c0e68c-46')}${deepNestedContent}`}`}${$t('demoTest-test-19295c377b3c0e68c-44')}`
       }}
     </p>
     <!-- 26. 测试在事件绑定中使用包含HTML的字符串 -->
@@ -169,100 +169,100 @@
   </div>
 </template>
 <script setup>
-import i18n from "@/i18n";
-import { ref, computed, onMounted, watch, nextTick } from "vue";
+import i18n from '@/i18n';
+import { ref, computed, onMounted, watch, nextTick } from 'vue';
 
 // 基本响应式数据
-const chineseTitle = ref(i18n.t("demoTest-test-19295c377b3c0e68c-56"));
+const chineseTitle = ref(i18n.t('demoTest-test-19295c377b3c0e68c-56'));
 const showChinese = ref(true);
-const chineseMessage = ref(i18n.t("demoTest-test-19295c377b3c0e68c-57"));
-const username = ref(i18n.t("demoTest-test-19295c377b3c0e68c-58"));
-const today = ref(new Date().toLocaleDateString("zh-CN"));
+const chineseMessage = ref(i18n.t('demoTest-test-19295c377b3c0e68c-57'));
+const username = ref(i18n.t('demoTest-test-19295c377b3c0e68c-58'));
+const today = ref(new Date().toLocaleDateString('zh-CN'));
 
 // 复杂数据结构
 const chineseList = ref([
-  { id: 1, name: i18n.t("demoTest-test-19295c377b3c0e68c-59") },
-  { id: 2, name: i18n.t("demoTest-test-19295c377b3c0e68c-60") },
-  { id: 3, name: i18n.t("demoTest-test-19295c377b3c0e68c-61") },
+  { id: 1, name: i18n.t('demoTest-test-19295c377b3c0e68c-59') },
+  { id: 2, name: i18n.t('demoTest-test-19295c377b3c0e68c-60') },
+  { id: 3, name: i18n.t('demoTest-test-19295c377b3c0e68c-61') },
 ]);
 
 const complexList = ref([
   {
     id: 1,
-    name: i18n.t("demoTest-test-19295c377b3c0e68c-62"),
-    value: `<span>${i18n.t("demoTest-test-19295c377b3c0e68c-63")}</span>`,
-    description: i18n.t("demoTest-test-19295c377b3c0e68c-64"),
+    name: i18n.t('demoTest-test-19295c377b3c0e68c-62'),
+    value: `<span>${i18n.t('demoTest-test-19295c377b3c0e68c-63')}</span>`,
+    description: i18n.t('demoTest-test-19295c377b3c0e68c-64'),
   },
   {
     id: 2,
-    name: i18n.t("demoTest-test-19295c377b3c0e68c-65"),
-    value: `<em>${i18n.t("demoTest-test-19295c377b3c0e68c-66")}</em>`,
-    description: i18n.t("demoTest-test-19295c377b3c0e68c-67"),
+    name: i18n.t('demoTest-test-19295c377b3c0e68c-65'),
+    value: `<em>${i18n.t('demoTest-test-19295c377b3c0e68c-66')}</em>`,
+    description: i18n.t('demoTest-test-19295c377b3c0e68c-67'),
   },
   {
     id: 3,
-    name: i18n.t("demoTest-test-19295c377b3c0e68c-68"),
-    value: `<strong>${i18n.t("demoTest-test-19295c377b3c0e68c-69")}</strong>`,
-    description: i18n.t("demoTest-test-19295c377b3c0e68c-70"),
+    name: i18n.t('demoTest-test-19295c377b3c0e68c-68'),
+    value: `<strong>${i18n.t('demoTest-test-19295c377b3c0e68c-69')}</strong>`,
+    description: i18n.t('demoTest-test-19295c377b3c0e68c-70'),
   },
 ]);
 
 const todoList = ref([
-  i18n.t("demoTest-test-19295c377b3c0e68c-71"),
-  i18n.t("demoTest-test-19295c377b3c0e68c-72"),
-  i18n.t("demoTest-test-19295c377b3c0e68c-73"),
+  i18n.t('demoTest-test-19295c377b3c0e68c-71'),
+  i18n.t('demoTest-test-19295c377b3c0e68c-72'),
+  i18n.t('demoTest-test-19295c377b3c0e68c-73'),
 ]);
 const todoCount = computed(() => todoList.value.length);
 
 // 动态和计算属性
-const dynamicValue = ref(i18n.t("demoTest-test-19295c377b3c0e68c-74"));
-const dynamicTitle = ref(i18n.t("demoTest-test-19295c377b3c0e68c-75"));
-const dynamicContent = ref(i18n.t("demoTest-test-19295c377b3c0e68c-76"));
+const dynamicValue = ref(i18n.t('demoTest-test-19295c377b3c0e68c-74'));
+const dynamicTitle = ref(i18n.t('demoTest-test-19295c377b3c0e68c-75'));
+const dynamicContent = ref(i18n.t('demoTest-test-19295c377b3c0e68c-76'));
 const computedValue = computed(() =>
-  i18n.t("demoTest-test-19295c377b3c0e68c-77"),
+  i18n.t('demoTest-test-19295c377b3c0e68c-77'),
 );
 const computedContent = computed(
-  () => `<u>${i18n.t("demoTest-test-19295c377b3c0e68c-78")}</u>`,
+  () => `<u>${i18n.t('demoTest-test-19295c377b3c0e68c-78')}</u>`,
 );
 
 const computedComplexContent = computed(() => {
-  return `${i18n.t("demoTest-test-19295c377b3c0e68c-79")}<strong>${dynamicContent.value}</strong>${i18n.t("demoTest-test-19295c377b3c0e68c-80")}<em>${computedValue.value}</em>`;
+  return `${i18n.t('demoTest-test-19295c377b3c0e68c-79')}<strong>${dynamicContent.value}</strong>${i18n.t('demoTest-test-19295c377b3c0e68c-80')}<em>${computedValue.value}</em>`;
 });
 
 // 条件和控制变量
 const showComplex = ref(true);
-const currentComponent = ref("dynamic-component");
+const currentComponent = ref('dynamic-component');
 const showMixed = ref(true);
 const isDynamic = ref(true);
 
 // 特殊内容
 const templateLiteral = ref(`
     <div class="container">
-      <h2>${i18n.t("demoTest-test-19295c377b3c0e68c-81")}</h2>
+      <h2>${i18n.t('demoTest-test-19295c377b3c0e68c-81')}</h2>
       <ul>
-        <li><a href="#" title="查看详情">${i18n.t("demoTest-test-19295c377b3c0e68c-82")}</a></li>
-        <li><a href="#" title="查看详情">${i18n.t("demoTest-test-19295c377b3c0e68c-83")}</a></li>
-        <li><a href="#" title="查看详情">${i18n.t("demoTest-test-19295c377b3c0e68c-84")}</a></li>
+        <li><a href="#" title="查看详情">${i18n.t('demoTest-test-19295c377b3c0e68c-82')}</a></li>
+        <li><a href="#" title="查看详情">${i18n.t('demoTest-test-19295c377b3c0e68c-83')}</a></li>
+        <li><a href="#" title="查看详情">${i18n.t('demoTest-test-19295c377b3c0e68c-84')}</a></li>
       </ul>
-      <p>${i18n.t("demoTest-test-19295c377b3c0e68c-85")}<strong>3</strong>${i18n.t("demoTest-test-19295c377b3c0e68c-86")}</p>
+      <p>${i18n.t('demoTest-test-19295c377b3c0e68c-85')}<strong>3</strong>${i18n.t('demoTest-test-19295c377b3c0e68c-86')}</p>
     </div>
   `);
 
-const specialChar = ref("&copy;");
-const deepNestedContent = ref(i18n.t("demoTest-test-19295c377b3c0e68c-87"));
+const specialChar = ref('&copy;');
+const deepNestedContent = ref(i18n.t('demoTest-test-19295c377b3c0e68c-87'));
 const buttonIndex = ref(1);
-const defaultSlotContent = ref(i18n.t("demoTest-test-19295c377b3c0e68c-88"));
-const namedSlotContent = ref(i18n.t("demoTest-test-19295c377b3c0e68c-89"));
+const defaultSlotContent = ref(i18n.t('demoTest-test-19295c377b3c0e68c-88'));
+const namedSlotContent = ref(i18n.t('demoTest-test-19295c377b3c0e68c-89'));
 
 // 方法
 const handleClick = (message) => {
   console.log(`处理点击事件：${message}`);
-  alert(i18n.t("demoTest-test-19295c377b3c0e68c-90"));
+  alert(i18n.t('demoTest-test-19295c377b3c0e68c-90'));
 };
 
 // 生命周期钩子
 onMounted(() => {
-  console.log("组件已挂载");
+  console.log('组件已挂载');
   fetchData();
 });
 
@@ -275,10 +275,10 @@ watch(username, (newValue, oldValue) => {
 const fetchData = async () => {
   try {
     await nextTick();
-    console.log("模拟异步数据获取");
-    chineseMessage.value = i18n.t("demoTest-test-19295c377b3c0e68c-91");
+    console.log('模拟异步数据获取');
+    chineseMessage.value = i18n.t('demoTest-test-19295c377b3c0e68c-91');
   } catch (error) {
-    console.error("获取数据失败：", error);
+    console.error('获取数据失败：', error);
   }
 };
 
@@ -295,38 +295,38 @@ defineExpose({
 </script>
 
 <script>
-import i18n from "@/i18n";
+import i18n from '@/i18n';
 export default {
-  name: "TestComponent",
+  name: 'TestComponent',
   inheritAttrs: false,
   props: {
     externalProp: {
       type: String,
-      default: i18n.t("demoTest-test-19295c377b3c0e68c-53"),
+      default: i18n.t('demoTest-test-19295c377b3c0e68c-53'),
     },
   },
-  emits: ["custom-event"],
+  emits: ['custom-event'],
   data() {
     return {
-      localData: i18n.t("demoTest-test-19295c377b3c0e68c-54"),
+      localData: i18n.t('demoTest-test-19295c377b3c0e68c-54'),
     };
   },
   computed: {
     reversedLocalData() {
-      return this.localData.split("").reverse().join("");
+      return this.localData.split('').reverse().join('');
     },
   },
   methods: {
     triggerCustomEvent() {
-      this.$emit("custom-event", i18n.t("demoTest-test-19295c377b3c0e68c-55"));
+      this.$emit('custom-event', i18n.t('demoTest-test-19295c377b3c0e68c-55'));
     },
   },
   // 生命周期钩子
   created() {
-    console.log("组件创建");
+    console.log('组件创建');
   },
   mounted() {
-    console.log("组件挂载");
+    console.log('组件挂载');
   },
   // 自定义指令
   directives: {
@@ -338,7 +338,7 @@ export default {
   },
   // 插件使用示例
   install(app) {
-    app.component("TestComponent", this);
+    app.component('TestComponent', this);
   },
 };
 </script>
@@ -346,12 +346,12 @@ export default {
 <style scoped>
 /* 测试样式中的中文选择器和内容 */
 .测试-class {
-  content: "这是样式内容";
+  content: '这是样式内容';
 }
 
 /* 测试伪类中的中文 */
 .test-class:hover::after {
-  content: "鼠标悬停效果";
+  content: '鼠标悬停效果';
 }
 
 /* 测试媒体查询中的中文注释 */

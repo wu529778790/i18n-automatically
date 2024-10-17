@@ -14,8 +14,12 @@ interface Props {
 
 const UserManagement: React.FC<Props> = ({ initialUsers }) => {
   const { t } = useTranslation();
-
-  const [error, setError] = useState<string | null>(null);
+  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [newUser, setNewUser] = useState<Omit<User, 'id'>>({
+    name: '',
+    email: '',
+    role: '访客',
+  });
 
   useEffect(() => {
     document.title = t('用户管理系统');

@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { readConfig } = require('./setting.js');
 const { getRootPath } = require('../utils/index.js');
+const customConsole = require('../utils/customConsole.js');
 
 let cachedLanguage = 'zh.json'; // 初始化缓存变量
 
@@ -36,8 +37,12 @@ const getLanguagePack = async (language = cachedLanguage) => {
   if (!languagePack) {
     return;
   }
-  const languagePackObj = JSON.parse(languagePack);
-  return languagePackObj;
+  try {
+    const languagePackObj = JSON.parse(languagePack);
+    return languagePackObj;
+  } catch (error) {
+    customConsole.log(error);
+  }
 };
 
 // 使用正则表达式进行匹配，确保只完全匹配特定的键
