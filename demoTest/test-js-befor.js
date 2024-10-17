@@ -280,3 +280,83 @@ console.log(userSummary);
 
 // 导出模块
 export { UserManager, UserRole, fetchUserData };
+
+// StringLiteral
+const simpleString = '这是一个简单的字符串';
+
+// TemplateLiteral
+const name = '张三';
+const templateLiteral = `欢迎，${name}！今天是个好日子。`;
+
+// JSXText 和 JSXStringLiteral
+function Welcome() {
+  return (
+    <div>
+      <h1>欢迎来到我的应用</h1>
+      <p title="这是一个段落">这是 JSX 中的文本节点</p>
+    </div>
+  );
+}
+
+// DirectiveLiteral (在 Vue.js 中常见)
+const VueComponent = {
+  template: '<p v-if="show">这是一个指令字符串</p>',
+};
+
+// BigIntLiteral
+const bigNumber = 9007199254740991n; // 不是中文，但可能需要国际化处理
+
+// Identifier (虽然不是字符串，但可能包含拼音或中文相关的命名)
+const 你好 = '世界';
+
+// JSXAttribute
+function Button() {
+  return <button aria-label="点击这里">按钮</button>;
+}
+
+// 多行模板字符串
+const multilineTemplate = `
+  这是一个
+  多行的
+  模板字符串
+`;
+
+// 带有插值的复杂模板字符串
+function getUserInfo(user) {
+  return `
+    用户信息:
+    姓名: ${user.name}
+    年龄: ${user.age}
+    职业: ${user.job}
+  `;
+}
+
+// 带有 HTML 的字符串
+const htmlString =
+  '<div class="chinese-content">这是一些<strong>中文</strong>内容</div>';
+
+// 注释中的中文
+/*
+ * 这是一个包含中文的多行注释
+ * 它可能不会被国际化，但可能需要在某些情况下处理
+ */
+
+// 带有转义字符的字符串
+const escapedString = '这是一个包含 "引号" 的字符串';
+
+// 使用 Unicode 转义的中文字符串
+const unicodeString = '\u4F60\u597D\uFF0C\u4E16\u754C'; // "你好，世界"
+
+// 特殊格式的电子邮件地址
+const emailAddress = 'zhang.san@公司.中国';
+
+// 类方法和属性
+class ChineseExample {
+  static 静态方法() {
+    return '这是一个静态方法';
+  }
+
+  普通方法() {
+    return '这是一个普通方法';
+  }
+}
