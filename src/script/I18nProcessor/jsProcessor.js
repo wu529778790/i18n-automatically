@@ -22,7 +22,7 @@ function processJsAst(context, customContent) {
     context.hasPluginImport = false;
     const ast = parser.parse(customContent || context.contentSource, {
       sourceType: 'module',
-      plugins: ['jsx', 'typescript'],
+      plugins: ['jsx', 'typescript', 'decorators-legacy'],
     });
 
     if (!ast) {
@@ -70,7 +70,8 @@ function processJsAst(context, customContent) {
 function checkForI18nImport(path, context) {
   context.hasPluginImport = path.node.body.some(
     (node) =>
-      node.type === 'ImportDeclaration' && node.source.value.includes('i18n'),
+      node.type === 'ImportDeclaration' &&
+      node.source.value.trim() === context.config.i18nImportPath,
   );
 }
 
@@ -264,6 +265,12 @@ function isInDebugContext(path) {
  * @param {string} key - 翻译键。
  */
 function replaceWithI18nCall(path, context, key) {
+  // 检查当前节点是否是TSLiteralType，如果是则跳过替换
+  if (path.parentPath.isTSLiteralType()) {
+    return;
+  }
+
+  // 执行替换为i18n函数调用
   path.replaceWith(
     t.callExpression(t.identifier(context.config.scriptI18nCall), [
       t.stringLiteral(key),
