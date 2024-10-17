@@ -15,6 +15,38 @@
 - 支持一键生成指定翻译包文件
 - 支持语言切换显示
 
+## 结果对比
+
+vue对比图：
+
+![20241017155847](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017155847.png)
+
+点击链接查看完整对比图：<https://www.diffchecker.com/WjmYT5g4/>
+
+jsx对比图：
+
+![20241017155908](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017155908.png)
+
+点击链接查看完整对比图：<https://www.diffchecker.com/bYgP5eUP/>
+
+ts对比图：
+
+![20241017155929](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017155929.png)
+
+点击链接查看完整对比图：<https://www.diffchecker.com/IRWBVjHe/>
+
+js对比图：
+
+![20241017155823](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017155823.png)
+
+点击链接查看完整对比图：<https://www.diffchecker.com/VyO3Zw6b/>
+
+tsx对比图：
+
+![20241017160240](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017160240.png)
+
+点击链接查看完整对比图：<https://www.diffchecker.com/OaZLu99x/>
+
 ### 扫描中文
 
 扫描当前文件的所有的中文，并替换成`key`，并生成 `zh.json` 文件。
@@ -70,38 +102,6 @@
 > 提示：这里要选择高级版本。只要实名认证了，都可以高级版本，api没有那么多限制
 
 ![20241009144522](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241009144522.png)
-
-## 结果对比
-
-vue对比图：
-
-![20241017155847](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017155847.png)
-
-点击链接查看完整对比图：<https://www.diffchecker.com/WjmYT5g4/>
-
-jsx对比图：
-
-![20241017155908](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017155908.png)
-
-点击链接查看完整对比图：<https://www.diffchecker.com/bYgP5eUP/>
-
-ts对比图：
-
-![20241017155929](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017155929.png)
-
-点击链接查看完整对比图：<https://www.diffchecker.com/IRWBVjHe/>
-
-js对比图：
-
-![20241017155823](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017155823.png)
-
-点击链接查看完整对比图：<https://www.diffchecker.com/VyO3Zw6b/>
-
-tsx对比图：
-
-![20241017160240](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017160240.png)
-
-点击链接查看完整对比图：<https://www.diffchecker.com/OaZLu99x/>
 
 ## 更新提醒
 
