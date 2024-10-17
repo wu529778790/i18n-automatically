@@ -29,23 +29,14 @@ jsx对比图：
 
 点击链接查看完整对比图：<https://www.diffchecker.com/bYgP5eUP/>
 
-<!-- ts对比图：
+<!-- ![20241017155929](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017155929.png) -->
+ts对比图：<https://www.diffchecker.com/IRWBVjHe/>
 
-![20241017155929](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017155929.png)
+<!-- ![20241017155823](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017155823.png) -->
+js对比图：<https://www.diffchecker.com/VyO3Zw6b/>
 
-点击链接查看完整对比图：<https://www.diffchecker.com/IRWBVjHe/>
-
-js对比图：
-
-![20241017155823](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017155823.png)
-
-点击链接查看完整对比图：<https://www.diffchecker.com/VyO3Zw6b/>
-
-tsx对比图：
-
-![20241017160240](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017160240.png)
-
-点击链接查看完整对比图：<https://www.diffchecker.com/OaZLu99x/> -->
+<!-- ![20241017160240](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017160240.png) -->
+tsx对比图：<https://www.diffchecker.com/OaZLu99x/>
 
 ### 扫描中文
 
