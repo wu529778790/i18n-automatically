@@ -29,6 +29,12 @@ jsx对比图：
 
 <https://www.diffchecker.com/bYgP5eUP/>
 
+ts对比图：
+
+![20241017141234](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017141234.png)
+
+<https://www.diffchecker.com/IRWBVjHe/>
+
 ### 扫描中文
 
 扫描当前文件的所有的中文，并替换成`key`，并生成 `zh.json` 文件。
