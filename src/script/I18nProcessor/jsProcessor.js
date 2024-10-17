@@ -93,7 +93,6 @@ function handleChineseString(path, context, isTemplateLiteral = false) {
     }
 
     const key = generateKey(context);
-    context.translations.set(key, value.trim());
 
     if (isTemplateLiteral) {
       handleTemplateLiteral(path, context, key);
@@ -105,7 +104,10 @@ function handleChineseString(path, context, isTemplateLiteral = false) {
     } else {
       replaceWithI18nCall(path, context, key);
     }
+
+    context.translations.set(key, value.trim());
   } catch (error) {
+    context.index--;
     customConsole.error('handleChineseString 中出错:', error);
   }
 }
@@ -266,9 +268,9 @@ function isInDebugContext(path) {
  */
 function replaceWithI18nCall(path, context, key) {
   // 检查当前节点是否是TSLiteralType，如果是则跳过替换
-  if (path.parentPath.isTSLiteralType()) {
-    return;
-  }
+  // if (path.parentPath.isTSLiteralType()) {
+  //   return;
+  // }
 
   // 执行替换为i18n函数调用
   path.replaceWith(
@@ -438,7 +440,6 @@ function splitStringWithTags(str) {
  * @param {Object} context - 处理上下文。
  */
 function addI18nImport(ast, context) {
-  customConsole.log('i18n 插件未安装，正在自动安装...');
   ast.program.body.unshift(
     t.importDeclaration(
       [t.importDefaultSpecifier(t.identifier('i18n'))],
