@@ -93,7 +93,6 @@ function handleChineseString(path, context, isTemplateLiteral = false) {
     }
 
     const key = generateKey(context);
-    context.translations.set(key, value.trim());
 
     if (isTemplateLiteral) {
       handleTemplateLiteral(path, context, key);
@@ -105,7 +104,9 @@ function handleChineseString(path, context, isTemplateLiteral = false) {
     } else {
       replaceWithI18nCall(path, context, key);
     }
+    context.translations.set(key, value.trim());
   } catch (error) {
+    context.index--;
     customConsole.error('handleChineseString 中出错:', error);
   }
 }
