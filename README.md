@@ -17,10 +17,17 @@
 
 ## 结果对比
 
+vue对比图：
+
 ![20241017140037](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017140037.png)
 
-vue对比图：
 <https://www.diffchecker.com/WjmYT5g4/>
+
+jsx对比图：
+
+![20241017140907](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017140907.png)
+
+<https://www.diffchecker.com/bYgP5eUP/>
 
 ### 扫描中文
 
