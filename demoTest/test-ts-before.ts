@@ -15,13 +15,13 @@ interface User {
 }
 
 // Enum with Chinese keys (as requested to keep)
-// enum StatusCode {
-//   '成功' = 200,
-//   '未授权' = 401,
-//   '禁止访问' = 403,
-//   '未找到' = 404,
-//   '服务器错误' = 500,
-// }
+enum StatusCode {
+  '成功' = 200,
+  '未授权' = 401,
+  '禁止访问' = 403,
+  '未找到' = 404,
+  '服务器错误' = 500,
+}
 
 // Constants with Chinese keys
 const ErrorMessages = {
@@ -33,6 +33,8 @@ const ErrorMessages = {
 
 // Class
 class UserManager {
+  private users: User[] = [];
+
   constructor(initialUsers: User[] = []) {
     this.users = initialUsers;
     console.log('用户管理系统已初始化'); // StringLiteral in console.log
@@ -89,7 +91,7 @@ async function fetchRemoteUserData(userId: number): Promise<User> {
   try {
     const response = await apiClient.get(`/users/${userId}`);
     if (response.status === StatusCode.成功) {
-      return response;
+      return response.data as User;
     } else {
       throw new Error(`获取用户数据失败: ${response.statusText}`); // Template literal in Error message
     }
@@ -131,12 +133,10 @@ const userSystem = new AdvancedUserManager([
 
 userSystem.listAllUsers();
 
-const newUser = createAndLog<User>({
-  id: 3,
-  name: '王五',
-  age: 28,
-  role: 'guest',
-});
+const newUser = createAndLog<User>(
+  { id: 3, name: '王五', age: 28, role: 'guest' },
+  '创建新用户:', // StringLiteral
+);
 
 userSystem.addUser(newUser);
 

@@ -105,6 +105,7 @@ export { APP_NAME, User, greet, fetchData, config, processUser };
 
 // userManagement.js
 
+import { translate } from './i18n-helper';
 import { ApiClient } from './api-client';
 
 // 用户角色枚举
