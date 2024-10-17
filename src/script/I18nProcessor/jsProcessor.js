@@ -93,7 +93,6 @@ function handleChineseString(path, context, isTemplateLiteral = false) {
     }
 
     const key = generateKey(context);
-    context.translations.set(key, value.trim());
 
     if (isTemplateLiteral) {
       handleTemplateLiteral(path, context, key);
@@ -105,7 +104,10 @@ function handleChineseString(path, context, isTemplateLiteral = false) {
     } else {
       replaceWithI18nCall(path, context, key);
     }
+
+    context.translations.set(key, value.trim());
   } catch (error) {
+    context.index--;
     customConsole.error('handleChineseString 中出错:', error);
   }
 }
@@ -266,9 +268,9 @@ function isInDebugContext(path) {
  */
 function replaceWithI18nCall(path, context, key) {
   // 检查当前节点是否是TSLiteralType，如果是则跳过替换
-  if (path.parentPath.isTSLiteralType()) {
-    return;
-  }
+  // if (path.parentPath.isTSLiteralType()) {
+  //   return;
+  // }
 
   // 执行替换为i18n函数调用
   path.replaceWith(
