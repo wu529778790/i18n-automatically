@@ -22,7 +22,7 @@ function processJsAst(context, customContent) {
     context.hasPluginImport = false;
     const ast = parser.parse(customContent || context.contentSource, {
       sourceType: 'module',
-      plugins: ['jsx', 'typescript'],
+      plugins: ['jsx', 'typescript', 'decorators-legacy'],
     });
 
     if (!ast) {
@@ -70,7 +70,8 @@ function processJsAst(context, customContent) {
 function checkForI18nImport(path, context) {
   context.hasPluginImport = path.node.body.some(
     (node) =>
-      node.type === 'ImportDeclaration' && node.source.value.includes('i18n'),
+      node.type === 'ImportDeclaration' &&
+      node.source.value.trim() === context.config.i18nImportPath,
   );
 }
 
