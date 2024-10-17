@@ -265,6 +265,12 @@ function isInDebugContext(path) {
  * @param {string} key - 翻译键。
  */
 function replaceWithI18nCall(path, context, key) {
+  // 检查当前节点是否是TSLiteralType，如果是则跳过替换
+  if (path.parentPath.isTSLiteralType()) {
+    return;
+  }
+
+  // 执行替换为i18n函数调用
   path.replaceWith(
     t.callExpression(t.identifier(context.config.scriptI18nCall), [
       t.stringLiteral(key),
