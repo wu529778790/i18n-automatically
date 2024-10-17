@@ -20,7 +20,6 @@ const UserManagement: React.FC<Props> = ({ initialUsers }) => {
     email: '',
     role: '访客',
   });
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     document.title = t('用户管理系统');
@@ -59,12 +58,7 @@ const UserManagement: React.FC<Props> = ({ initialUsers }) => {
           value={newUser.email}
           onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
         />
-        <select
-          value={newUser.role}
-          onChange={(e) =>
-            setNewUser({ ...newUser, role: e.target.value as User['role'] })
-          }
-        >
+        <select value={newUser.role}>
           <option value="访客">{t('访客')}</option>
           <option value="普通用户">{t('普通用户')}</option>
           <option value="管理员">{t('管理员')}</option>
