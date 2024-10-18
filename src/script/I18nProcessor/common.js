@@ -49,6 +49,11 @@ function generateCode(ast, content) {
     retainLines: true,
     jsonCompatibleStrings: true,
     flowCommaSeparator: true,
+    quotes: 'single', // 强制使用单引号
+    jsescOption: {
+      quotes: 'single', // 确保字符串内容也使用单引号
+      wrap: true,
+    },
   };
   return generate(ast, opts, content).code;
 }
@@ -60,39 +65,42 @@ function stringWithDom(str) {
 function containsChinese(str, isExcluded = false) {
   // 匹配中文字符
   const chineseRegex = /[\u4e00-\u9fa5]/;
-
-  // 匹配常见图片文件扩展名,增加引号的匹配考虑
-  // const imageExtensionRegex = /\.(png|jpe?g|gif|svg|webp)$/i;
-  // const imageExtensionRegex = /\.(png|jpe?g|gif|svg|webp)(['"])?$/i;
+  // 如果没有中文字符，立即返回 false
+  if (!chineseRegex.test(str)) {
+    return false;
+  }
+  // 匹配常见图片文件扩展名
   const imageExtensionRegex = /\.(png|jpe?g|gif|svg|webp)(['"]|\?[^'"\s]*)?$/i;
-
-  const isChinese = chineseRegex.test(str);
-  // 确保配置已加载
-  const config = readConfig();
-
-  // 首先使用 includes 进行快速检查
-  const isExcludedByIncludes =
-    isChinese && !isExcluded
-      ? config.excludedStrings.some((excluded) => str.includes(excluded))
-      : false;
-
-  // 如果快速检查未排除，则使用正则表达式进行更复杂的检查
-  // const isExcluded = isExcludedByIncludes;//|| excludedRegex.test(str);
-
-  // 返回true如果包含中文且不是图片资源
-  return isChinese && !imageExtensionRegex.test(str) && !isExcludedByIncludes;
+  // 如果是图片资源，返回 false
+  if (imageExtensionRegex.test(str)) {
+    return false;
+  }
+  // 如果 isExcluded 为 false，进行额外的排除检查
+  if (!isExcluded) {
+    // 确保配置已加载
+    const config = readConfig();
+    if (
+      Array.isArray(config.excludedStrings) &&
+      config.excludedStrings.length
+    ) {
+      // 检查是否被排除
+      const isExcludedByConfig = config.excludedStrings.includes(str.trim());
+      // 如果被配置排除，返回 false
+      if (isExcludedByConfig) {
+        return false;
+      }
+    }
+  }
+  // 如果包含中文且不是图片资源且没有被排除，返回 true
+  return true;
 }
-
-const getRootPath = () => {
-  return vscode.workspace.workspaceFolders[0].uri.fsPath;
-};
 
 class TranslationManager {
   constructor() {
     // 假设这个方法在其他地方定义
     this.getRootPath = () => {
       // 这里应该返回实际的根路径
-      return getRootPath();
+      return vscode.workspace.workspaceFolders?.[0]?.uri?.fsPath || '';
     };
   }
 
