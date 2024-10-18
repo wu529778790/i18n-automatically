@@ -71,10 +71,10 @@ async function processVueTemplate(templateAst, context, descriptor) {
  */
 async function processVueScripts(scriptAst, scriptSetupAst, context) {
   context.config.autoImportI18n = true;
-  if (scriptAst && containsChinese(scriptAst)) {
+  if (scriptAst && containsChinese(scriptAst, true)) {
     await processVueScript(scriptAst, context, 'script');
   }
-  if (scriptSetupAst && containsChinese(scriptSetupAst)) {
+  if (scriptSetupAst && containsChinese(scriptSetupAst, true)) {
     await processVueScript(scriptSetupAst, context, 'scriptSetup');
   }
 }

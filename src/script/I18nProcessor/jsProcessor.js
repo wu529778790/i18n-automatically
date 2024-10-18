@@ -104,7 +104,6 @@ function handleChineseString(path, context, isTemplateLiteral = false) {
     } else {
       replaceWithI18nCall(path, context, key);
     }
-
     context.translations.set(key, value.trim());
   } catch (error) {
     context.index--;
