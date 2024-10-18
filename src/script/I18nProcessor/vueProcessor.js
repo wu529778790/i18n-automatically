@@ -453,4 +453,27 @@ function splitTemplateString(str) {
 
 const handleVueFile = createI18nProcessor(processVueAst);
 
-module.exports = handleVueFile;
+module.exports = {
+  handleVueFile,
+  processVueAst,
+  processVueTemplate,
+  processVueScripts,
+  processTemplate,
+  astArrayToTemplate,
+  astToTemplate,
+  processTextNode,
+  processInterpolationNode,
+  processElementNode,
+  processAttributes,
+  processAttribute,
+  processDirective,
+  replaceForI18nCall,
+  handlerForJs,
+  handleAstResult,
+  handleStringLiteral,
+  handleNonAstResult,
+  replaceChineseWithI18nKey,
+  getDirectiveName,
+  interpolationStr,
+  splitTemplateString,
+};
