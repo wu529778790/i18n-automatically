@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const { TranslationManager } = require('./common');
-const handleVueFile = require('./vueProcessor');
+const { handleVueFile } = require('./vueProcessor');
 const { handleJsFile } = require('./jsProcessor');
 const { readConfig } = require('../setting');
 const prettier = require('prettier');
