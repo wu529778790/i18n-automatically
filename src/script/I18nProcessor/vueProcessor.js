@@ -26,8 +26,12 @@ async function processVueAst(context) {
       customConsole.warn('No template found, skipping processing.');
       return;
     }
+    if (
+      !(descriptor.template.attrs && descriptor.template.attrs.lang === 'pug')
+    ) {
+      await processVueTemplate(templateAst, context, descriptor);
+    }
 
-    await processVueTemplate(templateAst, context, descriptor);
     // 存储模板变更的变量
     context.templateSize = context.translations.size;
     await processVueScripts(scriptAst, scriptSetupAst, context);
@@ -453,4 +457,27 @@ function splitTemplateString(str) {
 
 const handleVueFile = createI18nProcessor(processVueAst);
 
-module.exports = handleVueFile;
+module.exports = {
+  handleVueFile,
+  processVueAst,
+  processVueTemplate,
+  processVueScripts,
+  processTemplate,
+  astArrayToTemplate,
+  astToTemplate,
+  processTextNode,
+  processInterpolationNode,
+  processElementNode,
+  processAttributes,
+  processAttribute,
+  processDirective,
+  replaceForI18nCall,
+  handlerForJs,
+  handleAstResult,
+  handleStringLiteral,
+  handleNonAstResult,
+  replaceChineseWithI18nKey,
+  getDirectiveName,
+  interpolationStr,
+  splitTemplateString,
+};
