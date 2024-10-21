@@ -26,8 +26,12 @@ async function processVueAst(context) {
       customConsole.warn('No template found, skipping processing.');
       return;
     }
+    if (
+      !(descriptor.template.attrs && descriptor.template.attrs.lang === 'pug')
+    ) {
+      await processVueTemplate(templateAst, context, descriptor);
+    }
 
-    await processVueTemplate(templateAst, context, descriptor);
     // 存储模板变更的变量
     context.templateSize = context.translations.size;
     await processVueScripts(scriptAst, scriptSetupAst, context);
