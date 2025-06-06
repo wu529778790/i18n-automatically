@@ -2,8 +2,7 @@ const fs = require('fs');
 const vscode = require('vscode');
 const { getRootPath } = require('../../utils/index.js');
 const { readConfig } = require('../setting.js');
-const { baiduTranslateApi } = require('./api/baidu.js');
-const { deeplTranslateApi } = require('./api/deepl.js');
+const { createTranslator } = require('./translators');
 const customConsole = require('../../utils/customConsole.js');
 
 // 一次请求翻译多少个中文
@@ -54,6 +53,8 @@ exports.generateLanguagePackage = async () => {
   } else if (hasDeeplConfig) {
     translateService = 'deepl';
   }
+
+  const translator = createTranslator(translateService);
 
   // 获取用户输入的语言包名称，如果用户未输入，则默认为'en'
   const languageInput = await vscode.window.showInputBox({
@@ -123,33 +124,19 @@ exports.generateLanguagePackage = async () => {
         );
         const valuesToTranslateLengthgroupArrItemString =
           valuesToTranslateLengthgroupArrItem.join('\n');
-        let data;
-        if (translateService === 'baidu') {
-          data = await baiduTranslateApi(
-            valuesToTranslateLengthgroupArrItemString,
-            language,
-          );
-          if (data.error_code) {
-            vscode.window.showErrorMessage(
-              `百度翻译失败，错误码：${data.error_code}，请打开百度翻译官网查看错误信息：https://api.fanyi.baidu.com/doc/21`,
-            );
-            continue;
-          }
-        } else if (translateService === 'deepl') {
-          data = await deeplTranslateApi(
-            valuesToTranslateLengthgroupArrItemString,
-            language,
-          );
-          if (data.error_code || data.error) {
-            vscode.window.showErrorMessage(
-              `DeepL 翻译失败：${data.error_msg || data.error}`,
-            );
-            continue;
-          }
+
+        const trans_result = await translator.translate(
+          valuesToTranslateLengthgroupArrItemString,
+          language,
+        );
+
+        if (!trans_result) {
+          continue;
         }
-        customConsole.log(config.debug, '翻译结果', data.trans_result);
+
+        customConsole.log(config.debug, '翻译结果', trans_result);
         // 将翻译结果添加到目标语言包对象中
-        data.trans_result.forEach((item, index) => {
+        trans_result.forEach((item, index) => {
           const key = keysToTranslate[i * TRANSLATE_LIMIT + index];
           newLanguageJson[key] = item.dst;
         });
