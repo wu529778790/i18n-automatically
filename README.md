@@ -77,6 +77,8 @@ tsx对比图：<https://www.diffchecker.com/OaZLu99x/>
 |debug|是否开启调试模式。|  false |
 |baidu.appid|百度翻译的应用ID。| - |
 |baidu.secretKey|百度翻译的密钥。| - |
+|deepl.authKey|DeepL 翻译的认证密钥。| - |
+|deepl.isPro|是否为 DeepL Pro 版本。| false |
 
 ### 申请百度翻译
 
@@ -93,6 +95,17 @@ tsx对比图：<https://www.diffchecker.com/OaZLu99x/>
 > 提示：这里要选择高级版本。只要实名认证了，都可以高级版本，api没有那么多限制
 
 ![20241009144522](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241009144522.png)
+
+### 申请 DeepL 翻译
+
+<https://www.deepl.com/zh/pro-api>
+
+1. 注册 DeepL 账户并获取 API 密钥
+2. 可以选择免费版本（每月50万字符）或专业版本
+3. 将 `authKey` 复制到配置文件中
+4. 如果使用专业版本，请将 `isPro` 设置为 `true`
+
+DeepL 翻译服务具有更高的翻译质量，支持多种语言，适合对翻译质量有较高要求的项目。
 
 ## 更新提醒
 
@@ -116,7 +129,7 @@ tsx对比图：<https://www.diffchecker.com/OaZLu99x/>
   "autoImportI18n": true,
   "i18nImportPath": "@/i18n",
   "templateI18nCall": "$t",
-  "scriptI18nCall": "i18n.t",
+  "scriptI18nCall": "i18n.global.t",
   "keyFilePathLevel": 2,
   "excludedExtensions": [
     ".svg",
@@ -140,13 +153,18 @@ tsx对比图：<https://www.diffchecker.com/OaZLu99x/>
   "baidu": {
     "appid": "",
     "secretKey": ""
+  },
+  "deepl": {
+    "authKey": "",
+    "isPro": false
   }
 }
 ```
 
-## 未开发功能
+## 支持的翻译服务
 
-- 增加其他翻译api，比如deepl，谷歌等
+- ✅ 百度翻译
+- ✅ DeepL 翻译（新增）
 
 ## 开发
 

@@ -8,7 +8,7 @@ const defaultConfig = {
   autoImportI18n: true,
   i18nImportPath: '@/i18n',
   templateI18nCall: '$t',
-  scriptI18nCall: 'i18n.t',
+  scriptI18nCall: 'i18n.global.t',
   keyFilePathLevel: 2,
   excludedExtensions: [
     '.svg',
@@ -43,6 +43,10 @@ const defaultConfig = {
   baidu: {
     appid: '',
     secretKey: '',
+  },
+  deepl: {
+    authKey: '',
+    isPro: false,
   },
 };
 
