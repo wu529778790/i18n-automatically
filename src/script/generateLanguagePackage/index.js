@@ -94,6 +94,12 @@ exports.generateLanguagePackage = async () => {
     }
   });
 
+  // 如果没有需要翻译的键，则提示用户
+  if (keysToTranslate.length === 0) {
+    vscode.window.showInformationMessage(`${language} 语言包已经全部翻译完成`);
+    return;
+  }
+
   // 计算需要发送的请求次数
   const valuesToTranslateLengthgroup = Math.ceil(
     valuesToTranslate.length / TRANSLATE_LIMIT,
