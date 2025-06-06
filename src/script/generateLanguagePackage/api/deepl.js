@@ -1,43 +1,6 @@
 const axios = require('axios');
 const { readConfig } = require('../../setting.js');
 
-// DeepL 语言代码映射
-const languageMapping = {
-  en: 'EN',
-  zh: 'ZH',
-  ja: 'JA',
-  ko: 'KO',
-  fr: 'FR',
-  de: 'DE',
-  es: 'ES',
-  it: 'IT',
-  pt: 'PT',
-  ru: 'RU',
-  nl: 'NL',
-  pl: 'PL',
-  sv: 'SV',
-  da: 'DA',
-  fi: 'FI',
-  no: 'NO',
-  cs: 'CS',
-  el: 'EL',
-  et: 'ET',
-  hu: 'HU',
-  lv: 'LV',
-  lt: 'LT',
-  sk: 'SK',
-  sl: 'SL',
-  bg: 'BG',
-  ro: 'RO',
-  tr: 'TR',
-  uk: 'UK',
-  id: 'ID',
-  ar: 'AR',
-  hi: 'HI',
-  th: 'TH',
-  vi: 'VI',
-};
-
 exports.deeplTranslateApi = async (text, targetLanguage = 'en') => {
   const config = readConfig();
   if (!config) {
@@ -51,10 +14,8 @@ exports.deeplTranslateApi = async (text, targetLanguage = 'en') => {
     return { error: '未配置 DeepL 认证密钥' };
   }
 
-  // 获取对应的 DeepL 语言代码
-  const targetLang =
-    languageMapping[targetLanguage.toLowerCase()] ||
-    targetLanguage.toUpperCase();
+  // 直接使用官方 DeepL 语言代码
+  const targetLang = targetLanguage.toUpperCase();
 
   // 根据是否为专业版选择 API 端点
   const baseUrl = isPro
