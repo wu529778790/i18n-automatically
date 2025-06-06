@@ -1,15 +1,15 @@
 const fs = require('fs');
 const vscode = require('vscode');
-const { getRootPath } = require('../utils/index.js');
-const { readConfig } = require('./setting.js');
-const { baiduTranslateApi } = require('../api/baidu.js');
-const customConsole = require('../utils/customConsole.js');
+const { getRootPath } = require('../../utils/index.js');
+const { readConfig } = require('../setting.js');
+const { createTranslator } = require('./translators');
+const customConsole = require('../../utils/customConsole.js');
 
 // 一次请求翻译多少个中文
 const TRANSLATE_LIMIT = 20;
 
 exports.generateLanguagePackage = async () => {
-  const config = readConfig(true);
+  const config = readConfig(true, true);
   const zhPath = `${getRootPath()}${config.i18nFilePath}/locale/zh.json`;
 
   // 判断中文语言包文件是否存在
@@ -19,10 +19,15 @@ exports.generateLanguagePackage = async () => {
     );
     return;
   }
-  // 判断config是否配置了百度翻译的 appid 和 secretKey
-  if (!config.baidu.appid || !config.baidu.secretKey) {
+  // 检查翻译服务配置
+  const hasBaiduConfig =
+    config.baidu && config.baidu.appid && config.baidu.secretKey;
+  const hasDeeplConfig = config.deepl && config.deepl.authKey;
+  const hasGoogleConfig = config.google;
+
+  if (!hasBaiduConfig && !hasDeeplConfig && !hasGoogleConfig) {
     vscode.window.showInformationMessage(
-      `未配置百度翻译的 appid 和 secretKey，请先在配置文件中配置`,
+      `未配置翻译服务，请先在配置文件中配置百度翻译、DeepL翻译或谷歌翻译的相关信息`,
     );
 
     const configFilePath = getRootPath() + '/automatically-i18n-config.json';
@@ -31,6 +36,31 @@ exports.generateLanguagePackage = async () => {
     });
     return;
   }
+
+  // 选择翻译服务
+  let translateService = '';
+  const serviceOptions = [];
+  if (hasBaiduConfig) {
+    serviceOptions.push({ label: '百度翻译', value: 'baidu' });
+  }
+  if (hasDeeplConfig) {
+    serviceOptions.push({ label: 'DeepL 翻译', value: 'deepl' });
+  }
+  if (hasGoogleConfig) {
+    serviceOptions.push({ label: '谷歌翻译', value: 'google' });
+  }
+
+  if (serviceOptions.length > 1) {
+    const selectedService = await vscode.window.showQuickPick(serviceOptions, {
+      placeHolder: '请选择翻译服务',
+    });
+    if (!selectedService) return;
+    translateService = selectedService.value;
+  } else if (serviceOptions.length === 1) {
+    translateService = serviceOptions[0].value;
+  }
+
+  const translator = createTranslator(translateService);
 
   // 获取用户输入的语言包名称，如果用户未输入，则默认为'en'
   const languageInput = await vscode.window.showInputBox({
@@ -70,16 +100,28 @@ exports.generateLanguagePackage = async () => {
     }
   });
 
+  // 如果没有需要翻译的键，则提示用户
+  if (keysToTranslate.length === 0) {
+    vscode.window.showInformationMessage(`${language} 语言包已经全部翻译完成`);
+    return;
+  }
+
   // 计算需要发送的请求次数
   const valuesToTranslateLengthgroup = Math.ceil(
     valuesToTranslate.length / TRANSLATE_LIMIT,
   );
   const newLanguageJson = JSON.parse(JSON.stringify(existingLanguageJson));
 
+  const serviceNames = {
+    baidu: '百度翻译',
+    deepl: 'DeepL 翻译',
+    google: '谷歌翻译',
+  };
+
   await vscode.window.withProgress(
     {
       location: vscode.ProgressLocation.Notification,
-      title: `正在生成${language}语言包`,
+      title: `正在使用${serviceNames[translateService]}生成${language}语言包`,
       cancellable: false,
     },
     async (progress) => {
@@ -93,21 +135,19 @@ exports.generateLanguagePackage = async () => {
           i * TRANSLATE_LIMIT,
           (i + 1) * TRANSLATE_LIMIT,
         );
-        const valuesToTranslateLengthgroupArrItemString =
-          valuesToTranslateLengthgroupArrItem.join('\n');
-        const data = await baiduTranslateApi(
-          valuesToTranslateLengthgroupArrItemString,
+
+        const trans_result = await translator.translate(
+          valuesToTranslateLengthgroupArrItem,
           language,
         );
-        if (data.error_code) {
-          vscode.window.showErrorMessage(
-            `翻译失败，错误码：${data.error_code}，请打开百度翻译官网查看错误信息：https://api.fanyi.baidu.com/doc/21`,
-          );
+
+        if (!trans_result) {
           continue;
         }
-        customConsole.log(config.debug, '翻译结果', data.trans_result);
+
+        customConsole.log(config.debug, '翻译结果', trans_result);
         // 将翻译结果添加到目标语言包对象中
-        data.trans_result.forEach((item, index) => {
+        trans_result.forEach((item, index) => {
           const key = keysToTranslate[i * TRANSLATE_LIMIT + index];
           newLanguageJson[key] = item.dst;
         });
