@@ -60,6 +60,10 @@ tsx对比图：<https://www.diffchecker.com/OaZLu99x/>
 
 输入框里面填写要翻译成的语言，名称按照翻译对应的。
 
+比如谷歌翻译：<https://cloud.google.com/translate/docs/languages?hl=zh-cn>
+
+![20250606185558](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20250606185558.png)
+
 比如百度翻译：<https://api.fanyi.baidu.com/doc/21>
 
 ![20250606112004](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20250606112004.png)
@@ -99,7 +103,9 @@ tsx对比图：<https://www.diffchecker.com/OaZLu99x/>
 
 ### 默认谷歌翻译
 
-不用使用任何配置，插件自带，直接使用即可
+不用使用任何配置，插件自带，直接使用即可。
+
+> 由于你懂的原因，使用谷歌翻译要富强
 
 ### 申请百度翻译
 
