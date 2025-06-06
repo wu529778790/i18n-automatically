@@ -17,25 +17,28 @@
 
 ## 结果对比
 
-vue对比图：
+vue对比图：<https://www.diffchecker.com/WjmYT5g4/>
 
-![20241017155847](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017155847.png)
+<!-- ![20241017155847](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017155847.png)
 
-点击链接查看完整对比图：<https://www.diffchecker.com/WjmYT5g4/>
+点击链接查看完整对比图：<https://www.diffchecker.com/WjmYT5g4/> -->
 
-jsx对比图：
+jsx对比图：<https://www.diffchecker.com/bYgP5eUP/>
 
-![20241017155908](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017155908.png)
+<!-- ![20241017155908](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017155908.png)
 
-点击链接查看完整对比图：<https://www.diffchecker.com/bYgP5eUP/>
+点击链接查看完整对比图：<https://www.diffchecker.com/bYgP5eUP/> -->
 
 <!-- ![20241017155929](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017155929.png) -->
+
 ts对比图：<https://www.diffchecker.com/IRWBVjHe/>
 
 <!-- ![20241017155823](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017155823.png) -->
+
 js对比图：<https://www.diffchecker.com/VyO3Zw6b/>
 
 <!-- ![20241017160240](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20241017160240.png) -->
+
 tsx对比图：<https://www.diffchecker.com/OaZLu99x/>
 
 ### 扫描中文
@@ -54,6 +57,18 @@ tsx对比图：<https://www.diffchecker.com/OaZLu99x/>
 
 ![20240905160119](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20240905160119.png)
 
+输入框里面填写要翻译成的语言，名称按照翻译对应的。
+
+比如百度翻译：<https://api.fanyi.baidu.com/doc/21>
+
+![20250606112004](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20250606112004.png)
+
+比如deepL：<https://developers.deepl.com/docs/api-reference/languages>
+
+> 要注意的是deepL这里都是大写
+
+![20250606112349](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20250606112349.png)
+
 ### 切换语言
 
 替换之后在有`key`的每一行后面会显示对应的中文, 点击切换语言会切换成对应的语言。
@@ -70,7 +85,7 @@ tsx对比图：<https://www.diffchecker.com/OaZLu99x/>
 |autoImportI18n|是否自动导入i18n模块。| true |
 |i18nImportPath|自动导入i18n模块的路径。| '@/i18n' |
 |templateI18nCall|在 Vue 模板中调用翻译函数的语法。| '$t' |
-|scriptI18nCall|在 JavaScript 文件中调用翻译函数的语法。| 'i18n.t' |
+|scriptI18nCall|在 JavaScript 文件中调用翻译函数的语法。| 'i18n.global.t' |
 |keyFilePathLevel|生成的语言包的键中文件路径的层级。| 2 |
 |excludedExtensions|排除的文件后缀名|[".svg",".png",".jpg",".jpeg",".gif",".bmp",".ico",".md",".txt",".json",".css",".scss",".less",".sass",".styl"] |
 |excludedStrings|排除的字符串| ["宋体","黑体","楷体","仿宋","微软雅黑","华文","方正","苹方","思源","YYYY年MM月DD日"] |
