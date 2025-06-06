@@ -1,9 +1,11 @@
 const BaiduTranslator = require('./baiduTranslator.js');
 const DeeplTranslator = require('./deeplTranslator.js');
+const GoogleTranslator = require('./googleTranslator.js');
 
 const translators = {
   baidu: BaiduTranslator,
   deepl: DeeplTranslator,
+  google: GoogleTranslator,
 };
 
 function createTranslator(serviceName) {

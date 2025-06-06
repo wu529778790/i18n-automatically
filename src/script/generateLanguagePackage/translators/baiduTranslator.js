@@ -2,7 +2,9 @@ const vscode = require('vscode');
 const { baiduTranslateApi } = require('../api/baidu.js');
 
 class BaiduTranslator {
-  async translate(text, language) {
+  async translate(arr, language) {
+    // 百度翻译只支持单个请求，所以需要将数组中的每个元素拼接成一个字符串
+    const text = arr.join('\n');
     const data = await baiduTranslateApi(text, language);
     if (data.error_code) {
       vscode.window.showErrorMessage(

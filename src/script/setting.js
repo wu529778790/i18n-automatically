@@ -40,6 +40,7 @@ const defaultConfig = {
     'YYYY年MM月DD日',
   ],
   debug: false,
+  google: true,
   baidu: {
     appid: '',
     secretKey: '',

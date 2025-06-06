@@ -23,10 +23,11 @@ exports.generateLanguagePackage = async () => {
   const hasBaiduConfig =
     config.baidu && config.baidu.appid && config.baidu.secretKey;
   const hasDeeplConfig = config.deepl && config.deepl.authKey;
+  const hasGoogleConfig = config.google;
 
-  if (!hasBaiduConfig && !hasDeeplConfig) {
+  if (!hasBaiduConfig && !hasDeeplConfig && !hasGoogleConfig) {
     vscode.window.showInformationMessage(
-      `未配置翻译服务，请先在配置文件中配置百度翻译或 DeepL 翻译的相关信息`,
+      `未配置翻译服务，请先在配置文件中配置百度翻译、DeepL翻译或谷歌翻译的相关信息`,
     );
 
     const configFilePath = getRootPath() + '/automatically-i18n-config.json';
@@ -38,20 +39,25 @@ exports.generateLanguagePackage = async () => {
 
   // 选择翻译服务
   let translateService = '';
-  if (hasBaiduConfig && hasDeeplConfig) {
-    const serviceOptions = [
-      { label: '百度翻译', value: 'baidu' },
-      { label: 'DeepL 翻译', value: 'deepl' },
-    ];
+  const serviceOptions = [];
+  if (hasBaiduConfig) {
+    serviceOptions.push({ label: '百度翻译', value: 'baidu' });
+  }
+  if (hasDeeplConfig) {
+    serviceOptions.push({ label: 'DeepL 翻译', value: 'deepl' });
+  }
+  if (hasGoogleConfig) {
+    serviceOptions.push({ label: '谷歌翻译', value: 'google' });
+  }
+
+  if (serviceOptions.length > 1) {
     const selectedService = await vscode.window.showQuickPick(serviceOptions, {
       placeHolder: '请选择翻译服务',
     });
     if (!selectedService) return;
     translateService = selectedService.value;
-  } else if (hasBaiduConfig) {
-    translateService = 'baidu';
-  } else if (hasDeeplConfig) {
-    translateService = 'deepl';
+  } else if (serviceOptions.length === 1) {
+    translateService = serviceOptions[0].value;
   }
 
   const translator = createTranslator(translateService);
@@ -109,6 +115,7 @@ exports.generateLanguagePackage = async () => {
   const serviceNames = {
     baidu: '百度翻译',
     deepl: 'DeepL 翻译',
+    google: '谷歌翻译',
   };
 
   await vscode.window.withProgress(
@@ -128,11 +135,9 @@ exports.generateLanguagePackage = async () => {
           i * TRANSLATE_LIMIT,
           (i + 1) * TRANSLATE_LIMIT,
         );
-        const valuesToTranslateLengthgroupArrItemString =
-          valuesToTranslateLengthgroupArrItem.join('\n');
 
         const trans_result = await translator.translate(
-          valuesToTranslateLengthgroupArrItemString,
+          valuesToTranslateLengthgroupArrItem,
           language,
         );
 
