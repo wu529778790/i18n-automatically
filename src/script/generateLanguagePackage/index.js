@@ -1,9 +1,9 @@
 const fs = require('fs');
 const vscode = require('vscode');
-const { getRootPath } = require('../utils/index.js');
-const { readConfig } = require('./setting.js');
-const { baiduTranslateApi } = require('../api/baidu.js');
-const customConsole = require('../utils/customConsole.js');
+const { getRootPath } = require('../../utils/index.js');
+const { readConfig } = require('../setting.js');
+const { baiduTranslateApi } = require('./api/baidu.js');
+const customConsole = require('../../utils/customConsole.js');
 
 // 一次请求翻译多少个中文
 const TRANSLATE_LIMIT = 20;
