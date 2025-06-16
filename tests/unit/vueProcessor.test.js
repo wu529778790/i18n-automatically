@@ -5,16 +5,20 @@ const path = require('path');
 /**
  * Vue处理器测试
  */
-describe('Vue处理器测试', () => {
+function runVueProcessorTests() {
   const testFixturesPath = path.join(__dirname, '../fixtures/i18n-samples');
+  let passedTests = 0;
+  let totalTests = 0;
 
   // 测试Vue文件中文字符检测
-  it('应该能够检测到Vue文件中的中文字符', () => {
+  console.log('🧪 测试: 检测Vue文件中的中文字符');
+  totalTests++;
+  try {
     const beforeFilePath = path.join(testFixturesPath, 'vue/before.vue');
 
     if (!fs.existsSync(beforeFilePath)) {
       console.log('❌ 测试文件不存在:', beforeFilePath);
-      process.exit(1);
+      throw new Error('测试文件不存在');
     }
 
     const content = fs.readFileSync(beforeFilePath, 'utf8');
@@ -23,19 +27,22 @@ describe('Vue处理器测试', () => {
 
     assert(matches && matches.length > 0, '应该检测到中文字符');
     console.log('✅ 检测到Vue文件中的中文字符:', matches.length, '个');
-  });
+    passedTests++;
+  } catch (error) {
+    console.log('❌ 测试失败:', error.message);
+  }
 
   // 测试Vue模板中的字符串替换
-  it('应该能够正确替换Vue模板中的中文字符串', () => {
+  console.log('🧪 测试: 替换Vue模板中的中文字符串');
+  totalTests++;
+  try {
     const beforeFilePath = path.join(testFixturesPath, 'vue/before.vue');
     const afterFilePath = path.join(testFixturesPath, 'vue/after.vue');
 
     if (!fs.existsSync(beforeFilePath) || !fs.existsSync(afterFilePath)) {
-      console.log('❌ 测试文件不存在');
-      process.exit(1);
+      throw new Error('测试文件不存在');
     }
 
-    const beforeContent = fs.readFileSync(beforeFilePath, 'utf8');
     const afterContent = fs.readFileSync(afterFilePath, 'utf8');
 
     // 检查是否包含$t()函数调用
@@ -48,15 +55,19 @@ describe('Vue处理器测试', () => {
     );
 
     console.log('✅ Vue处理器测试通过');
-  });
+    passedTests++;
+  } catch (error) {
+    console.log('❌ 测试失败:', error.message);
+  }
 
   // 测试Vue文件结构完整性
-  it('应该保持Vue文件的基本结构', () => {
+  console.log('🧪 测试: Vue文件的基本结构');
+  totalTests++;
+  try {
     const afterFilePath = path.join(testFixturesPath, 'vue/after.vue');
 
     if (!fs.existsSync(afterFilePath)) {
-      console.log('❌ 测试文件不存在:', afterFilePath);
-      process.exit(1);
+      throw new Error('测试文件不存在: ' + afterFilePath);
     }
 
     const content = fs.readFileSync(afterFilePath, 'utf8');
@@ -68,15 +79,19 @@ describe('Vue处理器测试', () => {
     assert(content.includes('</script>'), '应该包含script结束标签');
 
     console.log('✅ Vue文件结构完整');
-  });
+    passedTests++;
+  } catch (error) {
+    console.log('❌ 测试失败:', error.message);
+  }
 
   // 测试Vue特有的i18n用法
-  it('应该使用Vue i18n的正确语法', () => {
+  console.log('🧪 测试: Vue i18n的正确语法');
+  totalTests++;
+  try {
     const afterFilePath = path.join(testFixturesPath, 'vue/after.vue');
 
     if (!fs.existsSync(afterFilePath)) {
-      console.log('❌ 测试文件不存在:', afterFilePath);
-      process.exit(1);
+      throw new Error('测试文件不存在: ' + afterFilePath);
     }
 
     const content = fs.readFileSync(afterFilePath, 'utf8');
@@ -97,44 +112,36 @@ describe('Vue处理器测试', () => {
     }
 
     console.log('✅ Vue i18n语法正确');
-  });
-});
+    passedTests++;
+  } catch (error) {
+    console.log('❌ 测试失败:', error.message);
+  }
+
+  return { passedTests, totalTests };
+}
 
 // 简单的测试运行器
 if (require.main === module) {
   console.log('🧪 运行Vue处理器测试...');
 
   try {
-    const testFixturesPath = path.join(__dirname, '../fixtures/i18n-samples');
-    const beforeFilePath = path.join(testFixturesPath, 'vue/before.vue');
+    const result = runVueProcessorTests();
 
-    if (!fs.existsSync(beforeFilePath)) {
-      console.log('❌ 测试文件不存在:', beforeFilePath);
-      process.exit(1);
-    }
+    console.log(
+      `\n📊 Vue处理器测试结果: ${result.passedTests}/${result.totalTests} 通过`,
+    );
 
-    const content = fs.readFileSync(beforeFilePath, 'utf8');
-    const chineseRegex = /[\u4e00-\u9fa5]+/g;
-    const matches = content.match(chineseRegex);
-
-    if (matches && matches.length > 0) {
-      console.log('✅ 检测到Vue文件中的中文字符:', matches.length, '个');
-
-      // 检查基本Vue结构
-      if (content.includes('<template>') && content.includes('<script>')) {
-        console.log('✅ Vue文件结构正确');
-      } else {
-        console.log('❌ Vue文件结构不完整');
-        process.exit(1);
-      }
-
-      console.log('✅ Vue处理器测试通过');
+    if (result.passedTests === result.totalTests) {
+      console.log('✅ 所有Vue处理器测试通过');
+      process.exit(0);
     } else {
-      console.log('❌ Vue文件中未检测到中文字符');
+      console.log('❌ 部分Vue处理器测试失败');
       process.exit(1);
     }
   } catch (error) {
-    console.error('❌ Vue处理器测试失败:', error.message);
+    console.error('❌ Vue处理器测试运行失败:', error.message);
     process.exit(1);
   }
 }
+
+module.exports = { runVueProcessorTests };

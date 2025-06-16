@@ -1,0 +1,13 @@
+{
+  "user_management_system": "User Management System",
+  "welcome_message": "Welcome to our application",
+  "delete_user": "Delete User",
+  "confirm_delete": "Are you sure you want to delete?",
+  "tooltip_message": "This is a tooltip",
+  "hover_for_tip": "Hover to view tooltip",
+  "enter_username": "Please enter username",
+  "content_area": "Content Area",
+  "current_status": "Current Status",
+  "active": "Active",
+  "inactive": "Inactive"
+}
