@@ -50,16 +50,6 @@ i18n-automatically/
 
 ## 📋 目录重组说明
 
-### 旧结构 → 新结构
-
-| 旧路径 | 新路径 | 说明 |
-|--------|--------|------|
-| `test/` | `tests/unit/` | 单元测试文件统一放入unit子目录 |
-| `demoTest/` | `tests/fixtures/` | 测试用例和示例文件移至fixtures |
-| `demoTest/test-js-before.js` | `tests/fixtures/i18n-samples/js/before.js` | 按文件类型分类组织 |
-| `demoTest/test-js-after.js` | `tests/fixtures/i18n-samples/js/after.js` | 按文件类型分类组织 |
-| `demoTest/automatically-i18n-config.json` | `tests/fixtures/automatically-i18n-config.json` | 配置文件移至fixtures根目录 |
-
 ### 重组的优势
 
 1. **清晰的分层结构** - 测试代码和测试数据分离
