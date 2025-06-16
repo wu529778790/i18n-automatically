@@ -151,13 +151,17 @@ exports.generateLanguagePackage = async () => {
           const key = keysToTranslate[i * TRANSLATE_LIMIT + index];
           newLanguageJson[key] = item.dst;
         });
+
+        // 每翻译完一组就立即写入文件，防止翻译中断丢失数据
+        await fs.promises.writeFile(
+          `${getRootPath()}${config.i18nFilePath}/locale/${language}.json`,
+          JSON.stringify(newLanguageJson, null, 2),
+        );
+        customConsole.log(
+          config.debug,
+          `已保存第 ${i + 1}/${valuesToTranslateLengthgroup} 组翻译结果`,
+        );
       }
     },
-  );
-
-  // 生成指定语言的语言包文件
-  await fs.promises.writeFile(
-    `${getRootPath()}${config.i18nFilePath}/locale/${language}.json`,
-    JSON.stringify(newLanguageJson, null, 2),
   );
 };
