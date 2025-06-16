@@ -1,5 +1,5 @@
 const vscode = require('vscode');
-const { googleTranslateApi } = require('../api/google.js');
+const { googleTranslateApi } = require('../api/freeGoogle.js');
 
 class GoogleTranslator {
   async translate(arr, language) {
