@@ -14,11 +14,11 @@
 - 支持文案回显
 - 支持一键生成指定翻译包文件
 - 支持语言切换显示
-- 自带谷歌翻译，无需配置token
+- 自带免费谷歌翻译，无需配置token
 
 ## 支持的翻译服务
 
-- ✅ 谷歌翻译(插件自带)
+- ✅ 免费谷歌翻译(插件自带)
 - ✅ 百度翻译
 - ✅ DeepL 翻译
 
@@ -66,7 +66,7 @@ tsx对比图：<https://www.diffchecker.com/OaZLu99x/>
 
 输入框里面填写要翻译成的语言，名称按照翻译对应的。
 
-比如谷歌翻译：<https://cloud.google.com/translate/docs/languages?hl=zh-cn>
+比如免费谷歌翻译：<https://cloud.google.com/translate/docs/languages?hl=zh-cn>
 
 ![20250606185558](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20250606185558.png)
 
@@ -101,21 +101,21 @@ tsx对比图：<https://www.diffchecker.com/OaZLu99x/>
 |excludedExtensions|排除的文件后缀名|[".svg",".png",".jpg",".jpeg",".gif",".bmp",".ico",".md",".txt",".json",".css",".scss",".less",".sass",".styl"] |
 |excludedStrings|排除的字符串| ["宋体","黑体","楷体","仿宋","微软雅黑","华文","方正","苹方","思源","YYYY年MM月DD日"] |
 |debug|是否开启调试模式。|  false |
-|google|默认自带谷歌翻译 | true |
+|freeGoogle|默认自带免费谷歌翻译 | true |
 |baidu.appid|百度翻译的应用ID。| - |
 |baidu.secretKey|百度翻译的密钥。| - |
 |deepl.authKey|DeepL 翻译的认证密钥。| - |
 |deepl.isPro|是否为 DeepL Pro 版本。| false |
 
-### 默认谷歌翻译(看自己网络)
+### 默认免费谷歌翻译(看自己网络)
 
 不用使用任何配置，插件自带，直接使用即可。
 
-> 由于你懂的原因，使用谷歌翻译要富强
+> 由于你懂的原因，使用免费谷歌翻译要富强
 
-默认的谷歌环境取决于你的网络，并不一定稳定。有问题，可以参考下面的链接
+默认的免费谷歌翻译环境取决于你的网络，并不一定稳定。有问题，可以参考下面的链接
 
-谷歌翻译依赖于：<https://github.com/vitalets/google-translate-api#readme>
+免费谷歌翻译依赖于：<https://github.com/vitalets/google-translate-api#readme>
 
 ### 申请百度翻译(推荐)
 

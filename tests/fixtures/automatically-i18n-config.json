@@ -16,7 +16,7 @@
   },
   "supportedFileTypes": [".js", ".ts", ".tsx", ".jsx", ".vue"],
   "translationService": {
-    "provider": "google",
+    "provider": "freeGoogle",
     "apiKey": "test_api_key",
     "timeout": 5000
   },
