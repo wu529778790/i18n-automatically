@@ -113,7 +113,9 @@ tsx对比图：<https://www.diffchecker.com/OaZLu99x/>
 
 > 由于你懂的原因，使用谷歌翻译要富强
 
-默认的谷歌环境取决于你的网络，并不一定稳定
+默认的谷歌环境取决于你的网络，并不一定稳定。有问题，可以参考下面的链接
+
+谷歌翻译依赖于：<https://github.com/vitalets/google-translate-api#readme>
 
 ### 申请百度翻译(推荐)
 
