@@ -1,0 +1,30 @@
+{
+  "localePath": "./locales",
+  "languages": ["zh-CN", "en-US", "ja-JP"],
+  "defaultLanguage": "zh-CN",
+  "importStatement": "import { t } from '../i18n';",
+  "callExpression": "t",
+  "outputPath": "./dist/locales",
+  "fileExtension": ".json",
+  "keyStyle": "snake_case",
+  "extractRules": {
+    "minLength": 2,
+    "maxLength": 100,
+    "ignoreNumbers": true,
+    "ignoreUrls": true,
+    "ignorePath": ["node_modules", "dist", ".git"]
+  },
+  "supportedFileTypes": [".js", ".ts", ".tsx", ".jsx", ".vue"],
+  "translationService": {
+    "provider": "google",
+    "apiKey": "test_api_key",
+    "timeout": 5000
+  },
+  "extractPatterns": {
+    "chineseRegex": "/[\\u4e00-\\u9fa5]+/g",
+    "stringLiterals": true,
+    "templateLiterals": true,
+    "jsxText": true,
+    "attributes": ["title", "placeholder", "alt", "aria-label"]
+  }
+}

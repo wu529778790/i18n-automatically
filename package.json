@@ -130,7 +130,12 @@
   },
   "scripts": {
     "lint": "eslint --fix .",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "test:unit": "node tests/run-tests.js",
+    "test:i18n": "node tests/unit/demoTest.validation.js",
+    "test:js": "node tests/unit/jsProcessor.test.js",
+    "test:vue": "node tests/unit/vueProcessor.test.js",
+    "test:all": "npm run lint && npm run test:unit && npm run test"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.7",
