@@ -153,9 +153,17 @@ exports.generateLanguagePackage = async () => {
         });
 
         // 每翻译完一组就立即写入文件，防止翻译中断丢失数据
+        // 按照zh.json的键顺序重新组织目标语言包，确保顺序一致
+        const orderedLanguageJson = {};
+        zhJsonKeys.forEach((key) => {
+          if (newLanguageJson[key] !== undefined) {
+            orderedLanguageJson[key] = newLanguageJson[key];
+          }
+        });
+
         await fs.promises.writeFile(
           `${getRootPath()}${config.i18nFilePath}/locale/${language}.json`,
-          JSON.stringify(newLanguageJson, null, 2),
+          JSON.stringify(orderedLanguageJson, null, 2),
         );
         customConsole.log(
           config.debug,
