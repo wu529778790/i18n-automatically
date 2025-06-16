@@ -5,7 +5,7 @@ const GoogleTranslator = require('./googleTranslator.js');
 const translators = {
   baidu: BaiduTranslator,
   deepl: DeeplTranslator,
-  google: GoogleTranslator,
+  freeGoogle: GoogleTranslator,
 };
 
 function createTranslator(serviceName) {

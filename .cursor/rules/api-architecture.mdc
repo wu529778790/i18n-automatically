@@ -63,7 +63,7 @@ class TranslationServiceFactory {
       return new DeepLTranslationService(config.deepl);
     }
     
-    // 默认使用谷歌翻译
+    // 默认使用免费谷歌翻译
     return new GoogleTranslationService();
   }
 }
@@ -203,7 +203,7 @@ class ConfigValidator {
       excludedExtensions: ['.svg', '.png', '.jpg', '.jpeg', '.gif'],
       excludedStrings: ['宋体', '黑体', '楷体'],
       debug: false,
-      google: true,
+      freeGoogle: true,
       ...config
     };
   }

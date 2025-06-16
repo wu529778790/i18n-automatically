@@ -23,11 +23,11 @@ exports.generateLanguagePackage = async () => {
   const hasBaiduConfig =
     config.baidu && config.baidu.appid && config.baidu.secretKey;
   const hasDeeplConfig = config.deepl && config.deepl.authKey;
-  const hasGoogleConfig = config.google;
+  const hasFreeGoogleConfig = config.freeGoogle;
 
-  if (!hasBaiduConfig && !hasDeeplConfig && !hasGoogleConfig) {
+  if (!hasBaiduConfig && !hasDeeplConfig && !hasFreeGoogleConfig) {
     vscode.window.showInformationMessage(
-      `未配置翻译服务，请先在配置文件中配置百度翻译、DeepL翻译或谷歌翻译的相关信息`,
+      `未配置翻译服务，请先在配置文件中配置百度翻译、DeepL翻译或免费谷歌翻译的相关信息`,
     );
 
     const configFilePath = getRootPath() + '/automatically-i18n-config.json';
@@ -46,8 +46,8 @@ exports.generateLanguagePackage = async () => {
   if (hasDeeplConfig) {
     serviceOptions.push({ label: 'DeepL 翻译', value: 'deepl' });
   }
-  if (hasGoogleConfig) {
-    serviceOptions.push({ label: '谷歌翻译', value: 'google' });
+  if (hasFreeGoogleConfig) {
+    serviceOptions.push({ label: '免费谷歌翻译', value: 'freeGoogle' });
   }
 
   if (serviceOptions.length > 1) {
@@ -115,7 +115,7 @@ exports.generateLanguagePackage = async () => {
   const serviceNames = {
     baidu: '百度翻译',
     deepl: 'DeepL 翻译',
-    google: '谷歌翻译',
+    freeGoogle: '免费谷歌翻译',
   };
 
   await vscode.window.withProgress(
@@ -153,9 +153,17 @@ exports.generateLanguagePackage = async () => {
         });
 
         // 每翻译完一组就立即写入文件，防止翻译中断丢失数据
+        // 按照zh.json的键顺序重新组织目标语言包，确保顺序一致
+        const orderedLanguageJson = {};
+        zhJsonKeys.forEach((key) => {
+          if (newLanguageJson[key] !== undefined) {
+            orderedLanguageJson[key] = newLanguageJson[key];
+          }
+        });
+
         await fs.promises.writeFile(
           `${getRootPath()}${config.i18nFilePath}/locale/${language}.json`,
-          JSON.stringify(newLanguageJson, null, 2),
+          JSON.stringify(orderedLanguageJson, null, 2),
         );
         customConsole.log(
           config.debug,
