@@ -1,0 +1,13 @@
+{
+  "user_management_system": "用户管理系统",
+  "welcome_message": "欢迎使用我们的应用程序",
+  "delete_user": "删除用户",
+  "confirm_delete": "确认删除吗？",
+  "tooltip_message": "这是一个提示",
+  "hover_for_tip": "鼠标悬停查看提示",
+  "enter_username": "请输入用户名",
+  "content_area": "内容区域",
+  "current_status": "当前状态",
+  "active": "活跃",
+  "inactive": "非活跃"
+}

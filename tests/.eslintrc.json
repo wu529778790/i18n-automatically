@@ -1,0 +1,18 @@
+{
+    "env": {
+        "browser": true,
+        "node": true,
+        "es6": true
+    },
+    "globals": {
+        "alert": "readonly",
+        "window": "readonly",
+        "describe": "readonly",
+        "it": "readonly"
+    },
+    "rules": {
+        "no-undef": "off",
+        "no-unused-vars": "warn",
+        "no-console": "off"
+    }
+}

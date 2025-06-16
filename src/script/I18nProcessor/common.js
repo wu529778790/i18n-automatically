@@ -100,7 +100,11 @@ class TranslationManager {
     // 假设这个方法在其他地方定义
     this.getRootPath = () => {
       // 这里应该返回实际的根路径
-      return vscode.workspace.workspaceFolders?.[0]?.uri?.fsPath || '';
+      const workspaceFolders = vscode.workspace.workspaceFolders;
+      if (workspaceFolders && workspaceFolders[0] && workspaceFolders[0].uri) {
+        return workspaceFolders[0].uri.fsPath || '';
+      }
+      return '';
     };
   }
 

@@ -1,0 +1,458 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# i18n-automatically API 架构设计
+
+## 翻译服务架构
+
+### 服务接口设计
+所有翻译服务都应实现统一的接口：
+
+```javascript
+class TranslationService {
+  /**
+   * 翻译单个文本
+   * @param {string} text - 要翻译的文本
+   * @param {string} targetLang - 目标语言代码
+   * @param {string} sourceLang - 源语言代码，默认 'zh'
+   * @returns {Promise<string>} 翻译结果
+   */
+  async translate(text, targetLang, sourceLang = 'zh') {
+    throw new Error('子类必须实现 translate 方法');
+  }
+
+  /**
+   * 批量翻译
+   * @param {string[]} texts - 要翻译的文本数组
+   * @param {string} targetLang - 目标语言代码
+   * @param {string} sourceLang - 源语言代码，默认 'zh'
+   * @returns {Promise<string[]>} 翻译结果数组
+   */
+  async batchTranslate(texts, targetLang, sourceLang = 'zh') {
+    // 默认实现：逐个翻译
+    const results = [];
+    for (const text of texts) {
+      results.push(await this.translate(text, targetLang, sourceLang));
+    }
+    return results;
+  }
+
+  /**
+   * 获取支持的语言列表
+   * @returns {Promise<string[]>} 支持的语言代码数组
+   */
+  async getSupportedLanguages() {
+    throw new Error('子类必须实现 getSupportedLanguages 方法');
+  }
+}
+```
+
+### 服务工厂模式
+使用工厂模式管理不同的翻译服务：
+
+```javascript
+class TranslationServiceFactory {
+  static create(config) {
+    if (config.baidu && config.baidu.appid && config.baidu.secretKey) {
+      return new BaiduTranslationService(config.baidu);
+    }
+    
+    if (config.deepl && config.deepl.authKey) {
+      return new DeepLTranslationService(config.deepl);
+    }
+    
+    // 默认使用谷歌翻译
+    return new GoogleTranslationService();
+  }
+}
+```
+
+## 文件处理架构
+
+### 处理器模式
+为不同文件类型实现专门的处理器：
+
+```javascript
+class FileProcessor {
+  constructor(filePath, content) {
+    this.filePath = filePath;
+    this.content = content;
+    this.extractedTexts = new Map(); // 提取的中文文本
+    this.replacedContent = content;   // 替换后的内容
+  }
+
+  /**
+   * 扫描并提取中文文本
+   * @returns {Map<string, Object>} 提取的文本信息
+   */
+  extractChineseTexts() {
+    throw new Error('子类必须实现 extractChineseTexts 方法');
+  }
+
+  /**
+   * 替换中文为翻译键
+   * @param {Map<string, string>} keyMap - 文本到翻译键的映射
+   * @returns {string} 替换后的内容
+   */
+  replaceWithKeys(keyMap) {
+    throw new Error('子类必须实现 replaceWithKeys 方法');
+  }
+
+  /**
+   * 验证替换结果
+   * @returns {boolean} 是否替换成功
+   */
+  validate() {
+    // 默认验证：检查是否还有中文字符
+    return !/[\u4e00-\u9fff]/.test(this.replacedContent);
+  }
+}
+```
+
+### 具体处理器实现
+为每种文件类型创建专门的处理器：
+
+```javascript
+// JavaScript/TypeScript 处理器
+class JSProcessor extends FileProcessor {
+  extractChineseTexts() {
+    // 使用 Babel AST 解析
+    const ast = parser.parse(this.content, {
+      sourceType: 'module',
+      plugins: ['jsx', 'typescript']
+    });
+    
+    // 遍历 AST 节点
+    traverse(ast, {
+      StringLiteral: (path) => {
+        // 处理字符串字面量
+      },
+      TemplateLiteral: (path) => {
+        // 处理模板字面量
+      }
+    });
+    
+    return this.extractedTexts;
+  }
+}
+
+// Vue 处理器
+class VueProcessor extends FileProcessor {
+  extractChineseTexts() {
+    const { descriptor } = parse(this.content);
+    
+    // 处理模板部分
+    if (descriptor.template) {
+      this.processTemplate(descriptor.template.content);
+    }
+    
+    // 处理脚本部分
+    if (descriptor.script) {
+      this.processScript(descriptor.script.content);
+    }
+    
+    return this.extractedTexts;
+  }
+}
+```
+
+## 配置管理架构
+
+### 配置验证器
+实现配置验证和默认值管理：
+
+```javascript
+class ConfigValidator {
+  static validate(config) {
+    const errors = [];
+    
+    // 验证必需字段
+    if (!config.i18nFilePath) {
+      errors.push('i18nFilePath 是必需的配置项');
+    }
+    
+    // 验证翻译服务配置
+    if (config.baidu) {
+      if (!config.baidu.appid || !config.baidu.secretKey) {
+        errors.push('百度翻译需要 appid 和 secretKey');
+      }
+    }
+    
+    if (config.deepl) {
+      if (!config.deepl.authKey) {
+        errors.push('DeepL 翻译需要 authKey');
+      }
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  }
+  
+  static applyDefaults(config) {
+    return {
+      i18nFilePath: '/src/i18n',
+      autoImportI18n: true,
+      i18nImportPath: '@/i18n',
+      templateI18nCall: '$t',
+      scriptI18nCall: 'i18n.global.t',
+      keyFilePathLevel: 2,
+      excludedExtensions: ['.svg', '.png', '.jpg', '.jpeg', '.gif'],
+      excludedStrings: ['宋体', '黑体', '楷体'],
+      debug: false,
+      google: true,
+      ...config
+    };
+  }
+}
+```
+
+## 事件系统架构
+
+### 事件发布订阅模式
+实现事件系统来解耦各个模块：
+
+```javascript
+class EventEmitter {
+  constructor() {
+    this.events = new Map();
+  }
+  
+  on(eventName, callback) {
+    if (!this.events.has(eventName)) {
+      this.events.set(eventName, []);
+    }
+    this.events.get(eventName).push(callback);
+  }
+  
+  emit(eventName, ...args) {
+    const callbacks = this.events.get(eventName);
+    if (callbacks) {
+      callbacks.forEach(callback => callback(...args));
+    }
+  }
+  
+  off(eventName, callback) {
+    const callbacks = this.events.get(eventName);
+    if (callbacks) {
+      const index = callbacks.indexOf(callback);
+      if (index > -1) {
+        callbacks.splice(index, 1);
+      }
+    }
+  }
+}
+
+// 全局事件实例
+const eventBus = new EventEmitter();
+```
+
+### 预定义事件
+定义系统中的标准事件：
+
+```javascript
+const Events = {
+  // 扫描相关事件
+  SCAN_START: 'scan:start',
+  SCAN_PROGRESS: 'scan:progress',
+  SCAN_COMPLETE: 'scan:complete',
+  SCAN_ERROR: 'scan:error',
+  
+  // 翻译相关事件
+  TRANSLATE_START: 'translate:start',
+  TRANSLATE_PROGRESS: 'translate:progress',
+  TRANSLATE_COMPLETE: 'translate:complete',
+  TRANSLATE_ERROR: 'translate:error',
+  
+  // 语言包相关事件
+  LANGUAGE_PACKAGE_GENERATED: 'langpack:generated',
+  LANGUAGE_SWITCHED: 'lang:switched',
+  
+  // 配置相关事件
+  CONFIG_UPDATED: 'config:updated',
+  CONFIG_VALIDATED: 'config:validated'
+};
+```
+
+## 缓存架构
+
+### 多级缓存策略
+实现内存缓存和持久化缓存：
+
+```javascript
+class CacheManager {
+  constructor() {
+    this.memoryCache = new Map();
+    this.diskCache = new Map();
+  }
+  
+  /**
+   * 获取缓存值
+   * @param {string} key - 缓存键
+   * @returns {*} 缓存值
+   */
+  get(key) {
+    // 优先从内存缓存获取
+    if (this.memoryCache.has(key)) {
+      return this.memoryCache.get(key);
+    }
+    
+    // 从磁盘缓存获取
+    if (this.diskCache.has(key)) {
+      const value = this.diskCache.get(key);
+      // 提升到内存缓存
+      this.memoryCache.set(key, value);
+      return value;
+    }
+    
+    return null;
+  }
+  
+  /**
+   * 设置缓存值
+   * @param {string} key - 缓存键
+   * @param {*} value - 缓存值
+   * @param {boolean} persistent - 是否持久化
+   */
+  set(key, value, persistent = false) {
+    this.memoryCache.set(key, value);
+    
+    if (persistent) {
+      this.diskCache.set(key, value);
+      this.saveToDisk();
+    }
+  }
+  
+  /**
+   * 清理过期缓存
+   */
+  cleanup() {
+    // 实现 LRU 策略
+    if (this.memoryCache.size > 1000) {
+      const entries = Array.from(this.memoryCache.entries());
+      // 保留最新的 500 个条目
+      const toKeep = entries.slice(-500);
+      this.memoryCache.clear();
+      toKeep.forEach(([key, value]) => {
+        this.memoryCache.set(key, value);
+      });
+    }
+  }
+  
+  async saveToDisk() {
+    // 异步保存到磁盘
+    // 实现具体的持久化逻辑
+  }
+}
+```
+
+## 错误处理架构
+
+### 错误分类和处理
+定义不同类型的错误和处理策略：
+
+```javascript
+class I18nError extends Error {
+  constructor(message, type, details = {}) {
+    super(message);
+    this.name = 'I18nError';
+    this.type = type;
+    this.details = details;
+  }
+}
+
+const ErrorTypes = {
+  FILE_NOT_FOUND: 'file_not_found',
+  PARSE_ERROR: 'parse_error',
+  TRANSLATION_ERROR: 'translation_error',
+  NETWORK_ERROR: 'network_error',
+  CONFIG_ERROR: 'config_error',
+  VALIDATION_ERROR: 'validation_error'
+};
+
+class ErrorHandler {
+  static handle(error) {
+    if (error instanceof I18nError) {
+      switch (error.type) {
+        case ErrorTypes.FILE_NOT_FOUND:
+          vscode.window.showErrorMessage(`文件未找到: ${error.details.filePath}`);
+          break;
+        case ErrorTypes.TRANSLATION_ERROR:
+          vscode.window.showWarningMessage(`翻译失败: ${error.message}`);
+          break;
+        default:
+          vscode.window.showErrorMessage(`未知错误: ${error.message}`);
+      }
+    } else {
+      vscode.window.showErrorMessage(`系统错误: ${error.message}`);
+    }
+    
+    // 记录错误日志
+    console.error('Error details:', error);
+  }
+}
+```
+
+## 插件扩展架构
+
+### 插件接口
+为扩展功能定义插件接口：
+
+```javascript
+class Plugin {
+  constructor(name, version) {
+    this.name = name;
+    this.version = version;
+  }
+  
+  /**
+   * 插件初始化
+   * @param {Object} context - 扩展上下文
+   */
+  activate(context) {
+    throw new Error('插件必须实现 activate 方法');
+  }
+  
+  /**
+   * 插件卸载
+   */
+  deactivate() {
+    // 默认空实现
+  }
+  
+  /**
+   * 获取插件信息
+   */
+  getInfo() {
+    return {
+      name: this.name,
+      version: this.version
+    };
+  }
+}
+
+class PluginManager {
+  constructor() {
+    this.plugins = new Map();
+  }
+  
+  register(plugin) {
+    this.plugins.set(plugin.name, plugin);
+  }
+  
+  activate(pluginName, context) {
+    const plugin = this.plugins.get(pluginName);
+    if (plugin) {
+      plugin.activate(context);
+    }
+  }
+  
+  deactivateAll() {
+    this.plugins.forEach(plugin => plugin.deactivate());
+  }
+}
+```
+

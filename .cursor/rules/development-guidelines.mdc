@@ -1,0 +1,262 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# i18n-automatically 开发最佳实践
+
+## AST 处理最佳实践
+
+### Babel AST 操作
+当修改 AST 相关代码时，请遵循以下模式：
+
+```javascript
+// 使用 @babel/parser 解析代码
+const ast = parser.parse(code, {
+  sourceType: 'module',
+  plugins: ['jsx', 'typescript', 'decorators-legacy']
+});
+
+// 使用 @babel/traverse 遍历节点
+traverse(ast, {
+  StringLiteral(path) {
+    // 处理字符串字面量
+  },
+  TemplateLiteral(path) {
+    // 处理模板字面量
+  }
+});
+
+// 使用 @babel/generator 生成代码
+const output = generator(ast, {}, code);
+```
+
+### Vue SFC 处理
+处理 Vue 单文件组件时：
+
+```javascript
+const { parse } = require('@vue/compiler-sfc');
+const { descriptor } = parse(source);
+
+// 分别处理 template、script、style 块
+if (descriptor.template) {
+  // 处理模板部分
+}
+if (descriptor.script) {
+  // 处理脚本部分
+}
+```
+
+## 中文检测规则
+
+### 中文字符串识别
+使用以下正则表达式模式识别中文：
+
+```javascript
+// 基本中文字符检测
+const chineseRegex = /[\u4e00-\u9fff]/;
+
+// 排除纯数字、英文、特殊符号的混合内容
+const isChineseText = (text) => {
+  return chineseRegex.test(text) && 
+         !/^[\d\s\w\-_.,!?;:()[\]{}'"]*$/.test(text);
+};
+```
+
+### 排除规则
+根据 [README.md](mdc:README.md) 中的配置，以下内容应被排除：
+- 字体名称：宋体、黑体、楷体、仿宋、微软雅黑等
+- 日期格式：YYYY年MM月DD日
+- 文件扩展名：.svg、.png、.jpg 等
+- 自定义排除字符串
+
+## Key 生成策略
+
+### 命名规范
+生成的翻译键应遵循以下规范：
+
+```javascript
+// 格式：文件路径层级.描述性名称
+// 例如：home.welcome.title
+// 例如：user.profile.edit.button
+```
+
+### 唯一性保证
+确保生成的 key 在项目中唯一：
+
+```javascript
+const generateUniqueKey = (baseName, existingKeys) => {
+  let counter = 1;
+  let key = baseName;
+  
+  while (existingKeys.has(key)) {
+    key = `${baseName}_${counter}`;
+    counter++;
+  }
+  
+  return key;
+};
+```
+
+## 翻译服务集成
+
+### 错误处理
+所有翻译服务调用都应包含适当的错误处理：
+
+```javascript
+try {
+  const result = await translateService.translate(text, targetLang);
+  return result;
+} catch (error) {
+  console.error(`翻译失败: ${error.message}`);
+  // 返回原文本或默认值
+  return text;
+}
+```
+
+### 批量翻译优化
+对于大量文本的翻译，应该：
+1. 实现批量翻译接口
+2. 添加延迟避免 API 限制
+3. 支持翻译缓存机制
+
+## 代码质量标准
+
+### ESLint 规则
+遵循项目的 ESLint 配置 [.eslintrc.json](mdc:.eslintrc.json)：
+- 使用 2 空格缩进
+- 优先使用 const/let 而非 var
+- 函数和变量使用驼峰命名
+- 避免未使用的变量
+
+### 代码注释
+关键功能必须添加注释：
+
+```javascript
+/**
+ * 扫描文件中的中文字符串并替换为翻译键
+ * @param {string} filePath - 文件路径
+ * @param {Object} options - 扫描选项
+ * @returns {Object} 扫描结果和替换信息
+ */
+function scanChineseInFile(filePath, options) {
+  // 实现逻辑...
+}
+```
+
+## VSCode 扩展开发规范
+
+### 命令注册
+在 [src/extension.js](mdc:src/extension.js) 中注册新命令时：
+
+```javascript
+// 注册命令
+const disposable = vscode.commands.registerCommand(
+  'extension.automatically.i18n.newCommand',
+  async () => {
+    try {
+      // 命令实现
+    } catch (error) {
+      vscode.window.showErrorMessage(`操作失败: ${error.message}`);
+    }
+  }
+);
+
+context.subscriptions.push(disposable);
+```
+
+### 用户交互
+使用 VSCode API 进行用户交互：
+
+```javascript
+// 显示信息
+vscode.window.showInformationMessage('操作成功');
+
+// 显示错误
+vscode.window.showErrorMessage('操作失败');
+
+// 获取用户输入
+const input = await vscode.window.showInputBox({
+  prompt: '请输入目标语言',
+  value: 'en'
+});
+```
+
+### 配置管理
+读取和更新配置：
+
+```javascript
+// 读取配置
+const config = vscode.workspace.getConfiguration('i18n-automatically');
+const filePath = config.get('i18nFilePath', '/src/i18n');
+
+// 更新配置
+await config.update('i18nFilePath', newPath, true);
+```
+
+## 性能优化指南
+
+### 文件处理
+1. 对大文件使用流式处理
+2. 实现文件缓存机制
+3. 并行处理多个文件
+
+### 内存管理
+1. 及时释放大对象引用
+2. 避免在循环中创建大量临时对象
+3. 使用 WeakMap 进行缓存
+
+### 异步操作
+1. 使用 async/await 而非回调
+2. 实现适当的错误边界
+3. 添加操作超时机制
+
+## 测试策略
+
+### 单元测试
+为核心功能编写单元测试：
+
+```javascript
+// 测试文件示例
+describe('中文扫描功能', () => {
+  it('应该正确识别中文字符串', () => {
+    const text = '这是一个测试';
+    expect(isChineseText(text)).toBe(true);
+  });
+  
+  it('应该排除非中文内容', () => {
+    const text = 'Hello World';
+    expect(isChineseText(text)).toBe(false);
+  });
+});
+```
+
+### 集成测试
+测试完整的工作流程：
+1. 扫描中文 → 生成语言包 → 切换语言
+2. 不同文件类型的处理
+3. 各种翻译服务的集成
+
+## 调试和日志
+
+### 调试模式
+使用配置中的 debug 标志控制详细日志：
+
+```javascript
+const debug = config.get('debug', false);
+if (debug) {
+  console.log('详细调试信息:', data);
+}
+```
+
+### 自定义控制台
+使用 [src/utils/customConsole.js](mdc:src/utils/customConsole.js) 进行统一的日志输出：
+
+```javascript
+const { log, error, warn } = require('./utils/customConsole');
+
+log('操作开始');
+error('发生错误:', errorMessage);
+warn('警告信息:', warningMessage);
+```
+

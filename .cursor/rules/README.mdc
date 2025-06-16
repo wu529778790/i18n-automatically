@@ -1,0 +1,136 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# i18n-automatically Cursor Rules 使用指南
+
+## 规则文件概览
+
+这个项目包含以下 Cursor Rules 文件，帮助您更好地理解和开发 i18n-automatically：
+
+### 📁 [project-structure.mdc](mdc:.cursor/rules/project-structure.mdc)
+**项目结构指南** - 了解项目的整体架构和文件组织
+- 核心功能模块说明
+- 支持的文件类型
+- VSCode 扩展命令
+- 技术栈和依赖关系
+- 配置选项详解
+
+### 🛠️ [development-guidelines.mdc](mdc:.cursor/rules/development-guidelines.mdc)
+**开发最佳实践** - 编码规范和开发指南
+- AST 处理最佳实践
+- 中文检测和处理规则
+- 翻译键生成策略
+- 代码质量标准
+- 测试和调试方法
+- 性能优化建议
+
+### 🏗️ [api-architecture.mdc](mdc:.cursor/rules/api-architecture.mdc)
+**API 架构设计** - 系统架构和设计模式
+- 翻译服务接口设计
+- 文件处理器模式
+- 配置管理架构
+- 事件系统设计
+- 缓存策略
+- 错误处理机制
+- 插件扩展系统
+
+## 快速开始
+
+### 🚀 新开发者指南
+如果您是新加入的开发者，建议按以下顺序阅读：
+
+1. **首先阅读** [project-structure.mdc](mdc:.cursor/rules/project-structure.mdc)
+   - 了解项目整体结构
+   - 熟悉主要功能和技术栈
+
+2. **然后查看** [development-guidelines.mdc](mdc:.cursor/rules/development-guidelines.mdc)
+   - 学习编码规范和最佳实践
+   - 了解开发工具和流程
+
+3. **最后研读** [api-architecture.mdc](mdc:.cursor/rules/api-architecture.mdc)
+   - 深入理解系统架构
+   - 掌握扩展和维护方法
+
+### 🔧 特定任务指南
+
+#### 添加新的翻译服务
+1. 查看 [api-architecture.mdc](mdc:.cursor/rules/api-architecture.mdc) 中的"翻译服务架构"部分
+2. 实现 `TranslationService` 接口
+3. 在工厂模式中注册新服务
+
+#### 支持新的文件类型
+1. 参考 [development-guidelines.mdc](mdc:.cursor/rules/development-guidelines.mdc) 中的 AST 处理部分
+2. 查看 [api-architecture.mdc](mdc:.cursor/rules/api-architecture.mdc) 中的"文件处理架构"
+3. 实现新的 `FileProcessor` 子类
+
+#### 修改扫描规则
+1. 查看 [development-guidelines.mdc](mdc:.cursor/rules/development-guidelines.mdc) 中的"中文检测规则"
+2. 参考现有的正则表达式模式
+3. 更新排除规则配置
+
+#### 添加新功能命令
+1. 参考 [project-structure.mdc](mdc:.cursor/rules/project-structure.mdc) 中的命令结构
+2. 查看 [development-guidelines.mdc](mdc:.cursor/rules/development-guidelines.mdc) 中的 VSCode 扩展开发规范
+3. 在 [src/extension.js](mdc:src/extension.js) 中注册新命令
+
+## 常用参考
+
+### 📋 配置选项快速参考
+```javascript
+// 默认配置 (详见 project-structure.mdc)
+{
+  i18nFilePath: '/src/i18n',
+  autoImportI18n: true,
+  i18nImportPath: '@/i18n',
+  templateI18nCall: '$t',
+  scriptI18nCall: 'i18n.global.t',
+  keyFilePathLevel: 2,
+  debug: false
+}
+```
+
+### 🔍 中文检测正则表达式
+```javascript
+// 基本中文字符 (详见 development-guidelines.mdc)
+const chineseRegex = /[\u4e00-\u9fff]/;
+```
+
+### 🏷️ 事件类型常量
+```javascript
+// 预定义事件 (详见 api-architecture.mdc)
+const Events = {
+  SCAN_START: 'scan:start',
+  SCAN_COMPLETE: 'scan:complete',
+  TRANSLATE_START: 'translate:start',
+  TRANSLATE_COMPLETE: 'translate:complete'
+};
+```
+
+## 贡献指南
+
+### 📝 更新规则
+当您对项目架构或开发流程进行重要更改时，请相应更新这些规则文件：
+
+1. **结构变更** → 更新 [project-structure.mdc](mdc:.cursor/rules/project-structure.mdc)
+2. **开发流程变更** → 更新 [development-guidelines.mdc](mdc:.cursor/rules/development-guidelines.mdc)
+3. **架构设计变更** → 更新 [api-architecture.mdc](mdc:.cursor/rules/api-architecture.mdc)
+
+### 📊 规则文件维护
+- 保持文档与代码同步
+- 添加新的代码示例和最佳实践
+- 定期检查外部链接和引用的有效性
+- 确保规则文件使用正确的 MDC 链接格式
+
+## 相关文档
+
+- 📖 [README.md](mdc:README.md) - 项目主要文档
+- ⚙️ [package.json](mdc:package.json) - 项目配置和依赖
+- 🎯 [.eslintrc.json](mdc:.eslintrc.json) - 代码规范配置
+- 💅 [.prettierrc](mdc:.prettierrc) - 代码格式化配置
+
+---
+
+💡 **提示**: 当您在开发过程中遇到问题时，首先查看相关的规则文件，它们包含了详细的指导和最佳实践。
+

@@ -113,7 +113,9 @@ tsx对比图：<https://www.diffchecker.com/OaZLu99x/>
 
 > 由于你懂的原因，使用谷歌翻译要富强
 
-默认的谷歌环境取决于你的网络，并不一定稳定
+默认的谷歌环境取决于你的网络，并不一定稳定。有问题，可以参考下面的链接
+
+谷歌翻译依赖于：<https://github.com/vitalets/google-translate-api#readme>
 
 ### 申请百度翻译(推荐)
 
@@ -143,61 +145,6 @@ tsx对比图：<https://www.diffchecker.com/OaZLu99x/>
 4. 如果使用专业版本，请将 `isPro` 设置为 `true`
 
 DeepL 翻译服务具有更高的翻译质量，支持多种语言，适合对翻译质量有较高要求的项目。
-
-## 更新提醒
-
-1.1.0 版本以前是采用正则匹配的模式, 优点是不改变原有的代码结构，缺点是对于复杂的模版字符串容易有适配不完全的问题，需要手动处理一小部分
-
-1.1.0 版本以后采用babel解析成AST，替换中文为指定的key之后，在还原。优点是适配更好，缺点是会改变原有的结构，比如空格，换行等都会丢失。
-
-所以采用了prettier格式化代码。默认读取项目根目录的prettier配置文件(`.prettierrc.js`)。
-
-> 提醒：如果是1.1.0之前的版本，要手动更新配置文件
-
-方法：
-
-- 要手动删除原来的配置文件，重新生成。右键-设置 重新生成配置文件。
-- 重新扫描会重新生成配置文件。
-- 手动复制缺少的配置。
-
-```json
-{
-  "i18nFilePath": "/src/i18n",
-  "autoImportI18n": true,
-  "i18nImportPath": "@/i18n",
-  "templateI18nCall": "$t",
-  "scriptI18nCall": "i18n.global.t",
-  "keyFilePathLevel": 2,
-  "excludedExtensions": [
-    ".svg",
-    ".png",
-    ".jpg",
-    ".jpeg",
-    ".gif",
-    ".bmp",
-    ".ico",
-    ".md",
-    ".txt",
-    ".json",
-    ".css",
-    ".scss",
-    ".less",
-    ".sass",
-    ".styl"
-  ],
-  "excludedStrings": ["宋体", "黑体", "楷体", "仿宋", "微软雅黑", "华文", "方正", "苹方", "思源", "YYYY年MM月DD日"],
-  "debug": false,
-  "google": true,
-  "baidu": {
-    "appid": "",
-    "secretKey": ""
-  },
-  "deepl": {
-    "authKey": "",
-    "isPro": false
-  }
-}
-```
 
 ## 开发
 
