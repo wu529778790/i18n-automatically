@@ -32,10 +32,10 @@ jobs:
       - name: Run VS Code Extension Tests
         run: yarn test
 
-            - name: Validate demo test files
+      - name: Validate demo test files
         run: |
           echo "验证测试示例文件..."
-          
+
           # 检查必要的测试文件是否存在
           files=(
             "tests/fixtures/i18n-samples/tsx/before.tsx"
@@ -49,7 +49,7 @@ jobs:
             "tests/fixtures/i18n-samples/vue/before.vue"
             "tests/fixtures/i18n-samples/vue/after.vue"
           )
-          
+
           for file in "${files[@]}"; do
             if [ -f "$file" ]; then
               echo "✅ $file 存在"
@@ -58,7 +58,7 @@ jobs:
               exit 1
             fi
           done
-          
+
           echo "✅ 所有测试示例文件验证通过"
 
       - name: Test configuration file
@@ -78,7 +78,7 @@ jobs:
             exit 1
           fi
 
-            - name: Run unit tests
+      - name: Run unit tests
         run: |
           echo "运行单元测试..."
           # 运行tests/unit目录中的具体测试文件
@@ -86,7 +86,7 @@ jobs:
             echo "✅ 找到JS处理器测试文件"
             node tests/unit/jsProcessor.test.js || echo "JS处理器测试需要完善"
           fi
-          
+
           if [ -f "tests/unit/vueProcessor.test.js" ]; then
             echo "✅ 找到Vue处理器测试文件"
             node tests/unit/vueProcessor.test.js || echo "Vue处理器测试需要完善"
