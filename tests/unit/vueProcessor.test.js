@@ -9,7 +9,7 @@ const {
   handlerForJs,
   replaceChineseWithI18nKey,
   interpolationStr,
-} = require('../src/script/I18nProcessor/vueProcessor.js');
+} = require('../../src/script/I18nProcessor/vueProcessor.js');
 
 suite('Vue处理器核心功能最小化测试套件', () => {
   const createContext = () => ({

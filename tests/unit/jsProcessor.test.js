@@ -16,7 +16,7 @@ const {
   processTextContent,
   splitStringWithTags,
   addI18nImport,
-} = require('../src/script/I18nProcessor/jsProcessor.js');
+} = require('../../src/script/I18nProcessor/jsProcessor.js');
 
 suite('JavaScript处理器核心功能最小化测试套件', () => {
   const createContext = () => ({
