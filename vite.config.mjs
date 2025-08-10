@@ -23,12 +23,33 @@ export default defineConfig({
       fileName: () => 'extension.js',
     },
     rollupOptions: {
-      external: ['vscode', 'fs', 'path', 'os', 'module'],
+      // 外部化 VS Code API、Node 内置模块及容易触发浏览器外部化冲突的依赖
+      external: [
+        'vscode',
+        // node builtins
+        'fs',
+        'fs/promises',
+        'path',
+        'os',
+        'module',
+        'url',
+        'process',
+        'tty',
+        'assert',
+        'v8',
+        'util',
+        'stream',
+        'http',
+        'https',
+        'zlib',
+        // 直接外部化 prettier，避免其 ESM 依赖的 node 内置被浏览器化
+        'prettier',
+      ],
       plugins: [
         nodeResolve({ preferBuiltins: true, extensions: ['.js', '.json'] }),
         commonjs({ ignoreDynamicRequires: true }),
       ],
-      output: { exports: 'auto' },
+      output: { exports: 'named' },
     },
   },
 });
