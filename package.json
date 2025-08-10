@@ -142,7 +142,6 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
     "vite": "^5.4.8",
-    "vite-plugin-commonjs-externals": "^0.6.2",
     "@rollup/plugin-commonjs": "^25.0.8",
     "@rollup/plugin-node-resolve": "^15.2.3"
   },
