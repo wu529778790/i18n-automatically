@@ -1,53 +1,6 @@
-.vscode/**
-.vscode-test/**
-.github/**
-.git/**
-*.code-workspace
-
-# Tests and fixtures
-tests/**
-**/__tests__/**
-**/*.test.*
-**/*.spec.*
-
-# Docs and samples
-docs/**
-**/*.md
+**/*
+!dist/**
+!package.json
 !README.md
-# 保留许可证文件
 !LICENSE
-
-# Configs and tooling
-.eslintrc*
-.prettierrc*
-.editorconfig
-**/jsconfig.json
-**/tsconfig.json
-.vscodeignore
-.gitignore
-.yarnrc
-vsc-extension-quickstart.md
-
-# Package managers / lock files
-pnpm-lock.yaml
-yarn.lock
-package-lock.json
-
-# Source maps (not needed at runtime)
-**/*.map
-
-# Misc
-**/node_modules/.bin/**
-**/.DS_Store
-**/.vscode-test.*
-
-# Exclude source since we ship bundled dist
-src/**
-vite.config.*
-node_modules/**
-!node_modules/prettier/**
-!node_modules/@babel/**
-!node_modules/@vue/**
-!node_modules/@vitalets/**
-!node_modules/axios/**
-!node_modules/md5/**
+!public/**
