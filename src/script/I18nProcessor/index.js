@@ -6,7 +6,6 @@ const { handleJsFile } = require('./jsProcessor');
 const { readConfig } = require('../setting');
 const prettier = require('prettier');
 const { getRootPath } = require('../../utils/index');
-const customConsole = require('../../utils/customConsole.js');
 
 /**
  *
@@ -34,7 +33,6 @@ async function processFile(filePath) {
   const processor = getFileProcessor(fileExt);
 
   if (!processor) {
-    customConsole.log(`Unsupported file type: ${fileExt}`);
     return;
   }
 
@@ -57,16 +55,15 @@ async function processFile(filePath) {
         });
         await fs.promises.writeFile(filePath, formatContent, 'utf8');
         await outputTranslations(translations);
-        customConsole.log(`Processed and updated: ${filePath}`);
       } catch (error) {
-        customConsole.error(prettierConfig, contentChanged);
-        customConsole.error(`Error processing file ${filePath}:`, error);
+        console.error(prettierConfig, contentChanged);
+        console.error(`Error processing file ${filePath}:`, error);
       }
     } else {
-      customConsole.log(`No changes needed for: ${filePath}`);
+      console.log(`No changes needed for: ${filePath}`);
     }
   } catch (error) {
-    customConsole.error(`Error processing file ${filePath}:`, error);
+    console.error(`Error processing file ${filePath}:`, error);
   }
 }
 
@@ -115,7 +112,7 @@ async function processDirectory(dir) {
       }
     }
   } catch (error) {
-    customConsole.error(`Error processing directory ${dir}:`, error);
+    console.error(`Error processing directory ${dir}:`, error);
   }
 }
 
@@ -132,9 +129,8 @@ async function main(inputPath) {
     } else {
       await processFile(inputPath);
     }
-    customConsole.log('Processing completed.');
   } catch (error) {
-    customConsole.error('An error occurred:', error);
+    console.error('An error occurred:', error);
     process.exit(1);
   }
 }
@@ -143,14 +139,12 @@ async function main(inputPath) {
 if (require.main === module) {
   const inputPath = process.argv[2];
   if (!inputPath) {
-    customConsole.error(
-      'Please provide a file or directory path as an argument.',
-    );
+    console.error('Please provide a file or directory path as an argument.');
     process.exit(1);
   }
 
   main(inputPath).catch((error) => {
-    customConsole.error('An error occurred:', error);
+    console.error('An error occurred:', error);
     process.exit(1);
   });
 }

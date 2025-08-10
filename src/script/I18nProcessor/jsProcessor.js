@@ -8,7 +8,6 @@ const {
   generateCode,
   stringWithDom,
 } = require('./common');
-const customConsole = require('../../utils/customConsole.js');
 
 /**
  * 处理 JavaScript AST 以进行国际化。
@@ -26,7 +25,6 @@ function processJsAst(context, customContent) {
     });
 
     if (!ast) {
-      customConsole.warn(`文件 ${context.filePath} 没有脚本部分，跳过处理。`);
       return context;
     }
 
@@ -56,7 +54,7 @@ function processJsAst(context, customContent) {
       );
     }
   } catch (error) {
-    customConsole.error('processJsAst 中出错:', error);
+    console.error('processJsAst 中出错:', error);
   } finally {
     return context;
   }
@@ -115,7 +113,7 @@ function handleChineseString(path, context, isTemplateLiteral = false) {
     context.translations.set(key, value.trim());
   } catch (error) {
     context.index--;
-    customConsole.error('handleChineseString 中出错:', error);
+    console.error('handleChineseString 中出错:', error);
   }
 }
 /**
@@ -211,11 +209,10 @@ function convertStringLiteralToTemplateLiteral(path, context) {
     // 用新的模板字面量替换原始的字符串字面量
     path.replaceWith(templateLiteral);
   } catch (error) {
-    customConsole.error(
+    console.error(
       'convertStringLiteralToTemplateLiteral 函数中发生错误:',
       error,
     );
-    customConsole.log('路径:', path);
   }
 }
 
