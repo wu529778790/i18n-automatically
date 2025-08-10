@@ -222,7 +222,7 @@ jobs:
       - name: 测试扩展打包
         run: |
           echo "测试扩展打包..."
-          vsce package --no-yarn --out test-i18n-extension.vsix
+          vsce package --no-dependencies --no-yarn --out test-i18n-extension.vsix
           if [ -f "test-i18n-extension.vsix" ]; then
             echo "✅ 扩展打包成功"
             size=$(stat -c%s "test-i18n-extension.vsix")
