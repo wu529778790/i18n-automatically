@@ -8,20 +8,26 @@ let cachedLanguage = 'zh.json'; // 初始化缓存变量
 
 // 简易容错 JSON 解析（支持 BOM、注释与尾随逗号）
 function parseJsonLoose(text) {
+  // 统一行结尾并去除 BOM
+  const normalized = text.replace(/\r\n?/g, '\n').replace(/^\uFEFF/, '');
+  // 先尝试 JSON5（支持未加引号key、单引号、注释等）
   try {
-    return JSON.parse(text);
+    const JSON5 = require('json5');
+    return JSON5.parse(normalized);
   } catch (_) {
-    try {
-      // 优先尝试使用 JSON5 更稳健地解析（支持未加引号的键、单引号等）
-      // 若打包未包含 json5，也会走到下一个兜底分支
-      const JSON5 = require('json5');
-      return JSON5.parse(text);
-    } catch (_) {}
-    const noBom = text.replace(/^\uFEFF/, '');
-    const noBlockComments = noBom.replace(/\/\*[\s\S]*?\*\//g, '');
+    // 进一步清理控制字符（除 \n/\r/\t）
+    const noCtl = normalized.replace(/[\u0000-\u001F]/g, (ch) =>
+      ch === '\n' || ch === '\r' || ch === '\t' ? ch : ' ',
+    );
+    // 去注释与尾随逗号后再尝试标准 JSON
+    const noBlockComments = noCtl.replace(/\/\*[\s\S]*?\*\//g, '');
     const noLineComments = noBlockComments.replace(/(^|[^:])\/\/.*$/gm, '$1');
     const noTrailingCommas = noLineComments.replace(/,\s*([}\]])/g, '$1');
-    return JSON.parse(noTrailingCommas);
+    try {
+      return JSON.parse(noTrailingCommas);
+    } catch (_) {
+      return null;
+    }
   }
 }
 
@@ -55,12 +61,8 @@ const getLanguagePack = async (language = cachedLanguage) => {
   if (!languagePack) {
     return;
   }
-  try {
-    const languagePackObj = parseJsonLoose(languagePack);
-    return languagePackObj;
-  } catch (error) {
-    console.error(error);
-  }
+  const languagePackObj = parseJsonLoose(languagePack);
+  return languagePackObj || undefined;
 };
 
 // 使用正则表达式进行匹配，确保只完全匹配特定的键
