@@ -30,6 +30,9 @@ jobs:
           git checkout .
           npm version patch -m "chore(release): v%s [skip ci]"
 
+      - name: Build (vite)
+        run: yarn build
+
       - name: Publish VS Code Extension
         uses: HaaLeo/publish-vscode-extension@v1.6.2
         with:
@@ -64,6 +67,9 @@ jobs:
 
       - name: Install vsce (VS Code Extension CLI)
         run: npm install -g @vscode/vsce
+
+      - name: Build (vite)
+        run: yarn build
 
       - name: Package extension
         run: vsce package
