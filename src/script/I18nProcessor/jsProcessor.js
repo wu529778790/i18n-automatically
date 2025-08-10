@@ -1,6 +1,39 @@
-const traverse = require('@babel/traverse').default;
+// 兼容打包后 @babel/traverse 的多种导出形态
+const traverseModule = require('@babel/traverse');
+const traverse = (() => {
+  if (typeof traverseModule === 'function') return traverseModule;
+  if (traverseModule && typeof traverseModule.default === 'function')
+    return traverseModule.default;
+  if (traverseModule && typeof traverseModule.traverse === 'function')
+    return traverseModule.traverse;
+  if (traverseModule && typeof traverseModule.__require === 'function') {
+    const inner = traverseModule.__require();
+    if (typeof inner === 'function') return inner;
+    if (inner && typeof inner.default === 'function') return inner.default;
+    if (inner && typeof inner.traverse === 'function') return inner.traverse;
+  }
+  return traverseModule;
+})();
 const parser = require('@babel/parser');
-const t = require('@babel/types');
+// 兼容打包后 @babel/types 的多种导出形态
+const typesModule = require('@babel/types');
+const t = (() => {
+  const mod = typesModule;
+  if (mod && typeof mod.identifier === 'function') return mod;
+  if (mod && mod.default && typeof mod.default.identifier === 'function')
+    return mod.default;
+  if (mod && typeof mod.__require === 'function') {
+    const inner = mod.__require();
+    if (inner && typeof inner.identifier === 'function') return inner;
+    if (
+      inner &&
+      inner.default &&
+      typeof inner.default.identifier === 'function'
+    )
+      return inner.default;
+  }
+  return mod;
+})();
 const {
   createI18nProcessor,
   generateKey,
