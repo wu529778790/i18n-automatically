@@ -66,13 +66,18 @@ exports.scanChineseBatch = async () => {
 
 function getAllFilesInFolder(folderPath, excludedExtensions) {
   const files = [];
-  const items = fs.readdirSync(folderPath).filter((item) => {
-    const itemExtension = path.extname(item);
-    // 纯黑名单：仅过滤 excludedExtensions，其余全部通过
-    return !excludedExtensions.includes(itemExtension);
-  });
-
-  for (const item of items) {
+  const excludedDirs = new Set([
+    'node_modules',
+    '.git',
+    '.husky',
+    '.vscode',
+    '.github',
+    'dist',
+    'build',
+    'out',
+  ]);
+  const entries = fs.readdirSync(folderPath);
+  for (const item of entries) {
     const itemPath = path.join(folderPath, item);
 
     // 如果当前路径是 node_modules 文件夹，则跳过
@@ -80,10 +85,14 @@ function getAllFilesInFolder(folderPath, excludedExtensions) {
       continue;
     }
 
-    if (fs.statSync(itemPath).isDirectory()) {
+    const stat = fs.statSync(itemPath);
+    if (stat.isDirectory()) {
       // 如果是文件夹，递归获取其中的文件
       files.push(...getAllFilesInFolder(itemPath, excludedExtensions));
     } else {
+      const itemExtension = path.extname(item);
+      if (!itemExtension) continue;
+      if (excludedExtensions.includes(itemExtension)) continue;
       files.push(itemPath);
     }
   }
@@ -91,6 +100,9 @@ function getAllFilesInFolder(folderPath, excludedExtensions) {
 }
 
 async function processFile(filePath) {
-  // 这里可以调用你的文件处理逻辑，比如 scanChinese 函数处理单个文件
+  // 仅处理受支持的代码后缀
+  const support = new Set(['.js', '.jsx', '.ts', '.tsx', '.vue']);
+  const ext = path.extname(filePath).toLowerCase();
+  if (!support.has(ext)) return;
   await scanChinese(filePath);
 }

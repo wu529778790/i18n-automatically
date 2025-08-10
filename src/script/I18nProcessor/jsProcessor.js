@@ -50,7 +50,9 @@ function processJsAst(context, customContent) {
 
     context.ast = ast;
     if (context.index > 0) {
-      context.contentChanged = generateCode(ast, context.contentSource).replace(
+      // 对于 Vue 的 script 处理，customContent 存在时仅生成脚本片段，避免把整个 .vue 内容误参与生成导致重复包裹
+      const originalCode = customContent || context.contentSource;
+      context.contentChanged = generateCode(ast, originalCode).replace(
         /(?<=\?.)\n/g,
         '',
       );

@@ -80,7 +80,8 @@ function getFileProcessor(fileExt) {
     '.ts': handleJsFile,
     '.tsx': handleJsFile,
   };
-  return processors[fileExt] || handleJsFile;
+  // 仅支持上述代码类型，其余（如 .html/.md/.json 等）不处理
+  return processors[fileExt] || null;
 }
 
 /**

@@ -89,12 +89,15 @@ async function processVueScripts(scriptAst, scriptSetupAst, context) {
  */
 async function processVueScript(scriptAst, context, scriptType) {
   try {
-    if (context.contentChanged) {
-      context.contentChanged = context.contentSource.replace(
-        scriptAst,
-        context.contentChanged,
-      );
-      context.contentSource = context.contentChanged;
+    // 仅对脚本片段做 JS 处理，并使用该片段的生成结果做字符串替换
+    const prevChanged = context.contentChanged;
+    processJsAst(context, scriptAst);
+    const scriptChanged = context.contentChanged;
+    context.contentChanged = prevChanged;
+    if (scriptChanged) {
+      const replaced = context.contentSource.replace(scriptAst, scriptChanged);
+      context.contentChanged = replaced;
+      context.contentSource = replaced;
     }
   } catch (error) {
     console.error(`Error in process ${scriptType}:`, error);
