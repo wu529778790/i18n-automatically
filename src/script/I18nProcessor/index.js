@@ -41,14 +41,12 @@ async function processFile(filePath) {
     const processResult = await processor(filePath, config);
     const { contentChanged, translations } = processResult || {};
     if (contentChanged) {
-      // 判断项目根目录是否有.prettierrc.js
-      let prettierConfig = null;
-      const prettierConfigPath = path.join(getRootPath(), '.prettierrc.js');
-      if (fs.existsSync(prettierConfigPath)) {
-        prettierConfig = require(prettierConfigPath);
-      }
+      // 通过 Prettier 官方 API 解析配置，避免打包后对用户工程的动态 require 失败
+      let prettierConfig = await prettier
+        .resolveConfig(filePath)
+        .catch(() => null);
       try {
-        //格式化代码
+        // 格式化代码
         const formatContent = await prettier.format(contentChanged, {
           parser: getParserForFile(fileExt),
           ...prettierConfig,
