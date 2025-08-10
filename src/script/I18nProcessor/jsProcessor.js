@@ -85,7 +85,15 @@ function handleChineseString(path, context, isTemplateLiteral = false) {
   try {
     const value = isTemplateLiteral ? path.node.value.raw : path.node.value;
 
-    if (!containsChinese(value) || isInDebugContext(path)) return;
+    // 当 excludeDebugContexts !== false 时（默认开启），跳过调试上下文(console/throw/assert/debugger)中的中文
+    const skipDebugContexts =
+      !('excludeDebugContexts' in (context.config || {})) ||
+      context.config.excludeDebugContexts !== false;
+    if (
+      !containsChinese(value) ||
+      (skipDebugContexts && isInDebugContext(path))
+    )
+      return;
 
     if (stringWithDom(value)) {
       handleStringWithDom(path, context, isTemplateLiteral);

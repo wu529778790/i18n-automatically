@@ -68,6 +68,7 @@ function getAllFilesInFolder(folderPath, excludedExtensions) {
   const files = [];
   const items = fs.readdirSync(folderPath).filter((item) => {
     const itemExtension = path.extname(item);
+    // 纯黑名单：仅过滤 excludedExtensions，其余全部通过
     return !excludedExtensions.includes(itemExtension);
   });
 

@@ -2,7 +2,8 @@ const vscode = require('vscode');
 const { deeplTranslateApi } = require('../api/deepl.js');
 
 class DeeplTranslator {
-  async translate(text, language) {
+  async translate(arr, language) {
+    const text = Array.isArray(arr) ? arr.join('\n') : String(arr || '');
     const data = await deeplTranslateApi(text, language);
     if (data.error_code || data.error) {
       vscode.window.showErrorMessage(

@@ -7,7 +7,7 @@
   "repository": "https://github.com/wu529778790/i18n-automatically",
   "version": "1.1.12",
   "engines": {
-    "vscode": "^1.59.0"
+    "vscode": "^1.75.0"
   },
   "categories": [
     "Extension Packs",
@@ -51,13 +51,6 @@
     "poizon"
   ],
   "icon": "public/logo.png",
-  "activationEvents": [
-    "onLanguage:javascript",
-    "onLanguage:typescript",
-    "onLanguage:vue",
-    "onLanguage:html",
-    "onLanguage:react"
-  ],
   "main": "./src/extension.js",
   "contributes": {
     "commands": [
@@ -151,6 +144,7 @@
     "@babel/generator": "^7.25.6",
     "@babel/parser": "^7.25.6",
     "@babel/traverse": "^7.25.6",
+    "@babel/types": "^7.25.6",
     "@vitalets/google-translate-api": "^9.2.1",
     "@vue/compiler-dom": "^3.5.8",
     "@vue/compiler-sfc": "^3.5.6",

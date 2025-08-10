@@ -93,10 +93,13 @@ exports.updateDecorations = async (language = cachedLanguage) => {
   if (!editor) {
     return;
   }
-  const languageId = editor.document.languageId;
-  // 如果当前文件的语言类型是 excludedExtensions 中的类型，则直接返回
-  // 比如 excludedExtensions: [".sass", ".styl"], 那么如果当前文件的语言类型是.sass 或.styl，则直接返回
-  if (config.excludedExtensions.includes(`.${languageId}`)) {
+  // 黑名单策略：仅在扩展名命中 excludedExtensions 时跳过
+  const fileExt = path.extname(editor.document.fileName).toLowerCase();
+  if (
+    (config.excludedExtensions || []).some(
+      (ext) => ext.toLowerCase() === fileExt,
+    )
+  ) {
     return;
   }
   const languagePackObj = await getLanguagePack(language);
@@ -155,7 +158,7 @@ exports.switchLanguage = async () => {
   vscode.window.showQuickPick(languageFiles).then(async (item) => {
     if (item) {
       cachedLanguage = item; // 缓存用户选择的语言
-      await this.updateDecorations(item);
+      await exports.updateDecorations(item);
     }
   });
 };

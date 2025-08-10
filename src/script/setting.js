@@ -10,6 +10,7 @@ const defaultConfig = {
   templateI18nCall: '$t',
   scriptI18nCall: 'i18n.global.t',
   keyFilePathLevel: 2,
+  excludeDebugContexts: false,
   excludedExtensions: [
     '.svg',
     '.png',
