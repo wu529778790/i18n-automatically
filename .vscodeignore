@@ -1,11 +1,41 @@
 .vscode/**
 .vscode-test/**
+.github/**
+.git/**
+*.code-workspace
+
+# Tests and fixtures
 tests/**
+**/__tests__/**
+**/*.test.*
+**/*.spec.*
+
+# Docs and samples
 docs/**
+**/*.md
+!README.md
+LICENSE
+
+# Configs and tooling
+.eslintrc*
+.prettierrc*
+.editorconfig
+**/jsconfig.json
+**/tsconfig.json
+.vscodeignore
 .gitignore
 .yarnrc
 vsc-extension-quickstart.md
-**/jsconfig.json
+
+# Package managers / lock files
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+
+# Source maps (not needed at runtime)
 **/*.map
-**/.eslintrc.json
+
+# Misc
+**/node_modules/.bin/**
+**/.DS_Store
 **/.vscode-test.*
