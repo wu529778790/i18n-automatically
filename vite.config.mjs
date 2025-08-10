@@ -49,12 +49,16 @@ export default defineConfig({
       plugins: [
         nodeResolve({ preferBuiltins: true, extensions: ['.js', '.json'] }),
         commonjs({
-          ignoreDynamicRequires: true,
-          // 关键：让 require('cjs') 返回其 default 导出，避免得到包装命名空间对象
+          ignoreDynamicRequires: false,
           requireReturnsDefault: 'preferred',
         }),
       ],
-      output: { exports: 'named' },
+      output: {
+        exports: 'named',
+        // 关键：将所有依赖内联到一个文件，避免运行环境找不到分拆的 chunk 或第三方包
+        inlineDynamicImports: true,
+        manualChunks: undefined,
+      },
     },
   },
 });
