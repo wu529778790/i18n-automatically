@@ -3,7 +3,6 @@ const vscode = require('vscode');
 const { getRootPath } = require('../../utils/index.js');
 const { readConfig } = require('../setting.js');
 const { createTranslator } = require('./translators');
-const customConsole = require('../../utils/customConsole.js');
 
 // 一次请求翻译多少个中文
 const TRANSLATE_LIMIT = 20;
@@ -145,7 +144,6 @@ exports.generateLanguagePackage = async () => {
           continue;
         }
 
-        customConsole.log(config.debug, '翻译结果', trans_result);
         // 将翻译结果添加到目标语言包对象中
         trans_result.forEach((item, index) => {
           const key = keysToTranslate[i * TRANSLATE_LIMIT + index];
@@ -164,10 +162,6 @@ exports.generateLanguagePackage = async () => {
         await fs.promises.writeFile(
           `${getRootPath()}${config.i18nFilePath}/locale/${language}.json`,
           JSON.stringify(orderedLanguageJson, null, 2),
-        );
-        customConsole.log(
-          config.debug,
-          `已保存第 ${i + 1}/${valuesToTranslateLengthgroup} 组翻译结果`,
         );
       }
     },

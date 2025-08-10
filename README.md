@@ -101,7 +101,6 @@ tsx对比图：<https://www.diffchecker.com/OaZLu99x/>
 |excludeDebugContexts|是否跳过调试上下文中文（console/throw/assert/debugger）。设为 false 可扫描日志。| true |
 |excludedExtensions|排除的文件后缀名|[".svg",".png",".jpg",".jpeg",".gif",".bmp",".ico",".md",".txt",".json",".css",".scss",".less",".sass",".styl"] |
 |excludedStrings|排除的字符串| ["宋体","黑体","楷体","仿宋","微软雅黑","华文","方正","苹方","思源","YYYY年MM月DD日"] |
-|debug|是否开启调试模式。|  false |
 |freeGoogle|默认自带免费谷歌翻译 | true |
 |baidu.appid|百度翻译的应用ID。| - |
 |baidu.secretKey|百度翻译的密钥。| - |

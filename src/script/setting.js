@@ -40,7 +40,6 @@ const defaultConfig = {
     '思源',
     'YYYY年MM月DD日',
   ],
-  debug: false,
   freeGoogle: true,
   baidu: {
     appid: '',
