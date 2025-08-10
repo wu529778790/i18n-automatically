@@ -145,6 +145,11 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
       - name: 设置Node.js环境
         uses: actions/setup-node@v4
         with:
