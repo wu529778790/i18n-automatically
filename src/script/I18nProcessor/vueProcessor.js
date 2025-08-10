@@ -6,7 +6,6 @@ const {
   generateCode,
   stringWithDom,
 } = require('./common');
-const customConsole = require('../../utils/customConsole.js');
 const { processJsAst, handlerDomNode } = require('./jsProcessor');
 
 /**
@@ -23,7 +22,6 @@ async function processVueAst(context) {
       descriptor.scriptSetup && descriptor.scriptSetup.content;
 
     if (!templateAst) {
-      customConsole.warn('No template found, skipping processing.');
       return;
     }
     if (
@@ -38,7 +36,7 @@ async function processVueAst(context) {
 
     return context.translations.size > 0 ? context : undefined;
   } catch (error) {
-    customConsole.error('Error in processVueAst:', error);
+    console.error('Error in processVueAst:', error);
     throw error;
   }
 }
@@ -62,7 +60,7 @@ async function processVueTemplate(templateAst, context, descriptor) {
       context.contentSource = context.contentChanged;
     }
   } catch (error) {
-    customConsole.error('Error in processVueTemplate:', error);
+    console.error('Error in processVueTemplate:', error);
     throw error;
   }
 }
@@ -91,17 +89,18 @@ async function processVueScripts(scriptAst, scriptSetupAst, context) {
  */
 async function processVueScript(scriptAst, context, scriptType) {
   try {
-    const processedScript = processJsAst(context, scriptAst);
-    customConsole.log(`${scriptType}Ast`, processedScript);
-    if (context.contentChanged) {
-      context.contentChanged = context.contentSource.replace(
-        scriptAst,
-        context.contentChanged,
-      );
-      context.contentSource = context.contentChanged;
+    // 仅对脚本片段做 JS 处理，并使用该片段的生成结果做字符串替换
+    const prevChanged = context.contentChanged;
+    processJsAst(context, scriptAst);
+    const scriptChanged = context.contentChanged;
+    context.contentChanged = prevChanged;
+    if (scriptChanged) {
+      const replaced = context.contentSource.replace(scriptAst, scriptChanged);
+      context.contentChanged = replaced;
+      context.contentSource = replaced;
     }
   } catch (error) {
-    customConsole.error(`Error in process ${scriptType}:`, error);
+    console.error(`Error in process ${scriptType}:`, error);
     throw error;
   }
 }
@@ -116,7 +115,7 @@ function processTemplate(templateAst, context) {
   try {
     return astArrayToTemplate(templateAst, context);
   } catch (error) {
-    customConsole.error('Error in processTemplate:', error);
+    console.error('Error in processTemplate:', error);
     throw error;
   }
 }
@@ -131,7 +130,7 @@ function astArrayToTemplate(astArray, context) {
   try {
     return astArray.map((node) => astToTemplate(node, context)).join(' ');
   } catch (error) {
-    customConsole.error('Error in astArrayToTemplate:', error);
+    console.error('Error in astArrayToTemplate:', error);
     return '';
   }
 }
@@ -155,7 +154,7 @@ function astToTemplate(node, context) {
 
     return (nodeTypeHandlers[node.type] && nodeTypeHandlers[node.type]()) || '';
   } catch (error) {
-    customConsole.error('Error in astToTemplate:', error);
+    console.error('Error in astToTemplate:', error);
 
     return '';
   }
@@ -334,7 +333,7 @@ function handlerForJs(node, context) {
       return handleNonAstResult(node, context);
     }
   } catch (e) {
-    customConsole.error(`handlerForJs: ${e.message}`);
+    console.error(`handlerForJs: ${e.message}`);
     return `\n${node.content}`;
   }
 }

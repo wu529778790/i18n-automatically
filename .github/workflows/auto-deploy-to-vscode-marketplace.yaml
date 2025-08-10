@@ -14,14 +14,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Update version and commit
         run: |
@@ -30,11 +35,14 @@ jobs:
           git checkout .
           npm version patch -m "chore(release): v%s [skip ci]"
 
-      - name: Publish VS Code Extension
-        uses: HaaLeo/publish-vscode-extension@v1.6.2
-        with:
-          pat: ${{ secrets.VS_MARKETPLACE_TOKEN }}
-          registryUrl: https://marketplace.visualstudio.com
+      - name: Build (vite)
+        run: pnpm build
+
+      - name: Install vsce (VS Code Extension CLI)
+        run: npm install -g @vscode/vsce
+
+      - name: Publish VS Code Extension (vsce)
+        run: vsce publish --no-dependencies --no-yarn -p ${{ secrets.VS_MARKETPLACE_TOKEN }}
 
       - name: Push changes
         run: |
@@ -53,20 +61,28 @@ jobs:
       - name: Pull latest changes
         run: git pull origin main
 
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Install vsce (VS Code Extension CLI)
         run: npm install -g @vscode/vsce
 
+      - name: Build (vite)
+        run: pnpm build
+
       - name: Package extension
-        run: vsce package
+        run: vsce package --no-dependencies --no-yarn
 
       - name: Get package info
         id: package
@@ -93,15 +109,12 @@ jobs:
             echo "✅ Release ${{ steps.tag.outputs.tag_name }} 不存在，将创建新release"
           fi
 
-      - name: Create Release
+      - name: Create GitHub Release and Upload VSIX
         if: steps.check_release.outputs.exists == 'false'
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.tag_name }}
-          release_name: Release ${{ steps.tag.outputs.tag_name }}
+          name: Release ${{ steps.tag.outputs.tag_name }}
           body: |
             ## 🎉 新版本发布 ${{ steps.tag.outputs.tag_name }}
 
@@ -122,17 +135,10 @@ jobs:
             🤖 此版本由GitHub Actions自动生成
           draft: false
           prerelease: false
-
-      - name: Upload VSIX to Release
-        if: steps.check_release.outputs.exists == 'false'
-        uses: actions/upload-release-asset@v1
+          files: |
+            ./${{ steps.package.outputs.vsix_file }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./${{ steps.package.outputs.vsix_file }}
-          asset_name: ${{ steps.package.outputs.vsix_file }}
-          asset_content_type: application/zip
 
       - name: Release Summary
         run: |
@@ -141,7 +147,7 @@ jobs:
             echo "📦 版本: ${{ steps.package.outputs.version }}"
             echo "🏷️ 标签: ${{ steps.tag.outputs.tag_name }}"
             echo "📁 VSIX文件: ${{ steps.package.outputs.vsix_file }}"
-            echo "🔗 Release URL: ${{ steps.create_release.outputs.html_url }}"
+            echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ steps.tag.outputs.tag_name }}"
           else
             echo "⚠️ Release ${{ steps.tag.outputs.tag_name }} 已存在，未创建新release"
             echo "📦 当前版本: ${{ steps.package.outputs.version }}"

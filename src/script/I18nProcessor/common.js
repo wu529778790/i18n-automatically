@@ -4,7 +4,6 @@ const generate = require('@babel/generator').default;
 const vscode = require('vscode');
 const { generateUniqueId } = require('../../utils');
 const { readConfig } = require('../setting');
-const customConsole = require('../../utils/customConsole.js');
 
 function createContext(filePath, config) {
   return {
@@ -13,6 +12,11 @@ function createContext(filePath, config) {
     config: {
       ...config,
       isAutoImportI18n: true,
+      // 默认开启：跳过调试上下文，除非配置中显式为 false
+      excludeDebugContexts:
+        config && 'excludeDebugContexts' in config
+          ? config.excludeDebugContexts
+          : true,
     },
     index: 0,
     translations: new Map(),
@@ -51,7 +55,7 @@ function generateCode(ast, content) {
     flowCommaSeparator: true,
     quotes: 'single', // 强制使用单引号
     jsescOption: {
-      quotes: 'single', // 确保字符串内容也使用单引号
+      // 避免类型不兼容报错，顶层 quotes 已设为 'single'
       wrap: true,
     },
   };
@@ -163,11 +167,8 @@ class TranslationManager {
         JSON.stringify(updatedContent, null, 2),
         'utf-8',
       );
-      customConsole.log(`Successfully updated translation file: ${filePath}`);
     } catch (error) {
-      customConsole.error(
-        `Failed to output translation file: ${error.message}`,
-      );
+      console.error(`Failed to output translation file: ${error.message}`);
       throw error; // 重新抛出错误，允许调用者进行进一步处理
     }
   }
@@ -179,6 +180,5 @@ module.exports = {
   generateCode,
   containsChinese,
   TranslationManager,
-  customConsole,
   stringWithDom,
 };

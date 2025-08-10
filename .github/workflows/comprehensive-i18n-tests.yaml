@@ -21,14 +21,19 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
       - name: 设置Node.js环境
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'yarn'
+          cache: 'pnpm'
 
       - name: 安装依赖
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: 验证Package.json配置
         run: |
@@ -56,14 +61,19 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
       - name: 设置Node.js环境
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'yarn'
+          cache: 'pnpm'
 
       - name: 安装依赖
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: ESLint代码检查
         run: |
@@ -80,14 +90,19 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
       - name: 设置Node.js环境
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'yarn'
+          cache: 'pnpm'
 
       - name: 安装依赖
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: 验证测试文件结构
         run: |
@@ -137,14 +152,17 @@ jobs:
           cache: 'yarn'
 
       - name: 安装依赖
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
+
+      - name: Build (vite)
+        run: yarn build
 
       - name: 运行VS Code扩展测试
         run: |
           echo "运行VS Code扩展测试..."
           sudo apt-get update
           sudo apt-get install -y xvfb
-          xvfb-run -a yarn test || echo "⚠️  VS Code扩展测试失败，但继续执行其他测试"
+          xvfb-run -a pnpm test || echo "⚠️  VS Code扩展测试失败，但继续执行其他测试"
 
   # 配置文件验证
   configuration-validation:
@@ -181,22 +199,30 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
       - name: 设置Node.js环境
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'yarn'
+          cache: 'pnpm'
 
       - name: 安装依赖
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: 安装vsce打包工具
         run: npm install -g @vscode/vsce
 
+      - name: Build (vite)
+        run: pnpm build
+
       - name: 测试扩展打包
         run: |
           echo "测试扩展打包..."
-          vsce package --out test-i18n-extension.vsix
+          vsce package --no-dependencies --no-yarn --out test-i18n-extension.vsix
           if [ -f "test-i18n-extension.vsix" ]; then
             echo "✅ 扩展打包成功"
             size=$(stat -c%s "test-i18n-extension.vsix")

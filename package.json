@@ -5,9 +5,9 @@
   "publisher": "wu529778790",
   "author": "wu529778790",
   "repository": "https://github.com/wu529778790/i18n-automatically",
-  "version": "1.1.7",
+  "version": "1.1.22",
   "engines": {
-    "vscode": "^1.59.0"
+    "vscode": "^1.75.0"
   },
   "categories": [
     "Extension Packs",
@@ -51,14 +51,7 @@
     "poizon"
   ],
   "icon": "public/logo.png",
-  "activationEvents": [
-    "onLanguage:javascript",
-    "onLanguage:typescript",
-    "onLanguage:vue",
-    "onLanguage:html",
-    "onLanguage:react"
-  ],
-  "main": "./src/extension.js",
+  "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
@@ -135,6 +128,8 @@
     "test:i18n": "node tests/unit/demoTest.validation.js",
     "test:js": "node tests/unit/jsProcessor.test.js",
     "test:vue": "node tests/unit/vueProcessor.test.js",
+    "build": "vite build",
+    "prepack": "npm run build",
     "test:all": "npm run lint && npm run test:unit && npm run test"
   },
   "devDependencies": {
@@ -145,12 +140,16 @@
     "@vscode/test-electron": "^2.4.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.2.1"
+    "eslint-plugin-prettier": "^5.2.1",
+    "vite": "^5.4.8",
+    "@rollup/plugin-commonjs": "^25.0.8",
+    "@rollup/plugin-node-resolve": "^15.2.3"
   },
   "dependencies": {
     "@babel/generator": "^7.25.6",
     "@babel/parser": "^7.25.6",
     "@babel/traverse": "^7.25.6",
+    "@babel/types": "^7.25.6",
     "@vitalets/google-translate-api": "^9.2.1",
     "@vue/compiler-dom": "^3.5.8",
     "@vue/compiler-sfc": "^3.5.6",

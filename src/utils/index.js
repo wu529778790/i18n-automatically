@@ -13,7 +13,7 @@ exports.generateUniqueId = () => {
 
 // 保存对象到指定路径的方法
 exports.saveObjectToPath = (obj, filePath) => {
-  const rootPath = this.getRootPath();
+  const rootPath = exports.getRootPath();
   const newFilePath = path.join(rootPath, filePath);
   const directory = path.dirname(newFilePath);
 

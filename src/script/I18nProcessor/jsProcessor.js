@@ -8,7 +8,6 @@ const {
   generateCode,
   stringWithDom,
 } = require('./common');
-const customConsole = require('../../utils/customConsole.js');
 
 /**
  * 处理 JavaScript AST 以进行国际化。
@@ -26,11 +25,12 @@ function processJsAst(context, customContent) {
     });
 
     if (!ast) {
-      customConsole.warn(`文件 ${context.filePath} 没有脚本部分，跳过处理。`);
       return context;
     }
 
-    traverse(ast, {
+    // 解决 TS/JS 类型检查在不同 @babel/types 版本下的声明不一致报错
+    // 运行时无影响，仅为通过 checkJs
+    traverse(/** @type {any} */ (ast), {
       Program: (path) => checkForI18nImport(path, context),
       TemplateElement: (path) => handleChineseString(path, context, true),
       StringLiteral: (path) => handleChineseString(path, context),
@@ -50,13 +50,15 @@ function processJsAst(context, customContent) {
 
     context.ast = ast;
     if (context.index > 0) {
-      context.contentChanged = generateCode(ast, context.contentSource).replace(
+      // 对于 Vue 的 script 处理，customContent 存在时仅生成脚本片段，避免把整个 .vue 内容误参与生成导致重复包裹
+      const originalCode = customContent || context.contentSource;
+      context.contentChanged = generateCode(ast, originalCode).replace(
         /(?<=\?.)\n/g,
         '',
       );
     }
   } catch (error) {
-    customConsole.error('processJsAst 中出错:', error);
+    console.error('processJsAst 中出错:', error);
   } finally {
     return context;
   }
@@ -85,7 +87,15 @@ function handleChineseString(path, context, isTemplateLiteral = false) {
   try {
     const value = isTemplateLiteral ? path.node.value.raw : path.node.value;
 
-    if (!containsChinese(value) || isInDebugContext(path)) return;
+    // 当 excludeDebugContexts !== false 时（默认开启），跳过调试上下文(console/throw/assert/debugger)中的中文
+    const skipDebugContexts =
+      !('excludeDebugContexts' in (context.config || {})) ||
+      context.config.excludeDebugContexts !== false;
+    if (
+      !containsChinese(value) ||
+      (skipDebugContexts && isInDebugContext(path))
+    )
+      return;
 
     if (stringWithDom(value)) {
       handleStringWithDom(path, context, isTemplateLiteral);
@@ -107,7 +117,7 @@ function handleChineseString(path, context, isTemplateLiteral = false) {
     context.translations.set(key, value.trim());
   } catch (error) {
     context.index--;
-    customConsole.error('handleChineseString 中出错:', error);
+    console.error('handleChineseString 中出错:', error);
   }
 }
 /**
@@ -203,11 +213,10 @@ function convertStringLiteralToTemplateLiteral(path, context) {
     // 用新的模板字面量替换原始的字符串字面量
     path.replaceWith(templateLiteral);
   } catch (error) {
-    customConsole.error(
+    console.error(
       'convertStringLiteralToTemplateLiteral 函数中发生错误:',
       error,
     );
-    customConsole.log('路径:', path);
   }
 }
 

@@ -78,7 +78,7 @@ exports.activate = (context) => {
     vscode.commands.registerCommand(
       'extension.automatically.i18n.updateLocalLangPackage',
       async () => {
-        updateDecorations;
+        updateDecorations();
       },
     ),
   );

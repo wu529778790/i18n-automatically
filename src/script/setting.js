@@ -10,6 +10,7 @@ const defaultConfig = {
   templateI18nCall: '$t',
   scriptI18nCall: 'i18n.global.t',
   keyFilePathLevel: 2,
+  excludeDebugContexts: false,
   excludedExtensions: [
     '.svg',
     '.png',
@@ -39,7 +40,6 @@ const defaultConfig = {
     '思源',
     'YYYY年MM月DD日',
   ],
-  debug: false,
   freeGoogle: true,
   baidu: {
     appid: '',
