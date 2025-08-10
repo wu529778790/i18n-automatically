@@ -13,7 +13,8 @@ const nodeResolve =
 export default defineConfig({
   publicDir: false,
   build: {
-    target: 'node20',
+    // 遵循 engines.vscode (~ Node 16) 的运行环境，避免产物在旧运行时不兼容
+    target: 'node16',
     outDir: 'dist',
     emptyOutDir: true,
     sourcemap: false,
@@ -43,8 +44,6 @@ export default defineConfig({
         'http',
         'https',
         'zlib',
-        // 直接外部化 prettier（其 ESM 依赖 Node 内置，打包容易报错）
-        'prettier',
         // 注意：不要外部化 Babel 与 Vue 编译器，以避免生成 ?commonjs-external 标识符
       ],
       plugins: [
