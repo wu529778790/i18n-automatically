@@ -52,6 +52,15 @@
   ],
   "icon": "public/logo.png",
   "main": "./dist/extension.js",
+  "activationEvents": [
+    "onCommand:extension.automatically.i18n.scanChinese",
+    "onCommand:extension.automatically.i18n.scanChineseBatch",
+    "onCommand:extension.automatically.i18n.generateLanguagePackage",
+    "onCommand:extension.automatically.i18n.switchLanguage",
+    "onCommand:extension.automatically.i18n.updateLocalLangPackage",
+    "onCommand:extension.automatically.i18n.setting",
+    "onStartupFinished"
+  ],
   "contributes": {
     "commands": [
       {
