@@ -52,6 +52,15 @@
   ],
   "icon": "public/logo.png",
   "main": "./dist/extension.js",
+  "activationEvents": [
+    "onCommand:extension.automatically.i18n.scanChinese",
+    "onCommand:extension.automatically.i18n.scanChineseBatch",
+    "onCommand:extension.automatically.i18n.generateLanguagePackage",
+    "onCommand:extension.automatically.i18n.switchLanguage",
+    "onCommand:extension.automatically.i18n.updateLocalLangPackage",
+    "onCommand:extension.automatically.i18n.setting",
+    "onStartupFinished"
+  ],
   "contributes": {
     "commands": [
       {
@@ -129,6 +138,7 @@
     "test:js": "node tests/unit/jsProcessor.test.js",
     "test:vue": "node tests/unit/vueProcessor.test.js",
     "build": "vite build",
+    "vscode:prepublish": "npm run build",
     "prepack": "npm run build",
     "test:all": "npm run lint && npm run test:unit && npm run test"
   },
