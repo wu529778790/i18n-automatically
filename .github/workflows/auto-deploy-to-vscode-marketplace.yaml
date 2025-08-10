@@ -38,6 +38,9 @@ jobs:
       - name: Build (vite)
         run: pnpm build
 
+      - name: Install vsce (VS Code Extension CLI)
+        run: npm install -g @vscode/vsce
+
       - name: Publish VS Code Extension (vsce)
         run: vsce publish --no-dependencies --no-yarn -p ${{ secrets.VS_MARKETPLACE_TOKEN }}
 
