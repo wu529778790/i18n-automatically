@@ -5,7 +5,6 @@ const { handleVueFile } = require('./vueProcessor');
 const { handleJsFile } = require('./jsProcessor');
 const { readConfig } = require('../setting');
 const prettier = require('prettier');
-const { getRootPath } = require('../../utils/index');
 
 /**
  *
