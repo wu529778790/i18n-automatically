@@ -75,7 +75,7 @@ node tests/unit/demoTest.validation.js
 
 # 扩展打包测试
 npm install -g @vscode/vsce
-vsce package --out test-extension.vsix
+vsce package --no-dependencies --no-yarn --out test-extension.vsix
 ```
 
 ## 测试结果
