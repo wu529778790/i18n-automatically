@@ -16,12 +16,12 @@
 
 ### 1. 代码质量检查
 
-- **ESLint检查** - 运行`yarn lint`检查代码风格和潜在问题
+- **ESLint检查** - 运行`pnpm lint`检查代码风格和潜在问题
 - **依赖安装** - 验证项目依赖能否正确安装
 
 ### 2. VS Code扩展测试
 
-- **扩展功能测试** - 运行`yarn test`执行VS Code扩展相关测试
+- **扩展功能测试** - 运行`pnpm test`执行VS Code扩展相关测试
 - **扩展打包测试** - 验证扩展能否正确打包为.vsix文件
 
 ### 3. 测试用例验证
@@ -65,17 +65,17 @@
 
 ```bash
 # 代码质量检查
-yarn lint
+pnpm lint
 
 # VS Code扩展测试
-yarn test
+pnpm test
 
 # 测试用例专项验证
 node tests/unit/demoTest.validation.js
 
 # 扩展打包测试
 npm install -g @vscode/vsce
-vsce package --no-dependencies --no-yarn --out test-extension.vsix
+vsce package --no-dependencies --out test-extension.vsix
 ```
 
 ## 测试结果

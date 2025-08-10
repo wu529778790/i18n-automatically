@@ -42,7 +42,7 @@ jobs:
         run: npm install -g @vscode/vsce
 
       - name: Publish VS Code Extension (vsce)
-        run: vsce publish --no-dependencies --no-yarn -p ${{ secrets.VS_MARKETPLACE_TOKEN }}
+        run: vsce publish --no-dependencies -p ${{ secrets.VS_MARKETPLACE_TOKEN }}
 
       - name: Push changes
         run: |
@@ -82,7 +82,7 @@ jobs:
         run: pnpm build
 
       - name: Package extension
-        run: vsce package --no-dependencies --no-yarn
+        run: vsce package --no-dependencies
 
       - name: Get package info
         id: package

@@ -78,7 +78,7 @@ jobs:
       - name: ESLint代码检查
         run: |
           echo "运行ESLint检查..."
-          yarn lint
+          pnpm lint
           echo "✅ ESLint检查通过"
 
   # 核心功能测试
@@ -149,13 +149,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'yarn'
+          cache: 'pnpm'
 
       - name: 安装依赖
         run: pnpm install --frozen-lockfile
 
       - name: Build (vite)
-        run: yarn build
+        run: pnpm build
 
       - name: 运行VS Code扩展测试
         run: |
