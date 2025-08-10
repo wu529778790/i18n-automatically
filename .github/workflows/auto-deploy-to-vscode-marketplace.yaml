@@ -18,10 +18,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
+          cache: 'pnpm'
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Update version and commit
         run: |
@@ -31,7 +36,7 @@ jobs:
           npm version patch -m "chore(release): v%s [skip ci]"
 
       - name: Build (vite)
-        run: yarn build
+        run: pnpm build
 
       - name: Publish VS Code Extension
         uses: HaaLeo/publish-vscode-extension@v1.6.2
@@ -60,19 +65,24 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
+          cache: 'pnpm'
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Install vsce (VS Code Extension CLI)
         run: npm install -g @vscode/vsce
 
       - name: Build (vite)
-        run: yarn build
+        run: pnpm build
 
       - name: Package extension
-        run: vsce package
+        run: vsce package --no-yarn
 
       - name: Get package info
         id: package
