@@ -6,6 +6,25 @@ const { getRootPath } = require('../utils/index.js');
 
 let cachedLanguage = 'zh.json'; // 初始化缓存变量
 
+// 简易容错 JSON 解析（支持 BOM、注释与尾随逗号）
+function parseJsonLoose(text) {
+  try {
+    return JSON.parse(text);
+  } catch (_) {
+    try {
+      // 优先尝试使用 JSON5 更稳健地解析（支持未加引号的键、单引号等）
+      // 若打包未包含 json5，也会走到下一个兜底分支
+      const JSON5 = require('json5');
+      return JSON5.parse(text);
+    } catch (_) {}
+    const noBom = text.replace(/^\uFEFF/, '');
+    const noBlockComments = noBom.replace(/\/\*[\s\S]*?\*\//g, '');
+    const noLineComments = noBlockComments.replace(/(^|[^:])\/\/.*$/gm, '$1');
+    const noTrailingCommas = noLineComments.replace(/,\s*([}\]])/g, '$1');
+    return JSON.parse(noTrailingCommas);
+  }
+}
+
 // 获取语言包
 const getLanguagePack = async (language = cachedLanguage) => {
   // 读取配置文件
@@ -37,7 +56,7 @@ const getLanguagePack = async (language = cachedLanguage) => {
     return;
   }
   try {
-    const languagePackObj = JSON.parse(languagePack);
+    const languagePackObj = parseJsonLoose(languagePack);
     return languagePackObj;
   } catch (error) {
     console.error(error);
