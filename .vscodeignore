@@ -44,3 +44,10 @@ package-lock.json
 # Exclude source since we ship bundled dist
 src/**
 vite.config.*
+node_modules/**
+!node_modules/prettier/**
+!node_modules/@babel/**
+!node_modules/@vue/**
+!node_modules/@vitalets/**
+!node_modules/axios/**
+!node_modules/md5/**

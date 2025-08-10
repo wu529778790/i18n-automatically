@@ -43,19 +43,8 @@ export default defineConfig({
         'http',
         'https',
         'zlib',
-        // 直接外部化 prettier，避免其 ESM 依赖的 node 内置被浏览器化
+        // 直接外部化 prettier（其 ESM 依赖 Node 内置，打包容易报错）
         'prettier',
-        // 外部化 babel & vue 编译相关，避免打包后运行时破坏
-        '@babel/parser',
-        '@babel/traverse',
-        '@babel/generator',
-        '@babel/types',
-        '@vue/compiler-sfc',
-        '@vue/compiler-dom',
-        // 其他直接使用的运行时依赖
-        '@vitalets/google-translate-api',
-        'axios',
-        'md5',
       ],
       plugins: [
         nodeResolve({ preferBuiltins: true, extensions: ['.js', '.json'] }),
