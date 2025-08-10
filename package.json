@@ -59,7 +59,16 @@
     "onCommand:extension.automatically.i18n.switchLanguage",
     "onCommand:extension.automatically.i18n.updateLocalLangPackage",
     "onCommand:extension.automatically.i18n.setting",
-    "onStartupFinished"
+    "onStartupFinished",
+    "onLanguage:javascript",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact",
+    "onLanguage:vue",
+    "onLanguage:html",
+    "onLanguage:json",
+    "onLanguage:yaml",
+    "onLanguage:yml"
   ],
   "contributes": {
     "commands": [
