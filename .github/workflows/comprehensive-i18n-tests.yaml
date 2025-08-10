@@ -139,6 +139,9 @@ jobs:
       - name: 安装依赖
         run: yarn install --frozen-lockfile
 
+      - name: Build (vite)
+        run: yarn build
+
       - name: 运行VS Code扩展测试
         run: |
           echo "运行VS Code扩展测试..."
@@ -192,6 +195,9 @@ jobs:
 
       - name: 安装vsce打包工具
         run: npm install -g @vscode/vsce
+
+      - name: Build (vite)
+        run: yarn build
 
       - name: 测试扩展打包
         run: |
