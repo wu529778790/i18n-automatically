@@ -82,7 +82,7 @@ jobs:
         run: pnpm build
 
       - name: Package extension
-        run: vsce package --no-yarn
+        run: vsce package --no-dependencies --no-yarn
 
       - name: Get package info
         id: package

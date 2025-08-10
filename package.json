@@ -129,7 +129,7 @@
     "test:js": "node tests/unit/jsProcessor.test.js",
     "test:vue": "node tests/unit/vueProcessor.test.js",
     "build": "vite build",
-    "prepack": "yarn build",
+    "prepack": "npm run build",
     "test:all": "npm run lint && npm run test:unit && npm run test"
   },
   "devDependencies": {
