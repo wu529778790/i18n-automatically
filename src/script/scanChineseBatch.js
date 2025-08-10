@@ -66,16 +66,6 @@ exports.scanChineseBatch = async () => {
 
 function getAllFilesInFolder(folderPath, excludedExtensions) {
   const files = [];
-  const excludedDirs = new Set([
-    'node_modules',
-    '.git',
-    '.husky',
-    '.vscode',
-    '.github',
-    'dist',
-    'build',
-    'out',
-  ]);
   const entries = fs.readdirSync(folderPath);
   for (const item of entries) {
     const itemPath = path.join(folderPath, item);
