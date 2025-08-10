@@ -38,11 +38,8 @@ jobs:
       - name: Build (vite)
         run: pnpm build
 
-      - name: Publish VS Code Extension
-        uses: HaaLeo/publish-vscode-extension@v1.6.2
-        with:
-          pat: ${{ secrets.VS_MARKETPLACE_TOKEN }}
-          registryUrl: https://marketplace.visualstudio.com
+      - name: Publish VS Code Extension (vsce)
+        run: vsce publish --no-dependencies --no-yarn -p ${{ secrets.VS_MARKETPLACE_TOKEN }}
 
       - name: Push changes
         run: |
