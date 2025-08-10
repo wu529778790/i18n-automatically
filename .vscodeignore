@@ -14,7 +14,6 @@ tests/**
 docs/**
 **/*.md
 !README.md
-LICENSE
 
 # Configs and tooling
 .eslintrc*
@@ -39,3 +38,7 @@ package-lock.json
 **/node_modules/.bin/**
 **/.DS_Store
 **/.vscode-test.*
+
+# Exclude source since we ship bundled dist
+src/**
+vite.config.*
