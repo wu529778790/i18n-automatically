@@ -28,7 +28,9 @@ function processJsAst(context, customContent) {
       return context;
     }
 
-    traverse(ast, {
+    // 解决 TS/JS 类型检查在不同 @babel/types 版本下的声明不一致报错
+    // 运行时无影响，仅为通过 checkJs
+    traverse(/** @type {any} */ (ast), {
       Program: (path) => checkForI18nImport(path, context),
       TemplateElement: (path) => handleChineseString(path, context, true),
       StringLiteral: (path) => handleChineseString(path, context),
