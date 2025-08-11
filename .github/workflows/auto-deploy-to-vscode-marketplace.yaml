@@ -44,12 +44,6 @@ jobs:
       - name: Publish VS Code Extension (vsce)
         run: vsce publish --no-dependencies -p ${{ secrets.VS_MARKETPLACE_TOKEN }}
 
-      - name: Install ovsx (Open VSX Publisher CLI)
-        run: npm install -g ovsx
-
-      - name: Publish Extension to Open VSX (ovsx)
-        run: ovsx publish -p ${{ secrets.OVSX_TOKEN }}
-
       - name: Push changes
         run: |
           git push
@@ -100,6 +94,12 @@ jobs:
           echo "name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
           echo "publisher=$PACKAGE_PUBLISHER" >> $GITHUB_OUTPUT
           echo "vsix_file=$PACKAGE_NAME-$PACKAGE_VERSION.vsix" >> $GITHUB_OUTPUT
+
+      - name: Install ovsx (Open VSX Publisher CLI)
+        run: npm install -g ovsx
+
+      - name: Publish VSIX to Open VSX (ovsx)
+        run: ovsx publish "${{ steps.package.outputs.vsix_file }}" -p ${{ secrets.OVSX_TOKEN }}
 
       - name: Generate tag name
         id: tag
