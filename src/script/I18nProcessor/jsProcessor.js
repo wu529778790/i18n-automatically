@@ -1,39 +1,71 @@
-// 兼容打包后 @babel/traverse 的多种导出形态
+// 兼容打包后 @babel/traverse/@babel/types 的导出形态，且避免类型检查报错
+/** @type {any} */
 const traverseModule = require('@babel/traverse');
-const traverse = (() => {
-  if (typeof traverseModule === 'function') return traverseModule;
-  if (traverseModule && typeof traverseModule.default === 'function')
-    return traverseModule.default;
-  if (traverseModule && typeof traverseModule.traverse === 'function')
-    return traverseModule.traverse;
-  if (traverseModule && typeof traverseModule.__require === 'function') {
-    const inner = traverseModule.__require();
-    if (typeof inner === 'function') return inner;
-    if (inner && typeof inner.default === 'function') return inner.default;
-    if (inner && typeof inner.traverse === 'function') return inner.traverse;
+
+function resolveTraverse(mod) {
+  if (!mod) return null;
+  if (typeof mod === 'function') return mod;
+  if (typeof mod.default === 'function') return mod.default;
+  if (typeof mod.traverse === 'function') return mod.traverse;
+  if (mod.default && typeof mod.default.traverse === 'function') {
+    return mod.default.traverse;
   }
-  return traverseModule;
-})();
+  return null;
+}
+
+function resolveTraverseDeep(mod) {
+  // 尝试沿着 default 链逐层解析
+  let current = mod;
+  for (let i = 0; i < 6 && current; i++) {
+    const direct = resolveTraverse(current);
+    if (typeof direct === 'function') return direct;
+    current = current && current.default;
+  }
+  // 回退：在对象属性中寻找函数或带 traverse 的对象
+  if (mod && typeof mod === 'object') {
+    for (const key of Object.keys(mod)) {
+      const value = mod[key];
+      if (typeof value === 'function') return value;
+      if (value && typeof value.traverse === 'function') return value.traverse;
+      if (value && typeof value.default === 'function') return value.default;
+    }
+  }
+  return null;
+}
+
+let traverse /** @type {any} */ = null;
+function getTraverse() {
+  if (typeof traverse === 'function') return traverse;
+  const candidate =
+    resolveTraverse(traverseModule) ||
+    resolveTraverse(traverseModule && traverseModule.default) ||
+    resolveTraverse(traverseModule && traverseModule.traverse) ||
+    resolveTraverseDeep(traverseModule);
+  if (typeof candidate === 'function') {
+    traverse = candidate;
+    return traverse;
+  }
+  // 打印一次详细形态，便于定位打包后导出结构
+  try {
+    const keys =
+      traverseModule && typeof traverseModule === 'object'
+        ? Object.keys(traverseModule)
+        : [];
+    console.warn(
+      '[i18n-automatically] 未能解析到 @babel/traverse 函数导出。类型:',
+      typeof traverseModule,
+      'keys:',
+      keys.slice(0, 20).join(','),
+    );
+  } catch (e) {
+    console.error(e);
+  }
+  return null;
+}
 const parser = require('@babel/parser');
-// 兼容打包后 @babel/types 的多种导出形态
+/** @type {any} */
 const typesModule = require('@babel/types');
-const t = (() => {
-  const mod = typesModule;
-  if (mod && typeof mod.identifier === 'function') return mod;
-  if (mod && mod.default && typeof mod.default.identifier === 'function')
-    return mod.default;
-  if (mod && typeof mod.__require === 'function') {
-    const inner = mod.__require();
-    if (inner && typeof inner.identifier === 'function') return inner;
-    if (
-      inner &&
-      inner.default &&
-      typeof inner.default.identifier === 'function'
-    )
-      return inner.default;
-  }
-  return mod;
-})();
+const t = typesModule.default || typesModule;
 const {
   createI18nProcessor,
   generateKey,
@@ -54,7 +86,23 @@ function processJsAst(context, customContent) {
     context.hasPluginImport = false;
     const ast = parser.parse(customContent || context.contentSource, {
       sourceType: 'module',
-      plugins: ['jsx', 'typescript', 'decorators-legacy'],
+      errorRecovery: true,
+      allowReturnOutsideFunction: true,
+      allowAwaitOutsideFunction: true,
+      // 支持常见前端语法：React/TS/装饰器、导出提案、动态导入/顶层await/类特性等
+      plugins: [
+        'jsx',
+        ['typescript', { dts: true }],
+        'decorators-legacy',
+        'exportDefaultFrom',
+        'exportNamespaceFrom',
+        'dynamicImport',
+        'importMeta',
+        'topLevelAwait',
+        'classProperties',
+        'classPrivateProperties',
+        'classPrivateMethods',
+      ],
     });
 
     if (!ast) {
@@ -63,7 +111,14 @@ function processJsAst(context, customContent) {
 
     // 解决 TS/JS 类型检查在不同 @babel/types 版本下的声明不一致报错
     // 运行时无影响，仅为通过 checkJs
-    traverse(/** @type {any} */ (ast), {
+    const traverseFn = getTraverse();
+    if (!traverseFn) {
+      console.warn(
+        '@babel/traverse 解析失败，跳过 AST 遍历。请检查打包形态下的导出。',
+      );
+      return context;
+    }
+    traverseFn(/** @type {any} */ (ast), {
       Program: (path) => checkForI18nImport(path, context),
       TemplateElement: (path) => handleChineseString(path, context, true),
       StringLiteral: (path) => handleChineseString(path, context),
