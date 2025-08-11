@@ -44,6 +44,12 @@ jobs:
       - name: Publish VS Code Extension (vsce)
         run: vsce publish --no-dependencies -p ${{ secrets.VS_MARKETPLACE_TOKEN }}
 
+      - name: Install ovsx (Open VSX Publisher CLI)
+        run: npm install -g ovsx
+
+      - name: Publish Extension to Open VSX (ovsx)
+        run: ovsx publish -p ${{ secrets.OVSX_TOKEN }}
+
       - name: Push changes
         run: |
           git push
@@ -89,8 +95,10 @@ jobs:
         run: |
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
           PACKAGE_NAME=$(node -p "require('./package.json').name")
+          PACKAGE_PUBLISHER=$(node -p "require('./package.json').publisher")
           echo "version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
           echo "name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+          echo "publisher=$PACKAGE_PUBLISHER" >> $GITHUB_OUTPUT
           echo "vsix_file=$PACKAGE_NAME-$PACKAGE_VERSION.vsix" >> $GITHUB_OUTPUT
 
       - name: Generate tag name
@@ -120,6 +128,7 @@ jobs:
 
             ### 📦 下载地址
             - [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=wu529778790.i18n-automatically)
+            - [Open VSX (适用于 Cursor/开源 VS Code 发行版)](https://open-vsx.org/extension/${{ steps.package.outputs.publisher }}/${{ steps.package.outputs.name }})
             - [GitHub Release (VSIX文件)](https://github.com/${{ github.repository }}/releases/tag/${{ steps.tag.outputs.tag_name }})
 
             ### 📋 版本信息
@@ -130,6 +139,7 @@ jobs:
             1. 从VS Code Marketplace安装（推荐）
             2. 下载VSIX文件后使用 `code --install-extension` 命令安装
             3. 在VS Code中使用"从VSIX安装扩展"功能
+            4. 在 Cursor 中可直接搜索安装（依赖 Open VSX）；或使用 `cursor --install-extension` 安装 VSIX
 
             ---
             🤖 此版本由GitHub Actions自动生成
