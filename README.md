@@ -1,5 +1,10 @@
 # i18n-automatically
 
+> 支持 VS Code 和 Cursor 安装（通过 Open VSX）。
+
+[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/wu529778790.i18n-automatically.svg?label=VS%20Code%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=wu529778790.i18n-automatically)
+[![Open VSX](https://img.shields.io/badge/Open%20VSX-i18n--automatically-2ea44f)](https://open-vsx.org/extension/wu529778790/i18n-automatically)
+
 使用babel解析成AST，替换中文为指定的key之后，在还原。
 
 采用prettier格式化代码。默认读取项目根目录的prettier配置文件(`.prettierrc.js`)。
@@ -15,6 +20,26 @@
 - 支持一键生成指定翻译包文件
 - 支持语言切换显示
 - 自带免费谷歌翻译，无需配置token
+
+## 安装
+
+- VS Code（推荐）：从 VS Code Marketplace 安装
+  - 链接：<https://marketplace.visualstudio.com/items?itemName=wu529778790.i18n-automatically>
+  - 命令行：
+
+    ```bash
+    code --install-extension wu529778790.i18n-automatically
+    ```
+
+- Cursor：从 Open VSX 安装（Cursor 扩展搜索基于 Open VSX）
+  - 链接：<https://open-vsx.org/extension/wu529778790/i18n-automatically>
+  - 命令行：
+
+    ```bash
+    cursor --install-extension wu529778790.i18n-automatically
+    ```
+
+  - 也可以在 Cursor 的扩展页直接搜索安装
 
 ## 支持的翻译服务
 
