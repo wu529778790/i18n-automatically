@@ -6,6 +6,21 @@ const { handleJsFile } = require('./jsProcessor');
 const { readConfig } = require('../setting');
 const prettier = require('prettier');
 
+function withTimeout(promise, ms, label) {
+  let timer;
+  return Promise.race([
+    promise.finally(() => clearTimeout(timer)),
+    new Promise((_, reject) => {
+      timer = setTimeout(() => {
+        reject(new Error(`[timeout] ${label} exceeded ${ms}ms`));
+      }, ms);
+    }),
+  ]).catch((e) => {
+    console.warn(`[i18n-automatically] ${label} failed:`, e && e.message);
+    return null;
+  });
+}
+
 /**
  *
  * @param {string} fileExt
@@ -45,19 +60,29 @@ async function processFile(filePath) {
     const processResult = await processor(filePath, config);
     const { contentChanged, translations } = processResult || {};
     if (contentChanged) {
-      // 通过 Prettier 官方 API 解析配置，避免打包后对用户工程的动态 require 失败
-      let prettierConfig = await prettier
-        .resolveConfig(filePath)
-        .catch(() => null);
+      // 通过 Prettier 官方 API 解析配置（设置超时，避免阻塞）
+      let prettierConfig = await withTimeout(
+        prettier.resolveConfig(filePath),
+        1500,
+        'prettier.resolveConfig',
+      );
 
       let finalContent = contentChanged;
       try {
-        // 优先格式化
-        finalContent = await prettier.format(contentChanged, {
-          parser: getParserForFile(fileExt),
-          filepath: filePath, // 让 Prettier 感知文件类型
-          ...prettierConfig,
-        });
+        // 大文件直接跳过格式化，避免性能问题
+        const isLarge = (finalContent && finalContent.length) > 200000;
+        if (!isLarge) {
+          finalContent =
+            (await withTimeout(
+              prettier.format(contentChanged, {
+                parser: getParserForFile(fileExt),
+                filepath: filePath, // 让 Prettier 感知文件类型
+                ...prettierConfig,
+              }),
+              2000,
+              'prettier.format',
+            )) || contentChanged;
+        }
       } catch (error) {
         // 若格式化失败，直接使用未格式化内容，避免阻断写入和翻译文件输出
         console.warn(

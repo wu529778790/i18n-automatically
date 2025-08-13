@@ -263,7 +263,19 @@ function processAttribute(prop, context) {
     }
   }
 
-  return `\n${prop.name}="${prop.value.content}"`;
+  // 无中文：保持原值，但要安全地包裹引号
+  const raw = prop.value.content;
+  const needsDouble = raw.indexOf('"') === -1;
+  if (needsDouble) {
+    return `\n${prop.name}="${raw}"`;
+  }
+  // 若包含双引号但不含单引号，则用单引号包裹
+  if (raw.indexOf("'") === -1) {
+    return `\n${prop.name}='${raw}'`;
+  }
+  // 同时包含单双引号：转义双引号为实体，避免破坏属性
+  const escaped = raw.replace(/\"/g, '"').replace(/"/g, '&quot;');
+  return `\n${prop.name}="${escaped}"`;
 }
 
 /**

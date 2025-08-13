@@ -23,10 +23,14 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Ensure Yarn uses node_modules (no PnP)
+      - name: Build extension
+        run: yarn build
+
+      - name: Report build artifact size and checksum
         run: |
-          echo "nodeLinker: node-modules" > .yarnrc.yml
-          yarn install --frozen-lockfile
+          test -f dist/extension.js || (echo "dist/extension.js missing" && exit 1)
+          du -h dist/extension.js || true
+          shasum -a 256 dist/extension.js || true
 
       - name: Update version and commit
         run: |
@@ -38,8 +42,11 @@ jobs:
       - name: Install vsce (VS Code Extension CLI)
         run: npm install -g @vscode/vsce
 
+      - name: Ensure dist exists before publish
+        run: test -f dist/extension.js
+
       - name: Publish VS Code Extension (vsce)
-        run: vsce publish --yarn -p ${{ secrets.VS_MARKETPLACE_TOKEN }}
+        run: vsce publish --no-dependencies -p ${{ secrets.VS_MARKETPLACE_TOKEN }}
 
       - name: Push changes
         run: |
@@ -67,16 +74,22 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Ensure Yarn uses node_modules (no PnP)
+      - name: Build extension
+        run: yarn build
+
+      - name: Report build artifact size and checksum
         run: |
-          echo "nodeLinker: node-modules" > .yarnrc.yml
-          yarn install --frozen-lockfile
+          test -f dist/extension.js || (echo "dist/extension.js missing" && exit 1)
+          du -h dist/extension.js || true
+          shasum -a 256 dist/extension.js || true
 
       - name: Install vsce (VS Code Extension CLI)
         run: npm install -g @vscode/vsce
 
       - name: Package extension
-        run: vsce package --yarn
+        run: |
+          test -f dist/extension.js || (echo "dist/extension.js missing" && exit 1)
+          vsce package --no-dependencies
 
       - name: Get package info
         id: package

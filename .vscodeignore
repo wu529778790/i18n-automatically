@@ -3,8 +3,4 @@
 !README.md
 !LICENSE
 !public/**
-!src/**
 !dist/**
-!node_modules
-!node_modules/**
-!yarn.lock
