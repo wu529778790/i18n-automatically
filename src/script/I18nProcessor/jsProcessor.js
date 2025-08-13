@@ -119,20 +119,82 @@ function processJsAst(context, customContent) {
       return context;
     }
 
+    // 防御：在某些 Babel 版本组合下，path.hub 可能缺失，补一个最小 hub，避免某些内部逻辑读取 buildError 报错
+    function ensurePathHub(path) {
+      try {
+        if (path && !path.hub) {
+          path.hub = {
+            file: { opts: { filename: context.filePath || 'unknown' } },
+            buildError(node, msg) {
+              const e = new Error(msg || 'buildError');
+              e.node = node;
+              return e;
+            },
+          };
+        }
+      } catch (_) {
+        // 忽略
+      }
+    }
+
+    // 包一层 visitor 安全执行，避免 Babel 在构建 CodeFrame 时因 hub 为空二次报错，
+    // 同时输出更有用的上下文（文件、节点类型、位置、片段）。
+    function runSafely(visitorName, path, runner) {
+      try {
+        ensurePathHub(path);
+        runner();
+      } catch (err) {
+        try {
+          const node = path && path.node ? path.node : {};
+          const start = typeof node.start === 'number' ? node.start : 0;
+          const end = typeof node.end === 'number' ? node.end : start + 1;
+          const snippet = (customContent || context.contentSource).slice(
+            Math.max(0, start - 60),
+            Math.min((customContent || context.contentSource).length, end + 60),
+          );
+          console.error(
+            `[i18n-automatically] Visitor ${visitorName} 执行失败\n` +
+              `file: ${context.filePath}\n` +
+              `nodeType: ${node.type || 'unknown'} range: [${start}, ${end}]\n` +
+              `snippet: ${snippet}\n` +
+              `error: ${err && err.stack ? err.stack : err && err.message}`,
+          );
+        } catch (logErr) {
+          console.error('[i18n-automatically] 记录 visitor 错误失败', logErr);
+        }
+      }
+    }
+
     try {
       traverseFn(/** @type {any} */ (ast), {
-        Program: (path) => checkForI18nImport(path, context),
-        TemplateElement: (path) => handleChineseString(path, context, true),
-        StringLiteral: (path) => handleChineseString(path, context),
-        JSXText: (path) => handleChineseString(path, context),
-        JSXAttribute: (path) => handleJSXAttribute(path, context),
+        noScope: true,
+        Program: (path) =>
+          runSafely('Program', path, () => checkForI18nImport(path, context)),
+        TemplateElement: (path) =>
+          runSafely('TemplateElement', path, () =>
+            handleChineseString(path, context, true),
+          ),
+        StringLiteral: (path) =>
+          runSafely('StringLiteral', path, () =>
+            handleChineseString(path, context),
+          ),
+        JSXText: (path) =>
+          runSafely('JSXText', path, () => handleChineseString(path, context)),
+        JSXAttribute: (path) =>
+          runSafely('JSXAttribute', path, () =>
+            handleJSXAttribute(path, context),
+          ),
         JSXExpressionContainer: (path) =>
-          handleJSXExpressionContainer(path, context),
+          runSafely('JSXExpressionContainer', path, () =>
+            handleJSXExpressionContainer(path, context),
+          ),
       });
     } catch (traverseError) {
       console.warn(
         '@babel/traverse 遍历出错，可能是 babel 版本兼容性问题:',
-        traverseError.message,
+        traverseError && traverseError.stack
+          ? traverseError.stack
+          : traverseError && traverseError.message,
       );
       // 即使遍历失败，也尝试生成代码
     }
