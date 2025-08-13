@@ -51,7 +51,7 @@
     "poizon"
   ],
   "icon": "public/logo.png",
-  "main": "./src/extension.js",
+  "main": "./dist/extension.js",
   "activationEvents": [
     "onCommand:extension.automatically.i18n.scanChinese",
     "onCommand:extension.automatically.i18n.scanChineseBatch",
@@ -141,6 +141,7 @@
   "scripts": {
     "lint": "eslint --fix .",
     "test": "vscode-test",
+    "build": "node scripts/esbuild.js",
     "test:unit": "node tests/run-tests.js",
     "test:i18n": "node tests/unit/demoTest.validation.js",
     "test:js": "node tests/unit/jsProcessor.test.js",
@@ -155,7 +156,8 @@
     "@vscode/test-electron": "^2.4.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.2.1"
+    "eslint-plugin-prettier": "^5.2.1",
+    "esbuild": "^0.21.5"
   },
   "dependencies": {
     "@babel/generator": "^7.28.0",

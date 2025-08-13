@@ -23,10 +23,8 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Ensure Yarn uses node_modules (no PnP)
-        run: |
-          echo "nodeLinker: node-modules" > .yarnrc.yml
-          yarn install --frozen-lockfile
+      - name: Build extension
+        run: yarn build
 
       - name: Update version and commit
         run: |
@@ -39,7 +37,7 @@ jobs:
         run: npm install -g @vscode/vsce
 
       - name: Publish VS Code Extension (vsce)
-        run: vsce publish --yarn -p ${{ secrets.VS_MARKETPLACE_TOKEN }}
+        run: vsce publish --no-dependencies -p ${{ secrets.VS_MARKETPLACE_TOKEN }}
 
       - name: Push changes
         run: |
@@ -67,16 +65,14 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Ensure Yarn uses node_modules (no PnP)
-        run: |
-          echo "nodeLinker: node-modules" > .yarnrc.yml
-          yarn install --frozen-lockfile
+      - name: Build extension
+        run: yarn build
 
       - name: Install vsce (VS Code Extension CLI)
         run: npm install -g @vscode/vsce
 
       - name: Package extension
-        run: vsce package --yarn
+        run: vsce package --no-dependencies
 
       - name: Get package info
         id: package

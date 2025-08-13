@@ -33,10 +33,8 @@ jobs:
       - name: 安装依赖 (yarn)
         run: yarn install --frozen-lockfile
 
-      - name: 确保 Yarn 使用 node_modules (禁用 PnP)
-        run: |
-          echo "nodeLinker: node-modules" > .yarnrc.yml
-          yarn install --frozen-lockfile
+      - name: Build (esbuild)
+        run: yarn build
 
       - name: 验证Package.json配置
         run: |
@@ -76,10 +74,8 @@ jobs:
       - name: 安装依赖 (yarn)
         run: yarn install --frozen-lockfile
 
-      - name: 确保 Yarn 使用 node_modules (禁用 PnP)
-        run: |
-          echo "nodeLinker: node-modules" > .yarnrc.yml
-          yarn install --frozen-lockfile
+      - name: Build (esbuild)
+        run: yarn build
 
       - name: ESLint代码检查 (yarn)
         run: |
@@ -108,10 +104,8 @@ jobs:
       - name: 安装依赖 (yarn)
         run: yarn install --frozen-lockfile
 
-      - name: 确保 Yarn 使用 node_modules (禁用 PnP)
-        run: |
-          echo "nodeLinker: node-modules" > .yarnrc.yml
-          yarn install --frozen-lockfile
+      - name: Build (esbuild)
+        run: yarn build
 
       - name: 验证测试文件结构
         run: |
@@ -166,10 +160,8 @@ jobs:
       - name: 安装依赖 (yarn)
         run: yarn install --frozen-lockfile
 
-      - name: 确保 Yarn 使用 node_modules (禁用 PnP)
-        run: |
-          echo "nodeLinker: node-modules" > .yarnrc.yml
-          yarn install --frozen-lockfile
+      - name: Build (esbuild)
+        run: yarn build
 
       - name: Build (vite)
         run: yarn build || echo "no build script"
@@ -234,10 +226,10 @@ jobs:
       - name: Build (vite)
         run: yarn build || echo "no build script"
 
-      - name: 测试扩展打包 (yarn)
+      - name: 测试扩展打包 (bundled)
         run: |
           echo "测试扩展打包..."
-          vsce package --yarn --out test-i18n-extension.vsix
+          vsce package --no-dependencies --out test-i18n-extension.vsix
           if [ -f "test-i18n-extension.vsix" ]; then
             echo "✅ 扩展打包成功"
             size=$(stat -c%s "test-i18n-extension.vsix")
