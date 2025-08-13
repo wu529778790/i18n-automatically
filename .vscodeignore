@@ -1,6 +1,7 @@
 **/*
-!dist/**
 !package.json
 !README.md
 !LICENSE
 !public/**
+!src/**
+!dist/**
