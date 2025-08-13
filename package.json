@@ -1,7 +1,7 @@
 {
   "name": "i18n-automatically",
   "displayName": "i18n-automatically",
-  "description": "vscode国际化多语言自动生成替换方案",
+  "description": "一键扫描中文、自动替换为 i18n Key，并即时生成/更新语言包（开箱即用，支持 Vue/React/TS/JS，内置免费翻译）",
   "publisher": "wu529778790",
   "author": "wu529778790",
   "repository": "https://github.com/wu529778790/i18n-automatically",
