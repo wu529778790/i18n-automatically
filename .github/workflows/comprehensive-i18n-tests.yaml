@@ -36,6 +36,12 @@ jobs:
       - name: Build (esbuild)
         run: yarn build
 
+      - name: Report build artifact size and checksum
+        run: |
+          test -f dist/extension.js || (echo "dist/extension.js missing" && exit 1)
+          du -h dist/extension.js || true
+          shasum -a 256 dist/extension.js || true
+
       - name: 验证Package.json配置
         run: |
           echo "验证package.json配置..."
@@ -77,6 +83,12 @@ jobs:
       - name: Build (esbuild)
         run: yarn build
 
+      - name: Report build artifact size and checksum
+        run: |
+          test -f dist/extension.js || (echo "dist/extension.js missing" && exit 1)
+          du -h dist/extension.js || true
+          shasum -a 256 dist/extension.js || true
+
       - name: ESLint代码检查 (yarn)
         run: |
           echo "运行ESLint检查..."
@@ -106,6 +118,12 @@ jobs:
 
       - name: Build (esbuild)
         run: yarn build
+
+      - name: Report build artifact size and checksum
+        run: |
+          test -f dist/extension.js || (echo "dist/extension.js missing" && exit 1)
+          du -h dist/extension.js || true
+          shasum -a 256 dist/extension.js || true
 
       - name: 验证测试文件结构
         run: |
@@ -162,6 +180,12 @@ jobs:
 
       - name: Build (esbuild)
         run: yarn build
+
+      - name: Report build artifact size and checksum
+        run: |
+          test -f dist/extension.js || (echo "dist/extension.js missing" && exit 1)
+          du -h dist/extension.js || true
+          shasum -a 256 dist/extension.js || true
 
       - name: Build (vite)
         run: yarn build || echo "no build script"
@@ -229,6 +253,7 @@ jobs:
       - name: 测试扩展打包 (bundled)
         run: |
           echo "测试扩展打包..."
+          test -f dist/extension.js || (echo "dist/extension.js missing" && exit 1)
           vsce package --no-dependencies --out test-i18n-extension.vsix
           if [ -f "test-i18n-extension.vsix" ]; then
             echo "✅ 扩展打包成功"

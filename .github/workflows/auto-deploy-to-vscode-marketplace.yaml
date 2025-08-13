@@ -26,6 +26,12 @@ jobs:
       - name: Build extension
         run: yarn build
 
+      - name: Report build artifact size and checksum
+        run: |
+          test -f dist/extension.js || (echo "dist/extension.js missing" && exit 1)
+          du -h dist/extension.js || true
+          shasum -a 256 dist/extension.js || true
+
       - name: Update version and commit
         run: |
           git config user.name 'github-actions[bot]'
@@ -35,6 +41,9 @@ jobs:
 
       - name: Install vsce (VS Code Extension CLI)
         run: npm install -g @vscode/vsce
+
+      - name: Ensure dist exists before publish
+        run: test -f dist/extension.js
 
       - name: Publish VS Code Extension (vsce)
         run: vsce publish --no-dependencies -p ${{ secrets.VS_MARKETPLACE_TOKEN }}
@@ -68,11 +77,19 @@ jobs:
       - name: Build extension
         run: yarn build
 
+      - name: Report build artifact size and checksum
+        run: |
+          test -f dist/extension.js || (echo "dist/extension.js missing" && exit 1)
+          du -h dist/extension.js || true
+          shasum -a 256 dist/extension.js || true
+
       - name: Install vsce (VS Code Extension CLI)
         run: npm install -g @vscode/vsce
 
       - name: Package extension
-        run: vsce package --no-dependencies
+        run: |
+          test -f dist/extension.js || (echo "dist/extension.js missing" && exit 1)
+          vsce package --no-dependencies
 
       - name: Get package info
         id: package
