@@ -36,6 +36,11 @@ async function processFile(filePath) {
   }
 
   try {
+    const stat = await fs.promises.stat(filePath).catch(() => null);
+    if (!stat || !stat.isFile()) {
+      console.warn(`[i18n-automatically] skip non-file path: ${filePath}`);
+      return;
+    }
     const config = readConfig();
     const processResult = await processor(filePath, config);
     const { contentChanged, translations } = processResult || {};
@@ -44,17 +49,33 @@ async function processFile(filePath) {
       let prettierConfig = await prettier
         .resolveConfig(filePath)
         .catch(() => null);
+
+      let finalContent = contentChanged;
       try {
-        // 格式化代码
-        const formatContent = await prettier.format(contentChanged, {
+        // 优先格式化
+        finalContent = await prettier.format(contentChanged, {
           parser: getParserForFile(fileExt),
+          filepath: filePath, // 让 Prettier 感知文件类型
           ...prettierConfig,
         });
-        await fs.promises.writeFile(filePath, formatContent, 'utf8');
-        await outputTranslations(translations);
       } catch (error) {
-        console.error(prettierConfig, contentChanged);
-        console.error(`Error processing file ${filePath}:`, error);
+        // 若格式化失败，直接使用未格式化内容，避免阻断写入和翻译文件输出
+        console.warn(
+          `Prettier format failed for ${filePath}, fallback to raw content.`,
+          error && error.message,
+        );
+      }
+
+      try {
+        await fs.promises.writeFile(filePath, finalContent, 'utf8');
+      } catch (e) {
+        console.error(`Write file failed for ${filePath}:`, e);
+      }
+      // 无论是否格式化/写入失败，尽量输出翻译文件，避免“扫描替换成功但 zh.json 为空”
+      try {
+        await outputTranslations(translations);
+      } catch (e) {
+        console.error(`Output translations failed for ${filePath}:`, e);
       }
     } else {
       console.log(`No changes needed for: ${filePath}`);

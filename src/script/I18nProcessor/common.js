@@ -20,7 +20,19 @@ function createContext(filePath, config) {
     },
     index: 0,
     translations: new Map(),
-    contentSource: fs.readFileSync(filePath, 'utf-8'),
+    // 额外保护：若传入的是目录则跳过读取，避免 EISDIR
+    contentSource: (() => {
+      try {
+        const stat = fs.statSync(filePath);
+        if (!stat.isFile()) {
+          throw new Error(`Not a file: ${filePath}`);
+        }
+        return fs.readFileSync(filePath, 'utf-8');
+      } catch (e) {
+        console.error('[i18n-automatically] read source failed:', e.message);
+        return '';
+      }
+    })(),
     contentChanged: '',
     ast: null,
   };
@@ -122,12 +134,33 @@ class TranslationManager {
   outputTranslationFile(translations, config) {
     const rootPath = this.getRootPath();
     const locale = config.locale || 'zh';
-    const filePath = path.join(
-      rootPath,
-      config.i18nFilePath,
-      'locale',
-      `${locale}.json`,
-    );
+
+    // 标准化 i18n 根目录：允许相对/绝对；并剔除误填的 `locale` 或具体文件名
+    const isWin = process.platform === 'win32';
+    const configuredRaw = config.i18nFilePath || 'src/i18n';
+    // Windows 兼容：处理以 / 或 \\ 开头但无盘符的“伪绝对路径”，按相对路径处理
+    const looksUnixRootOnWin =
+      isWin &&
+      /^[\\/]+/.test(configuredRaw) &&
+      !/^[a-zA-Z]:[\\/]/.test(configuredRaw);
+    const normalizedConfigured = looksUnixRootOnWin
+      ? configuredRaw.replace(/^[\\/]+/, '')
+      : configuredRaw;
+
+    let baseDir = path.isAbsolute(normalizedConfigured)
+      ? normalizedConfigured
+      : path.join(rootPath, normalizedConfigured);
+    // 如果末级是 locale 目录，则上移一级
+    if (path.basename(baseDir).toLowerCase() === 'locale') {
+      baseDir = path.dirname(baseDir);
+    }
+    // 如果末级带 .json，当作误把文件写进配置：取其上级目录
+    if (/\.json$/i.test(baseDir)) {
+      baseDir = path.dirname(baseDir);
+    }
+
+    const targetDir = path.join(baseDir, 'locale');
+    let filePath = path.join(targetDir, `${locale}.json`);
 
     // 确保传入的 translations 是一个对象
     const translationObj =
@@ -137,12 +170,19 @@ class TranslationManager {
 
     try {
       // 确保目录存在
-      fs.mkdirSync(path.dirname(filePath), { recursive: true });
+      fs.mkdirSync(targetDir, { recursive: true });
 
       let updatedContent = translationObj;
 
       // 如果文件存在，读取并合并内容
       if (fs.existsSync(filePath)) {
+        // 若某些误配置导致 \locale\zh.json 被创建成目录，进行友好处理
+        const stat = fs.statSync(filePath);
+        if (stat.isDirectory()) {
+          throw new Error(
+            `Expected a file but found a directory at: ${filePath}. Please remove this directory or fix i18nFilePath.`,
+          );
+        }
         try {
           const fileContent = fs.readFileSync(filePath, {
             encoding: 'utf-8',

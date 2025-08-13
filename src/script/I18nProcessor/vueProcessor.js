@@ -1,4 +1,5 @@
 const { parse: parseSfc } = require('@vue/compiler-sfc');
+const { baseParse } = require('@vue/compiler-dom');
 const {
   createI18nProcessor,
   generateKey,
@@ -16,15 +17,25 @@ async function processVueAst(context) {
   try {
     context.config.autoImportI18n = false;
     const { descriptor } = parseSfc(context.contentSource);
-    const templateAst = descriptor.template && descriptor.template.ast.children;
     const scriptAst = descriptor.script && descriptor.script.content;
     const scriptSetupAst =
       descriptor.scriptSetup && descriptor.scriptSetup.content;
 
-    if (!templateAst) {
-      return;
+    // 解析模板 AST：优先使用 SFC 提供的 ast；缺失时用 compiler-dom 降级解析
+    let templateAst = null;
+    if (descriptor.template) {
+      if (descriptor.template.ast && descriptor.template.ast.children) {
+        templateAst = descriptor.template.ast.children;
+      } else if (descriptor.template.content) {
+        try {
+          templateAst = baseParse(descriptor.template.content).children;
+        } catch (e) {
+          console.error('Error parsing vue template with compiler-dom:', e);
+        }
+      }
     }
     if (
+      templateAst &&
       !(descriptor.template.attrs && descriptor.template.attrs.lang === 'pug')
     ) {
       await processVueTemplate(templateAst, context, descriptor);
@@ -34,6 +45,7 @@ async function processVueAst(context) {
     context.templateSize = context.translations.size;
     await processVueScripts(scriptAst, scriptSetupAst, context);
 
+    // 如果模板缺失但脚本有变化，也返回 context
     return context.translations.size > 0 ? context : undefined;
   } catch (error) {
     console.error('Error in processVueAst:', error);
