@@ -64,7 +64,8 @@ async function processFile(filePath) {
     const processResult = await processor(filePath, config);
     const { contentChanged, translations } = processResult || {};
     if (contentChanged) {
-      // 直接使用内置规则（与项目 .prettierrc 一致），避免解析用户配置导致超时/报错
+      // 直接使用内置规则（与项目 .prettierrc 一致），并用 JSDoc 注明类型，避免类型检查误判
+      /** @type {import('prettier').Options} */
       const prettierConfig = { singleQuote: true, trailingComma: 'all' };
 
       let finalContent = contentChanged;
