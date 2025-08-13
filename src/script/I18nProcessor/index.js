@@ -6,9 +6,10 @@ const { handleJsFile } = require('./jsProcessor');
 const { readConfig } = require('../setting');
 // 使用 Prettier Standalone + 插件，避免 VSIX 环境下的 CJS/ESM 与 filename 解析问题
 const prettier = require('prettier/standalone');
-const prettierParserBabel = require('prettier/parser-babel');
-const prettierParserHtml = require('prettier/parser-html');
-const prettierParserTypeScript = require('prettier/parser-typescript');
+const prettierParserBabel = require('prettier/plugins/babel');
+const prettierParserHtml = require('prettier/plugins/html');
+const prettierParserTypeScript = require('prettier/plugins/typescript');
+const prettierPluginEstree = require('prettier/plugins/estree');
 
 function withTimeout(promise, ms, label) {
   let timer;
@@ -64,7 +65,8 @@ async function processFile(filePath) {
     const processResult = await processor(filePath, config);
     const { contentChanged, translations } = processResult || {};
     if (contentChanged) {
-      // 直接使用内置规则（与项目 .prettierrc 一致），避免解析用户配置导致超时/报错
+      // 直接使用内置规则（与项目 .prettierrc 一致），并用 JSDoc 注明类型，避免类型检查误判
+      /** @type {import('prettier').Options} */
       const prettierConfig = { singleQuote: true, trailingComma: 'all' };
 
       let finalContent = contentChanged;
@@ -81,6 +83,7 @@ async function processFile(filePath) {
                   prettierParserBabel,
                   prettierParserHtml,
                   prettierParserTypeScript,
+                  prettierPluginEstree,
                 ],
                 ...prettierConfig,
               }),
