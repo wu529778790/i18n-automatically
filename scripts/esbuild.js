@@ -59,7 +59,8 @@ async function bundleExtension() {
       format: 'cjs',
       sourcemap: false,
       minify: true,
-      external: ['vscode', 'prettier', ...optionalTemplateEngines],
+      // 打包内置依赖（含 prettier/standalone 与其插件），仅将 vscode 与可选模板引擎外置
+      external: ['vscode', ...optionalTemplateEngines],
       logLevel: 'info',
     });
     console.log('✅ esbuild 打包完成: dist/extension.js');
