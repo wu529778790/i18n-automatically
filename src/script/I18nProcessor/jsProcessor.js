@@ -127,7 +127,8 @@ function processJsAst(context, customContent) {
             file: { opts: { filename: context.filePath || 'unknown' } },
             buildError(node, msg) {
               const e = new Error(msg || 'buildError');
-              e.node = node;
+              // 避免 TS/JS 类型检查报错：不要直接赋值未知属性，改用 Object.assign
+              Object.assign(e, { node });
               return e;
             },
           };
