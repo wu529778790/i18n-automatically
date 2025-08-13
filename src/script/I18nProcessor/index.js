@@ -6,9 +6,10 @@ const { handleJsFile } = require('./jsProcessor');
 const { readConfig } = require('../setting');
 // 使用 Prettier Standalone + 插件，避免 VSIX 环境下的 CJS/ESM 与 filename 解析问题
 const prettier = require('prettier/standalone');
-const prettierParserBabel = require('prettier/parser-babel');
-const prettierParserHtml = require('prettier/parser-html');
-const prettierParserTypeScript = require('prettier/parser-typescript');
+const prettierParserBabel = require('prettier/plugins/babel');
+const prettierParserHtml = require('prettier/plugins/html');
+const prettierParserTypeScript = require('prettier/plugins/typescript');
+const prettierPluginEstree = require('prettier/plugins/estree');
 
 function withTimeout(promise, ms, label) {
   let timer;
@@ -82,6 +83,7 @@ async function processFile(filePath) {
                   prettierParserBabel,
                   prettierParserHtml,
                   prettierParserTypeScript,
+                  prettierPluginEstree,
                 ],
                 ...prettierConfig,
               }),
