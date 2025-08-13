@@ -170,7 +170,7 @@ DeepL 翻译服务具有更高的翻译质量，支持多种语言，适合对�
 安装依赖
 
 ```bash
-pnpm install
+yarn
 ```
 
 F5 启动, 调试
@@ -178,11 +178,11 @@ F5 启动, 调试
 下载打包依赖
 
 ```bash
-npm install -g @vscode/vsce
+yarn add @vscode/vsce -g
 ```
 
 打包
 
 ```bash
-vsce package --no-dependencies
+vsce package --yarn
 ```
