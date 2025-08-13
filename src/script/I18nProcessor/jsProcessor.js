@@ -118,15 +118,24 @@ function processJsAst(context, customContent) {
       );
       return context;
     }
-    traverseFn(/** @type {any} */ (ast), {
-      Program: (path) => checkForI18nImport(path, context),
-      TemplateElement: (path) => handleChineseString(path, context, true),
-      StringLiteral: (path) => handleChineseString(path, context),
-      JSXText: (path) => handleChineseString(path, context),
-      JSXAttribute: (path) => handleJSXAttribute(path, context),
-      JSXExpressionContainer: (path) =>
-        handleJSXExpressionContainer(path, context),
-    });
+
+    try {
+      traverseFn(/** @type {any} */ (ast), {
+        Program: (path) => checkForI18nImport(path, context),
+        TemplateElement: (path) => handleChineseString(path, context, true),
+        StringLiteral: (path) => handleChineseString(path, context),
+        JSXText: (path) => handleChineseString(path, context),
+        JSXAttribute: (path) => handleJSXAttribute(path, context),
+        JSXExpressionContainer: (path) =>
+          handleJSXExpressionContainer(path, context),
+      });
+    } catch (traverseError) {
+      console.warn(
+        '@babel/traverse 遍历出错，可能是 babel 版本兼容性问题:',
+        traverseError.message,
+      );
+      // 即使遍历失败，也尝试生成代码
+    }
 
     if (
       context.index > (context.templateSize ? context.templateSize : 0) &&

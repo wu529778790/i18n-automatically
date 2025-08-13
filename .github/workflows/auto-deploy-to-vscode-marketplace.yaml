@@ -35,9 +35,6 @@ jobs:
           git checkout .
           npm version patch -m "chore(release): v%s [skip ci]"
 
-      - name: Build (vite)
-        run: pnpm build
-
       - name: Install vsce (VS Code Extension CLI)
         run: npm install -g @vscode/vsce
 
@@ -77,9 +74,6 @@ jobs:
 
       - name: Install vsce (VS Code Extension CLI)
         run: npm install -g @vscode/vsce
-
-      - name: Build (vite)
-        run: pnpm build
 
       - name: Package extension
         run: vsce package --no-dependencies
