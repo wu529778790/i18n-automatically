@@ -47,6 +47,13 @@ async function bundleExtension() {
       'consolidate',
     ];
 
+    const babelDeps = [
+      '@babel/parser',
+      '@babel/traverse',
+      '@babel/types',
+      '@babel/generator',
+    ];
+
     await esbuild.build({
       entryPoints: [path.resolve(__dirname, '..', 'src', 'extension.js')],
       outfile: path.resolve(__dirname, '..', 'dist', 'extension.js'),
@@ -56,7 +63,12 @@ async function bundleExtension() {
       format: 'cjs',
       sourcemap: false,
       minify: true,
-      external: ['vscode', 'prettier', ...optionalTemplateEngines],
+      external: [
+        'vscode',
+        'prettier',
+        ...babelDeps,
+        ...optionalTemplateEngines,
+      ],
       logLevel: 'info',
     });
     console.log('✅ esbuild 打包完成: dist/extension.js');
