@@ -4,3 +4,4 @@
 !LICENSE
 !public/**
 !dist/**
+!node_modules/prettier/**
