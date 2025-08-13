@@ -1,4 +1,4 @@
-// 兼容打包后 @babel/traverse/@babel/types 的导出形态，且避免类型检查报错
+// 直接使用打包内置的 @babel/traverse，避免外部版本不一致
 /** @type {any} */
 const traverseModule = require('@babel/traverse');
 

@@ -47,12 +47,8 @@ async function bundleExtension() {
       'consolidate',
     ];
 
-    const babelDeps = [
-      '@babel/parser',
-      '@babel/traverse',
-      '@babel/types',
-      '@babel/generator',
-    ];
+    // 重要：Babel 相关依赖不要 external，否则运行时会引用到宿主/用户环境中的其他版本，
+    // 容易出现 path.hub.buildError 之类的版本错配错误。
 
     await esbuild.build({
       entryPoints: [path.resolve(__dirname, '..', 'src', 'extension.js')],
@@ -63,12 +59,7 @@ async function bundleExtension() {
       format: 'cjs',
       sourcemap: false,
       minify: true,
-      external: [
-        'vscode',
-        'prettier',
-        ...babelDeps,
-        ...optionalTemplateEngines,
-      ],
+      external: ['vscode', 'prettier', ...optionalTemplateEngines],
       logLevel: 'info',
     });
     console.log('✅ esbuild 打包完成: dist/extension.js');
