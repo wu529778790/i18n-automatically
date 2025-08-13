@@ -1,27 +1,21 @@
-# i18n-automatically
+# i18n-automatically — 一键把中文文案变成可维护的多语言
 
-> 支持 VS Code 和 Cursor 安装（通过 Open VSX）。
+> 让国际化不再是体力活：一键扫描、自动替换、即时生成语言包，前端项目 10 分钟接入 i18n。
 
 [![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/wu529778790.i18n-automatically.svg?label=VS%20Code%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=wu529778790.i18n-automatically)
 [![Open VSX](https://img.shields.io/badge/Open%20VSX-i18n--automatically-2ea44f)](https://open-vsx.org/extension/wu529778790/i18n-automatically)
 
-使用babel解析成AST，替换中文为指定的key之后，在还原。
+基于 Babel/ Vue 官方编译器解析 AST，自动将中文替换为唯一 key，并把翻译结果写入 `locale/*.json`。内置 Prettier 保持代码风格一致，默认读取你工程根目录的 Prettier 配置。
 
-采用prettier格式化代码。默认读取项目根目录的prettier配置文件(`.prettierrc.js`)。
+## 为什么选它
 
-## 介绍
+- **开箱即用**：零改造接入；一键扫描当前文件/目录，自动替换中文并写入 `zh.json`。
+- **稳定可靠**：基于 AST 的精准替换，兼容 Vue/React/TS/JS 与模板/JSX/字符串字面量等多种场景。
+- **体验顺滑**：格式化集成 Prettier，同步更新语言包；编辑器内联回显原文案，方便校对。
+- **自动翻译**：内置免费 Google 翻译；可切换百度/DeepL，满足高质量与高配额需求。
+- **团队友好**：统一 key 生成规则，可配置忽略词/文件类型，保障多人协作的一致性。
 
-一键扫描整个项目的`中文`替换成`key`，并生成指定的语言包翻译文件。
-
-- 自动检测并替换中文字符串
-- 生成唯一的翻译键
-- 支持递归处理整个项目目录
-- 支持文案回显
-- 支持一键生成指定翻译包文件
-- 支持语言切换显示
-- 自带免费谷歌翻译，无需配置token
-
-## 安装
+## 安装与上手
 
 - VS Code（推荐）：从 VS Code Marketplace 安装
   - 链接：<https://marketplace.visualstudio.com/items?itemName=wu529778790.i18n-automatically>
@@ -73,19 +67,19 @@ js对比图：<https://www.diffchecker.com/VyO3Zw6b/>
 
 tsx对比图：<https://www.diffchecker.com/OaZLu99x/>
 
-### 扫描中文
+### 扫描中文（当前文件）
 
-扫描当前文件的所有的中文，并替换成`key`，并生成 `zh.json` 文件。
+一键扫描当前文件中的中文，替换成 key，同时把原文写入 `zh.json`。
 
 ![20240905155251](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20240905155251.png)
 
-### 批量扫描中文
+### 批量扫描中文（目录）
 
-弹出选择文件夹，扫描所选文件夹的所有的中文，并替换成`key`，并生成 `zh.json` 文件。
+选择任意目录，递归扫描并替换中文，批量生成/合并到 `zh.json`。
 
 ### 生成语言包
 
-弹出输入框(默认en),根据 `zh.json` 生成指定语言包文件
+从 `zh.json` 一键生成任意语言包（默认 `en`），支持覆盖合并与增量更新。
 
 ![20240905160119](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20240905160119.png)
 
@@ -105,15 +99,13 @@ tsx对比图：<https://www.diffchecker.com/OaZLu99x/>
 
 ![20250606112349](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20250606112349.png)
 
-### 切换语言
+### 切换语言与文案回显
 
-替换之后在有`key`的每一行后面会显示对应的中文, 点击切换语言会切换成对应的语言。
-
-读取的是本地文件，比如刚才生成了 `en.json` 就可以切换`en`语言
+替换后在每行尾部显示当前语言的文案，点击即可在 `zh/en/...` 之间切换，所见即所得地核对翻译。
 
 ![20240905160252](https://gcore.jsdelivr.net/gh/wu529778790/image/blog/20240905160252.png)
 
-## 配置文件
+## 可配置且安全的默认值
 
 |属性|描述|默认值|
 |:--|:--|:--|
@@ -132,7 +124,7 @@ tsx对比图：<https://www.diffchecker.com/OaZLu99x/>
 |deepl.authKey|DeepL 翻译的认证密钥。| - |
 |deepl.isPro|是否为 DeepL Pro 版本。| false |
 
-### 默认免费谷歌翻译(看自己网络)
+### 默认免费谷歌翻译（网络可用时）
 
 不用使用任何配置，插件自带，直接使用即可。
 
@@ -142,7 +134,7 @@ tsx对比图：<https://www.diffchecker.com/OaZLu99x/>
 
 免费谷歌翻译依赖于：<https://github.com/vitalets/google-translate-api#readme>
 
-### 申请百度翻译(推荐)
+### 申请百度翻译（推荐）
 
 百度翻译自己申请key既免费又稳定，而且量大管饱，高级版免费调用量调整为100万字符/月
 
@@ -171,7 +163,7 @@ tsx对比图：<https://www.diffchecker.com/OaZLu99x/>
 
 DeepL 翻译服务具有更高的翻译质量，支持多种语言，适合对翻译质量有较高要求的项目。
 
-## 开发
+## 参与开发
 
 <https://github.com/wu529778790/i18n-automatically>
 
