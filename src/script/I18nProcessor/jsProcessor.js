@@ -75,6 +75,32 @@ const {
 } = require('./common');
 
 /**
+ * 将配置中的调用名（如 "this.$t"、"i18n.global.t"、"t"）转为 Babel 可用的 callee AST
+ * @param {string} calleeStr
+ */
+function buildCalleeFromString(calleeStr) {
+  try {
+    if (!calleeStr || typeof calleeStr !== 'string') return t.identifier('t');
+    const parts = calleeStr.split('.').filter(Boolean);
+    if (parts.length === 0) return t.identifier('t');
+
+    let current;
+    if (parts[0] === 'this') {
+      current = t.thisExpression();
+      parts.shift();
+    } else {
+      current = t.identifier(parts.shift());
+    }
+    for (const seg of parts) {
+      current = t.memberExpression(current, t.identifier(seg));
+    }
+    return current;
+  } catch (_) {
+    return t.identifier('t');
+  }
+}
+
+/**
  * 处理 JavaScript AST 以进行国际化。
  * @param {Object} context - 处理上下文。
  * @param {string} [customContent] - 要处理的自定义内容，如果不提供则使用 context.contentSource。
@@ -303,7 +329,7 @@ function handleStringWithDom(path, context, isTemplateLiteral) {
 function replaceWithJSXI18nCall(path, context, key) {
   path.replaceWith(
     t.jsxExpressionContainer(
-      t.callExpression(t.identifier(context.config.scriptI18nCall), [
+      t.callExpression(buildCalleeFromString(context.config.scriptI18nCall), [
         t.stringLiteral(key),
       ]),
     ),
@@ -442,7 +468,7 @@ function replaceWithI18nCall(path, context, key) {
 
   // 执行替换为i18n函数调用
   path.replaceWith(
-    t.callExpression(t.identifier(context.config.scriptI18nCall), [
+    t.callExpression(buildCalleeFromString(context.config.scriptI18nCall), [
       t.stringLiteral(key),
     ]),
   );
@@ -456,7 +482,7 @@ function replaceWithI18nCall(path, context, key) {
  */
 function handleTemplateLiteral(path, context, key) {
   const newExpression = t.callExpression(
-    t.identifier(context.config.scriptI18nCall),
+    buildCalleeFromString(context.config.scriptI18nCall),
     [t.stringLiteral(key)],
   );
 

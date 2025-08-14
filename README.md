@@ -115,7 +115,7 @@ tsx对比图：<https://www.diffchecker.com/OaZLu99x/>
 |templateI18nCall|在 Vue 模板中调用翻译函数的语法。| '$t' |
 |scriptI18nCall|在 JavaScript 文件中调用翻译函数的语法。| 'i18n.global.t' |
 |keyFilePathLevel|生成的语言包的键中文件路径的层级。| 2 |
-|excludeDebugContexts|是否跳过调试上下文中文（console/throw/assert/debugger）。设为 false 可扫描日志。| true |
+|excludeDebugContexts|是否跳过调试上下文中文（console/throw/assert/debugger）。设为 true 可跳过扫描日志。| false |
 |excludedExtensions|排除的文件后缀名|[".svg",".png",".jpg",".jpeg",".gif",".bmp",".ico",".md",".txt",".json",".css",".scss",".less",".sass",".styl"] |
 |excludedStrings|排除的字符串| ["宋体","黑体","楷体","仿宋","微软雅黑","华文","方正","苹方","思源","YYYY年MM月DD日"] |
 |freeGoogle|默认自带免费谷歌翻译 | true |
