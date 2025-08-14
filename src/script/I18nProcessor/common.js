@@ -147,9 +147,23 @@ class TranslationManager {
       ? configuredRaw.replace(/^[\\/]+/, '')
       : configuredRaw;
 
-    let baseDir = path.isAbsolute(normalizedConfigured)
-      ? normalizedConfigured
-      : path.join(rootPath, normalizedConfigured);
+    // 在 mac/linux 上，若以 / 开头但明显不是工程内路径，按相对路径处理，避免写入系统根目录
+    const appearsAbsoluteUnix = !isWin && /^[\\/]+/.test(normalizedConfigured);
+
+    let baseDir;
+    if (path.isAbsolute(normalizedConfigured)) {
+      // 若绝对路径不在工程内，优先尝试将其视为相对工程根
+      if (!normalizedConfigured.startsWith(rootPath) && appearsAbsoluteUnix) {
+        baseDir = path.join(
+          rootPath,
+          normalizedConfigured.replace(/^[\\/]+/, ''),
+        );
+      } else {
+        baseDir = normalizedConfigured;
+      }
+    } else {
+      baseDir = path.join(rootPath, normalizedConfigured);
+    }
     // 如果末级是 locale 目录，则上移一级
     if (path.basename(baseDir).toLowerCase() === 'locale') {
       baseDir = path.dirname(baseDir);
