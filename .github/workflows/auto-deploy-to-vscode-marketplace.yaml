@@ -46,7 +46,7 @@ jobs:
         run: test -f dist/extension.js
 
       - name: Publish VS Code Extension (vsce)
-        run: vsce publish --no-dependencies -p ${{ secrets.VS_MARKETPLACE_TOKEN }}
+        run: vsce publish --yarn -p ${{ secrets.VS_MARKETPLACE_TOKEN }}
 
       - name: Push changes
         run: |
@@ -89,7 +89,7 @@ jobs:
       - name: Package extension
         run: |
           test -f dist/extension.js || (echo "dist/extension.js missing" && exit 1)
-          vsce package --no-dependencies
+          vsce package --yarn
 
       - name: Get package info
         id: package
