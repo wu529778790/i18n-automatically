@@ -142,6 +142,7 @@
     "lint": "eslint --fix .",
     "test": "vscode-test",
     "build": "node scripts/esbuild.js",
+    "vscode:prepublish": "npm run build",
     "test:unit": "node tests/run-tests.js",
     "test:i18n": "node tests/unit/demoTest.validation.js",
     "test:js": "node tests/unit/jsProcessor.test.js",
