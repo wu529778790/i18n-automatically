@@ -47,8 +47,11 @@ async function bundleExtension() {
       'consolidate',
     ];
 
-    // 重要：Babel 相关依赖不要 external，否则运行时会引用到宿主/用户环境中的其他版本，
-    // 容易出现 path.hub.buildError 之类的版本错配错误。
+    // 重要：
+    // - Babel 相关依赖不要 external，否则运行时会引用到宿主/用户环境中的其他版本，
+    //   容易出现 path.hub.buildError 之类的版本错配错误（保持内联打包）。
+    // - Prettier 核心 external：保持其按运行时方式解析用户项目中的配置文件（.prettierrc*），
+    //   避免被打包后影响 resolveConfig 的文件系统搜索与动态加载行为。
 
     await esbuild.build({
       entryPoints: [path.resolve(__dirname, '..', 'src', 'extension.js')],
@@ -59,8 +62,8 @@ async function bundleExtension() {
       format: 'cjs',
       sourcemap: false,
       minify: true,
-      // 打包内置依赖（含 prettier/standalone 与其插件），仅将 vscode 与可选模板引擎外置
-      external: ['vscode', ...optionalTemplateEngines],
+      // 外置 vscode、prettier 核心与可选模板引擎
+      external: ['vscode', 'prettier', ...optionalTemplateEngines],
       logLevel: 'info',
     });
     console.log('✅ esbuild 打包完成: dist/extension.js');

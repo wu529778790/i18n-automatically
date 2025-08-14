@@ -4,12 +4,9 @@ const { TranslationManager } = require('./common');
 const { handleVueFile } = require('./vueProcessor');
 const { handleJsFile } = require('./jsProcessor');
 const { readConfig } = require('../setting');
-// 使用 Prettier Standalone + 插件，避免 VSIX 环境下的 CJS/ESM 与 filename 解析问题
-const prettier = require('prettier/standalone');
-const prettierParserBabel = require('prettier/plugins/babel');
-const prettierParserHtml = require('prettier/plugins/html');
-const prettierParserTypeScript = require('prettier/plugins/typescript');
-const prettierPluginEstree = require('prettier/plugins/estree');
+// 使用 Prettier 核心库读取配置与格式化，行为与用户本地一致
+const prettier = require('prettier');
+// 无需 ESM 动态导入，优先处理 CommonJS 的 .prettierrc.js
 
 function withTimeout(promise, ms, label) {
   let timer;
@@ -26,22 +23,7 @@ function withTimeout(promise, ms, label) {
   });
 }
 
-/**
- *
- * @param {string} fileExt
- * @returns
- */
-function getParserForFile(fileExt) {
-  switch (fileExt.toLowerCase()) {
-    case '.ts':
-    case '.tsx':
-      return 'typescript';
-    case '.vue':
-      return 'vue';
-    default:
-      return 'babel'; // 默认使用 babel 解析器
-  }
-}
+// （移除自定义解析器选择，交由 Prettier 依据 filepath 自动推断）
 /**
  * 处理单个文件
  * @param {string} filePath 文件路径
@@ -65,28 +47,59 @@ async function processFile(filePath) {
     const processResult = await processor(filePath, config);
     const { contentChanged, translations } = processResult || {};
     if (contentChanged) {
-      // 直接使用内置规则（与项目 .prettierrc 一致），并用 JSDoc 注明类型，避免类型检查误判
+      // 不合并：若用户配置存在，完全使用用户配置；否则走 Prettier 默认
       /** @type {import('prettier').Options} */
-      const prettierConfig = { singleQuote: true, trailingComma: 'all' };
+      const defaultPrettierOptions = {};
 
       let finalContent = contentChanged;
       try {
         // 大文件直接跳过格式化，避免性能问题
         const isLarge = (finalContent && finalContent.length) > 200000;
         if (!isLarge) {
+          // 读取用户 Prettier 配置（若存在），失败时忽略
+          /** @type {import('prettier').Options | null} */
+          let userPrettierOptions = await withTimeout(
+            prettier.resolveConfig(filePath, { editorconfig: true }),
+            1200,
+            'prettier.resolveConfig',
+          );
+
+          // 兼容某些环境下 .prettierrc.js 未被 resolveConfig 识别的情况：手动定位并加载
+          if (!userPrettierOptions) {
+            const configFile = await withTimeout(
+              prettier.resolveConfigFile(filePath),
+              800,
+              'prettier.resolveConfigFile',
+            );
+            if (configFile && /\.(c?js|mjs)$/i.test(configFile)) {
+              try {
+                // 优先 require（CommonJS）.prettierrc.js
+                const loaded = require(configFile);
+                if (loaded && typeof loaded === 'object') {
+                  userPrettierOptions = loaded;
+                }
+              } catch (e) {
+                console.warn(
+                  '[i18n-automatically] load .prettierrc.js failed:',
+                  e && e.message,
+                );
+              }
+            }
+          }
+
+          // 构建最终格式化配置：
+          // - 若 userPrettierOptions 存在：完全采用用户配置（仅补充 filepath 与 plugins）
+          // - 若不存在：不提供我们自定义规则，走 Prettier 默认（仅提供 filepath 与 plugins）
+          const baseOptions = userPrettierOptions || defaultPrettierOptions;
+          const formattingOptions = {
+            ...baseOptions,
+            // 传入 filepath 便于按文件类型推断 parser，并让某些规则依据文件名生效
+            filepath: filePath,
+          };
+
           finalContent =
             (await withTimeout(
-              prettier.format(contentChanged, {
-                parser: getParserForFile(fileExt),
-                // 使用 standalone，不依赖 filepath；显式提供所有需要的解析插件
-                plugins: [
-                  prettierParserBabel,
-                  prettierParserHtml,
-                  prettierParserTypeScript,
-                  prettierPluginEstree,
-                ],
-                ...prettierConfig,
-              }),
+              prettier.format(contentChanged, formattingOptions),
               2000,
               'prettier.format',
             )) || contentChanged;
