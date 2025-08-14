@@ -51,6 +51,22 @@ async function processFile(filePath) {
       /** @type {import('prettier').Options} */
       const defaultPrettierOptions = {};
 
+      // 备用：在无法使用 prettier 核心（如浏览器/某些宿主环境）时，回退到 standalone
+      function getParserForFile(ext) {
+        switch ((ext || '').toLowerCase()) {
+          case '.ts':
+          case '.tsx':
+            return 'typescript';
+          case '.vue':
+            return 'vue';
+          case '.jsx':
+          case '.js':
+            return 'babel';
+          default:
+            return 'babel';
+        }
+      }
+
       let finalContent = contentChanged;
       try {
         // 大文件直接跳过格式化，避免性能问题
@@ -97,12 +113,43 @@ async function processFile(filePath) {
             filepath: filePath,
           };
 
-          finalContent =
-            (await withTimeout(
-              prettier.format(contentChanged, formattingOptions),
-              2000,
-              'prettier.format',
-            )) || contentChanged;
+          let formatted = await withTimeout(
+            prettier.format(contentChanged, formattingOptions),
+            2000,
+            'prettier.format',
+          );
+
+          if (!formatted) {
+            try {
+              // 回退到 standalone：不传入 host-only 选项，显式指定 parser 与 plugins
+              const prettierStandalone = require('prettier/standalone');
+              const pBabel = require('prettier/plugins/babel');
+              const pHtml = require('prettier/plugins/html');
+              const pTs = require('prettier/plugins/typescript');
+              const pEstree = require('prettier/plugins/estree');
+
+              const standaloneOptions = { ...(baseOptions || {}) };
+              delete standaloneOptions.filepath;
+              delete standaloneOptions.pluginSearchDirs;
+              delete standaloneOptions.config;
+              delete standaloneOptions.configFile;
+              delete standaloneOptions.ignorePath;
+
+              formatted = await withTimeout(
+                prettierStandalone.format(contentChanged, {
+                  ...standaloneOptions,
+                  parser: getParserForFile(fileExt),
+                  plugins: [pBabel, pHtml, pTs, pEstree],
+                }),
+                2000,
+                'prettier.standalone.format',
+              );
+            } catch (e) {
+              // 忽略，保持 formatted 为空以便回退原文
+            }
+          }
+
+          finalContent = formatted || contentChanged;
         }
       } catch (error) {
         // 若格式化失败，直接使用未格式化内容，避免阻断写入和翻译文件输出
