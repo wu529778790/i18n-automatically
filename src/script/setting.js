@@ -50,6 +50,7 @@ const defaultConfig = {
     authKey: '',
     isPro: false,
   },
+  useMd5Key: false,
 };
 
 /**

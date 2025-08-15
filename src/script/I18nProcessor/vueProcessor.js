@@ -180,7 +180,7 @@ function astToTemplate(node, context) {
  */
 function processTextNode(node, context) {
   if (containsChinese(node.content)) {
-    const key = generateKey(context);
+    const key = generateKey(context, node.content);
     context.translations.set(key, node.content.trim());
     return `{{${context.config.templateI18nCall}('${key}')}}`;
   }
@@ -257,7 +257,7 @@ function processAttribute(prop, context) {
       const result = handlerDomNode(prop.value.content, context);
       return `\n:${prop.name}="\`${replaceForI18nCall(result, context)}\`"`;
     } else {
-      const key = generateKey(context);
+      const key = generateKey(context, prop.value.content);
       context.translations.set(key, prop.value.content.trim());
       return `\n:${prop.name}="${context.config.templateI18nCall}('${key}')"`;
     }
@@ -388,7 +388,7 @@ function handleAstResult(ast, node, context) {
  */
 function handleStringLiteral(node, context) {
   if (containsChinese(node.content)) {
-    const key = generateKey(context);
+    const key = generateKey(context, node.content);
     context.translations.set(key, node.content.replace(/'/g, '').trim());
     return `\n${context.config.templateI18nCall}('${key}')`;
   }
@@ -417,7 +417,7 @@ function replaceChineseWithI18nKey(str, context) {
   return str.replace(/('[^']*[\u4e00-\u9fa5]+[^']*')/g, (match) => {
     const chineseContent = match.slice(1, -1); // 去掉引号
     if (containsChinese(chineseContent)) {
-      const key = generateKey(context);
+      const key = generateKey(context, chineseContent);
       context.translations.set(key, chineseContent.trim());
       return `${context.config.templateI18nCall}('${key}')`;
     }
@@ -458,7 +458,7 @@ function interpolationStr(strContent, context) {
   return parts
     .map((part) => {
       if (containsChinese(part)) {
-        const key = generateKey(context);
+        const key = generateKey(context, part);
         context.translations.set(key, part.trim());
         return `\${${context.config.templateI18nCall}('${key}')}`;
       }
