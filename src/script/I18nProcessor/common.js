@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const generate = require('@babel/generator').default;
 const vscode = require('vscode');
-const md5 = require('md5');
 const { generateUniqueId } = require('../../utils');
 const { readConfig } = require('../setting');
 
@@ -52,7 +52,8 @@ function generateKey(context, text = '') {
   // 如果配置中启用了 MD5 key 生成且提供了文本
   if (config.useMd5Key && text) {
     // 使用文本的 MD5 值作为 key，这样相同的文本会生成相同的 key，实现去重
-    return md5(text.trim());
+    context.index++;
+    return crypto.createHash('md5').update(text.trim()).digest('hex');
   }
 
   // 原有的基于组件名字的 key 生成逻辑
