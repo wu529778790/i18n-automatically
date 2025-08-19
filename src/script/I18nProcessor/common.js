@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const generate = require('@babel/generator').default;
 const vscode = require('vscode');
 const { generateUniqueId } = require('../../utils');
@@ -45,8 +46,17 @@ function createI18nProcessor(astProcessor) {
   };
 }
 
-function generateKey(context) {
+function generateKey(context, text = '') {
   const { filePath, fileUuid, config } = context;
+
+  // 如果配置中启用了 MD5 key 生成且提供了文本
+  if (config.useMd5Key && text) {
+    // 使用文本的 MD5 值作为 key，这样相同的文本会生成相同的 key，实现去重
+    context.index++;
+    return crypto.createHash('md5').update(text.trim()).digest('hex');
+  }
+
+  // 原有的基于组件名字的 key 生成逻辑
   const pathParts = filePath.split(path.sep);
   const pathDeep = config.keyFilePathLevel || 2;
   const selectedLevelsParts = pathParts.slice(-pathDeep);

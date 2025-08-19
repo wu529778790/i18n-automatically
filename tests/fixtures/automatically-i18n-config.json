@@ -20,6 +20,7 @@
     "apiKey": "test_api_key",
     "timeout": 5000
   },
+  "useMd5Key": false,
   "extractPatterns": {
     "chineseRegex": "/[\\u4e00-\\u9fa5]+/g",
     "stringLiterals": true,

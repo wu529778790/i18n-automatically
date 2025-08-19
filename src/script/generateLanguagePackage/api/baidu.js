@@ -1,10 +1,13 @@
 const axios = require('axios');
-const md5 = require('md5');
+const crypto = require('crypto');
 const { readConfig } = require('../../setting.js');
 
 // 生成签名
 const generateSign = (appid, q, salt, secretKey) => {
-  return md5(appid + q + salt + secretKey);
+  return crypto
+    .createHash('md5')
+    .update(appid + q + salt + secretKey)
+    .digest('hex');
 };
 
 exports.baiduTranslateApi = async (q, language = 'en') => {

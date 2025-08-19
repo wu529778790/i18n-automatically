@@ -288,7 +288,7 @@ function handleChineseString(path, context, isTemplateLiteral = false) {
       return;
     }
 
-    const key = generateKey(context);
+    const key = generateKey(context, value);
 
     if (isTemplateLiteral) {
       handleTemplateLiteral(path, context, key);
@@ -603,7 +603,7 @@ function processTextContent(text, context) {
       result += match[1];
     } else if (match[2] && containsChinese(match[2])) {
       // Chinese text
-      const key = generateKey(context);
+      const key = generateKey(context, match[2]);
       context.translations.set(key, match[2].trim());
       result += `\${${context.config.scriptI18nCall}('${key}')}`;
     } else {
