@@ -5,7 +5,7 @@ const { getRootPath } = require('../utils');
 
 const defaultConfig = {
   // 使用相对工程根的路径，避免在 Windows 把以 / 开头识别为绝对根
-  i18nFilePath: 'src/i18n',
+  i18nFilePath: '/src/i18n',
   autoImportI18n: true,
   i18nImportPath: '@/i18n',
   templateI18nCall: '$t',
