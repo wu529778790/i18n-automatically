@@ -10,7 +10,7 @@ import type {
   ProcessorContext,
   AstProcessor,
   FileProcessor,
-} from '../../../types';
+} from '../../types';
 
 /** 创建处理上下文 */
 export function createContext(
@@ -53,7 +53,12 @@ export function createI18nProcessor(
 ): FileProcessor {
   return function (filePath: string, config: I18nConfig) {
     const context = createContext(filePath, config);
-    return astProcessor(context) as any;
+    const result = astProcessor(context);
+    // Handle both sync and async processors
+    if (result instanceof Promise) {
+      return result as Promise<ProcessorContext | undefined>;
+    }
+    return Promise.resolve(result) as Promise<ProcessorContext | undefined>;
   };
 }
 

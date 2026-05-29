@@ -63,7 +63,7 @@ function getTraverse(): any {
 }
 import * as parser from '@babel/parser';
 import * as typesModule from '@babel/types';
-const t: any = typesModule.default || typesModule;
+const t: any = (typesModule as any).default || typesModule;
 import {
   createI18nProcessor,
   generateKey,
@@ -71,7 +71,7 @@ import {
   generateCode,
   stringWithDom,
 } from './common';
-import type { ProcessorContext } from '../../../types';
+import type { ProcessorContext } from '../../types';
 
 /**
  * 将配置中的调用名（如 "this.$t"、"i18n.global.t"、"t"）转为 Babel 可用的 callee AST

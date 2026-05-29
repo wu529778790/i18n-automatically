@@ -37,6 +37,7 @@ async function processVueAst(context: ProcessorContext): Promise<ProcessorContex
     }
     if (
       templateAst &&
+      descriptor.template &&
       !(descriptor.template.attrs && descriptor.template.attrs.lang === 'pug')
     ) {
       await processVueTemplate(templateAst, context, descriptor);

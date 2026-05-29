@@ -49,7 +49,7 @@ export type FileProcessor = (
 export type AstProcessor = (
   context: ProcessorContext,
   customContent?: string,
-) => ProcessorContext;
+) => ProcessorContext | Promise<ProcessorContext | undefined>;
 
 /** 翻译 API 返回的单条结果 */
 export interface TranslateResultItem {

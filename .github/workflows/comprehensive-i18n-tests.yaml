@@ -128,34 +128,17 @@ jobs:
       - name: 验证测试文件结构
         run: |
           echo "验证测试文件结构..."
-          if [ -f "tests/unit/demoTest.validation.js" ]; then
-            echo "✅ 找到验证脚本，开始验证..."
-            node tests/unit/demoTest.validation.js
+          if [ -f "tests/unit/jsProcessor.test.ts" ] && [ -f "tests/unit/vueProcessor.test.ts" ]; then
+            echo "✅ 测试文件存在"
           else
-            echo "⚠️  验证脚本不存在，跳过详细验证"
-          fi
-
-      - name: 测试JavaScript处理器 (node)
-        run: |
-          echo "测试JavaScript处理器功能..."
-          if [ -f "tests/unit/jsProcessor.test.js" ]; then
-            echo "运行JS处理器测试..."
-            node tests/unit/jsProcessor.test.js
-          else
-            echo "❌ JS处理器测试文件不存在"
+            echo "❌ 测试文件缺失"
             exit 1
           fi
 
-      - name: 测试Vue处理器
+      - name: 运行单元测试 (Vitest)
         run: |
-          echo "测试Vue处理器功能..."
-          if [ -f "tests/unit/vueProcessor.test.js" ]; then
-            echo "运行Vue处理器测试..."
-            node tests/unit/vueProcessor.test.js
-          else
-            echo "❌ Vue处理器测试文件不存在"
-            exit 1
-          fi
+          echo "运行单元测试..."
+          npx vitest run
 
   # VS Code扩展测试
   vscode-extension:

@@ -55,6 +55,10 @@ async function processFile(filePath: string): Promise<void> {
       return;
     }
     const config = readConfig();
+    if (!config) {
+      console.warn(`[i18n-automatically] No config found for ${filePath}`);
+      return;
+    }
     const processResult = await processor(filePath, config);
     const { contentChanged, translations } = processResult || {};
     if (contentChanged) {
@@ -80,7 +84,7 @@ async function processFile(filePath: string): Promise<void> {
       let finalContent: string = contentChanged;
       try {
         // 大文件直接跳过格式化，避免性能问题
-        const isLarge = (finalContent && finalContent.length) > 200000;
+        const isLarge = finalContent && finalContent.length > 200000;
         if (!isLarge) {
           // 读取用户 Prettier 配置（若存在），失败时忽略
           let userPrettierOptions: prettier.Options | null = await withTimeout(
@@ -215,8 +219,14 @@ function getFileProcessor(fileExt: string): FileProcessorFn | null {
 async function outputTranslations(
   translations: Map<string, string> | undefined,
 ): Promise<void> {
+  if (!translations || translations.size === 0) {
+    return;
+  }
   const translationManager = new TranslationManager();
   const config = readConfig();
+  if (!config) {
+    return;
+  }
   await translationManager.outputTranslationFile(translations, config);
 }
 
