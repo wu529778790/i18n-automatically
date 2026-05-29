@@ -1,20 +1,28 @@
-const axios = require('axios');
-const crypto = require('crypto');
-const { readConfig } = require('../../setting.js');
+import axios from 'axios';
+import * as crypto from 'crypto';
+import { readConfig } from '../../../setting';
+import type { TranslateResult } from '../../../../types';
 
-// 生成签名
-const generateSign = (appid, q, salt, secretKey) => {
+function generateSign(
+  appid: string,
+  q: string,
+  salt: number,
+  secretKey: string,
+): string {
   return crypto
     .createHash('md5')
     .update(appid + q + salt + secretKey)
     .digest('hex');
-};
+}
 
-exports.baiduTranslateApi = async (q, language = 'en') => {
+export async function baiduTranslateApi(
+  q: string,
+  language = 'en',
+): Promise<TranslateResult | undefined> {
   const config = readConfig();
   if (!config) {
     console.error('未找到配置文件');
-    return;
+    return undefined;
   }
   const { appid, secretKey } = config.baidu;
   const salt = new Date().getTime();
@@ -31,4 +39,4 @@ exports.baiduTranslateApi = async (q, language = 'en') => {
     },
   });
   return res.data;
-};
+}
