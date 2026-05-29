@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { readConfig } from '../../../setting';
-import type { TranslateResult } from '../../../../types';
+import { readConfig } from '../../setting';
+import type { TranslateResult } from '../../../types';
 
 export async function deeplTranslateApi(
   text: string,

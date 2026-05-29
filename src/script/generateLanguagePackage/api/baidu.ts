@@ -1,7 +1,7 @@
 import axios from 'axios';
 import * as crypto from 'crypto';
-import { readConfig } from '../../../setting';
-import type { TranslateResult } from '../../../../types';
+import { readConfig } from '../../setting';
+import type { TranslateResult } from '../../../types';
 
 function generateSign(
   appid: string,

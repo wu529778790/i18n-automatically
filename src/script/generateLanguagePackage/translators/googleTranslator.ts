@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { googleTranslateApi } from '../api/freeGoogle';
-import type { ITranslator, TranslateResultItem } from '../../../../types';
+import type { ITranslator, TranslateResultItem } from '../../../types';
 
 export class GoogleTranslator implements ITranslator {
   async translate(

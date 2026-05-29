@@ -54,7 +54,7 @@ async function bundleExtension() {
     //   避免被打包后影响 resolveConfig 的文件系统搜索与动态加载行为。
 
     await esbuild.build({
-      entryPoints: [path.resolve(__dirname, '..', 'src', 'extension.js')],
+      entryPoints: [path.resolve(__dirname, '..', 'src', 'extension.ts')],
       outfile: path.resolve(__dirname, '..', 'dist', 'extension.js'),
       bundle: true,
       platform: 'node',
@@ -62,6 +62,8 @@ async function bundleExtension() {
       format: 'cjs',
       sourcemap: false,
       minify: true,
+      // 让 esbuild 解析无扩展名导入时优先查找 .ts
+      resolveExtensions: ['.ts', '.js', '.json'],
       // 外置 vscode、prettier 核心与可选模板引擎
       external: ['vscode', 'prettier', ...optionalTemplateEngines],
       logLevel: 'info',

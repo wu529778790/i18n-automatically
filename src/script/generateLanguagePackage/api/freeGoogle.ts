@@ -1,5 +1,5 @@
 import { translate } from '@vitalets/google-translate-api';
-import type { TranslateResult } from '../../../../types';
+import type { TranslateResult } from '../../../types';
 
 export async function googleTranslateApi(
   q: string,

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { baiduTranslateApi } from '../api/baidu';
-import type { ITranslator, TranslateResultItem } from '../../../../types';
+import type { ITranslator, TranslateResultItem } from '../../../types';
 
 export class BaiduTranslator implements ITranslator {
   async translate(

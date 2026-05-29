@@ -1,7 +1,7 @@
 import { BaiduTranslator } from './baiduTranslator';
 import { DeeplTranslator } from './deeplTranslator';
 import { GoogleTranslator } from './googleTranslator';
-import type { ITranslator } from '../../../../types';
+import type { ITranslator } from '../../../types';
 
 const translators: Record<string, new () => ITranslator> = {
   baidu: BaiduTranslator,

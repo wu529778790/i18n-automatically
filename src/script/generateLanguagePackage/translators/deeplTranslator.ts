@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { deeplTranslateApi } from '../api/deepl';
-import type { ITranslator, TranslateResultItem } from '../../../../types';
+import type { ITranslator, TranslateResultItem } from '../../../types';
 
 export class DeeplTranslator implements ITranslator {
   async translate(

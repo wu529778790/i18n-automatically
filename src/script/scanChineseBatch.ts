@@ -1,31 +1,26 @@
-const vscode = require('vscode');
-const fs = require('fs');
-const path = require('path');
-const { readConfig } = require('./setting.js');
-const { scanChinese } = require('./scanChinese.js');
+import * as vscode from 'vscode';
+import * as fs from 'fs';
+import * as path from 'path';
+import { readConfig } from './setting';
+import { scanChinese } from './scanChinese';
 
-exports.scanChineseBatch = async () => {
-  // 读取配置文件
+const SUPPORTED_EXTENSIONS = new Set(['.js', '.jsx', '.ts', '.tsx', '.vue']);
+
+/** 批量扫描文件夹中的中文 */
+export async function scanChineseBatch(): Promise<void> {
   const config = readConfig(true);
+  if (!config) return;
 
-  // 调用 vscode API 打开文件夹选择对话框
   const folder = await vscode.window.showOpenDialog({
     canSelectFiles: false,
     canSelectFolders: true,
     canSelectMany: false,
   });
 
-  // 如果用户没有选择文件夹，返回
-  if (!folder || folder.length === 0) {
-    return;
-  }
+  if (!folder || folder.length === 0) return;
 
   const folderPath = folder[0].fsPath;
-
-  // 定义要过滤的后缀名数组
   const excludedExtensions = [...config.excludedExtensions];
-
-  // 获取所有符合条件的文件
   const files = getAllFilesInFolder(folderPath, excludedExtensions);
   const fileCount = files.length;
 
@@ -36,7 +31,7 @@ exports.scanChineseBatch = async () => {
       cancellable: false,
     },
     async (progress) => {
-      const totalSteps = 100; // 将总进度分为100步
+      const totalSteps = 100;
       const filesPerStep = Math.max(1, Math.floor(fileCount / totalSteps));
       let processedCount = 0;
       let lastReportedStep = 0;
@@ -45,11 +40,7 @@ exports.scanChineseBatch = async () => {
         await processFile(filePath);
         processedCount++;
 
-        // 每处理 filesPerStep 个文件或达到最后一个文件时更新进度
-        if (
-          processedCount % filesPerStep === 0 ||
-          processedCount === fileCount
-        ) {
+        if (processedCount % filesPerStep === 0 || processedCount === fileCount) {
           const currentStep = Math.min(
             Math.floor((processedCount / fileCount) * totalSteps),
             totalSteps,
@@ -62,22 +53,16 @@ exports.scanChineseBatch = async () => {
       }
     },
   );
-};
+}
 
-function getAllFilesInFolder(folderPath, excludedExtensions) {
-  const files = [];
+function getAllFilesInFolder(folderPath: string, excludedExtensions: string[]): string[] {
+  const files: string[] = [];
   const entries = fs.readdirSync(folderPath);
   for (const item of entries) {
     const itemPath = path.join(folderPath, item);
-
-    // 如果当前路径是 node_modules 文件夹，则跳过
-    if (item === 'node_modules') {
-      continue;
-    }
-
+    if (item === 'node_modules') continue;
     const stat = fs.statSync(itemPath);
     if (stat.isDirectory()) {
-      // 如果是文件夹，递归获取其中的文件
       files.push(...getAllFilesInFolder(itemPath, excludedExtensions));
     } else {
       const itemExtension = path.extname(item);
@@ -89,10 +74,8 @@ function getAllFilesInFolder(folderPath, excludedExtensions) {
   return files;
 }
 
-async function processFile(filePath) {
-  // 仅处理受支持的代码后缀
-  const support = new Set(['.js', '.jsx', '.ts', '.tsx', '.vue']);
+async function processFile(filePath: string): Promise<void> {
   const ext = path.extname(filePath).toLowerCase();
-  if (!support.has(ext)) return;
+  if (!SUPPORTED_EXTENSIONS.has(ext)) return;
   await scanChinese(filePath);
 }
