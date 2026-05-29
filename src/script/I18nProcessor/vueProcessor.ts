@@ -1,19 +1,20 @@
-const { parse: parseSfc } = require('@vue/compiler-sfc');
-const { baseParse } = require('@vue/compiler-dom');
-const {
+import { parse as parseSfc } from '@vue/compiler-sfc';
+import { baseParse } from '@vue/compiler-dom';
+import {
   createI18nProcessor,
   generateKey,
   containsChinese,
   generateCode,
   stringWithDom,
-} = require('./common');
-const { processJsAst, handlerDomNode } = require('./jsProcessor');
+} from './common';
+import { processJsAst, handlerDomNode } from './jsProcessor';
+import type { ProcessorContext } from '../../types';
 
 /**
  * 处理Vue AST
- * @param {Object} context - 处理上下文
+ * @param context - 处理上下文
  */
-async function processVueAst(context) {
+async function processVueAst(context: ProcessorContext): Promise<ProcessorContext | undefined> {
   try {
     context.config.autoImportI18n = false;
     const { descriptor } = parseSfc(context.contentSource);
@@ -22,7 +23,7 @@ async function processVueAst(context) {
       descriptor.scriptSetup && descriptor.scriptSetup.content;
 
     // 解析模板 AST：优先使用 SFC 提供的 ast；缺失时用 compiler-dom 降级解析
-    let templateAst = null;
+    let templateAst: any = null;
     if (descriptor.template) {
       if (descriptor.template.ast && descriptor.template.ast.children) {
         templateAst = descriptor.template.ast.children;
@@ -55,11 +56,11 @@ async function processVueAst(context) {
 
 /**
  * 处理Vue模板
- * @param {Array} templateAst - 模板AST
- * @param {Object} context - 处理上下文
- * @param {Object} descriptor - Vue文件描述符
+ * @param templateAst - 模板AST
+ * @param context - 处理上下文
+ * @param descriptor - Vue文件描述符
  */
-async function processVueTemplate(templateAst, context, descriptor) {
+async function processVueTemplate(templateAst: any, context: ProcessorContext, descriptor: any): Promise<void> {
   try {
     const processedTemplate = processTemplate(templateAst, context);
     if (context.translations.size > 0) {
@@ -79,11 +80,11 @@ async function processVueTemplate(templateAst, context, descriptor) {
 
 /**
  * 处理Vue脚本
- * @param {string} scriptAst - 脚本AST
- * @param {string} scriptSetupAst - setup脚本AST
- * @param {Object} context - 处理上下文
+ * @param scriptAst - 脚本AST
+ * @param scriptSetupAst - setup脚本AST
+ * @param context - 处理上下文
  */
-async function processVueScripts(scriptAst, scriptSetupAst, context) {
+async function processVueScripts(scriptAst: string | null | undefined, scriptSetupAst: string | null | undefined, context: ProcessorContext): Promise<void> {
   context.config.autoImportI18n = true;
   if (scriptAst && containsChinese(scriptAst, true)) {
     await processVueScript(scriptAst, context, 'script');
@@ -95,11 +96,11 @@ async function processVueScripts(scriptAst, scriptSetupAst, context) {
 
 /**
  * 处理单个Vue脚本
- * @param {string} scriptAst - 脚本AST
- * @param {Object} context - 处理上下文
- * @param {string} scriptType - 脚本类型
+ * @param scriptAst - 脚本AST
+ * @param context - 处理上下文
+ * @param scriptType - 脚本类型
  */
-async function processVueScript(scriptAst, context, scriptType) {
+async function processVueScript(scriptAst: string, context: ProcessorContext, scriptType: string): Promise<void> {
   try {
     // 仅对脚本片段做 JS 处理，并使用该片段的生成结果做字符串替换
     const prevChanged = context.contentChanged;
@@ -119,11 +120,11 @@ async function processVueScript(scriptAst, context, scriptType) {
 
 /**
  * 处理模板
- * @param {Array} templateAst - 模板AST
- * @param {Object} context - 处理上下文
+ * @param templateAst - 模板AST
+ * @param context - 处理上下文
  * @returns {string} 处理后的模板字符串
  */
-function processTemplate(templateAst, context) {
+function processTemplate(templateAst: any, context: ProcessorContext): string {
   try {
     return astArrayToTemplate(templateAst, context);
   } catch (error) {
@@ -134,11 +135,11 @@ function processTemplate(templateAst, context) {
 
 /**
  * 将AST数组转换为模板字符串
- * @param {Array} astArray - AST数组
- * @param {Object} context - 处理上下文
+ * @param astArray - AST数组
+ * @param context - 处理上下文
  * @returns {string} 模板字符串
  */
-function astArrayToTemplate(astArray, context) {
+function astArrayToTemplate(astArray: any[], context: ProcessorContext): string {
   try {
     return astArray.map((node) => astToTemplate(node, context)).join(' ');
   } catch (error) {
@@ -149,15 +150,15 @@ function astArrayToTemplate(astArray, context) {
 
 /**
  * 将单个AST节点转换为模板字符串
- * @param {Object} node - AST节点
- * @param {Object} context - 处理上下文
+ * @param node - AST节点
+ * @param context - 处理上下文
  * @returns {string} 模板字符串
  */
-function astToTemplate(node, context) {
+function astToTemplate(node: any, context: ProcessorContext): string {
   try {
     if (typeof node === 'string') return node;
 
-    const nodeTypeHandlers = {
+    const nodeTypeHandlers: Record<number, () => string> = {
       3: () => node.loc.source, // Comment
       2: () => processTextNode(node, context),
       5: () => processInterpolationNode(node, context),
@@ -174,11 +175,11 @@ function astToTemplate(node, context) {
 
 /**
  * 处理文本节点
- * @param {Object} node - 文本节点
- * @param {Object} context - 处理上下文
+ * @param node - 文本节点
+ * @param context - 处理上下文
  * @returns {string} 处理后的文本
  */
-function processTextNode(node, context) {
+function processTextNode(node: any, context: ProcessorContext): string {
   if (containsChinese(node.content)) {
     const key = generateKey(context, node.content);
     context.translations.set(key, node.content.trim());
@@ -189,11 +190,11 @@ function processTextNode(node, context) {
 
 /**
  * 处理插值节点
- * @param {Object} node - 插值节点
- * @param {Object} context - 处理上下文
+ * @param node - 插值节点
+ * @param context - 处理上下文
  * @returns {string} 处理后的插值
  */
-function processInterpolationNode(node, context) {
+function processInterpolationNode(node: any, context: ProcessorContext): string {
   if (!containsChinese(node.content.content)) return node.loc.source;
 
   if (node.content.ast) {
@@ -206,11 +207,11 @@ function processInterpolationNode(node, context) {
 
 /**
  * 处理元素节点
- * @param {Object} node - 元素节点
- * @param {Object} context - 处理上下文
+ * @param node - 元素节点
+ * @param context - 处理上下文
  * @returns {string} 处理后的元素字符串
  */
-function processElementNode(node, context) {
+function processElementNode(node: any, context: ProcessorContext): string {
   let result = `<${node.tag}`;
   result += processAttributes(node.props, context);
 
@@ -219,7 +220,7 @@ function processElementNode(node, context) {
   result += '>';
   if (node.children) {
     result += node.children
-      .map((child) => astToTemplate(child, context))
+      .map((child: any) => astToTemplate(child, context))
       .join(' ');
   }
   return result + `</${node.tag}>`;
@@ -227,11 +228,11 @@ function processElementNode(node, context) {
 
 /**
  * 处理属性
- * @param {Array} props - 属性数组
- * @param {Object} context - 处理上下文
+ * @param props - 属性数组
+ * @param context - 处理上下文
  * @returns {string} 处理后的属性字符串
  */
-function processAttributes(props, context) {
+function processAttributes(props: any[], context: ProcessorContext): string {
   if (!props) return '';
 
   return props
@@ -245,11 +246,11 @@ function processAttributes(props, context) {
 
 /**
  * 处理普通属性
- * @param {Object} prop - 属性对象
- * @param {Object} context - 处理上下文
+ * @param prop - 属性对象
+ * @param context - 处理上下文
  * @returns {string} 处理后的属性字符串
  */
-function processAttribute(prop, context) {
+function processAttribute(prop: any, context: ProcessorContext): string {
   if (!prop.value) return `\n${prop.name}`;
 
   if (containsChinese(prop.value.content)) {
@@ -280,11 +281,11 @@ function processAttribute(prop, context) {
 
 /**
  * 处理指令
- * @param {Object} prop - 指令对象
- * @param {Object} context - 处理上下文
+ * @param prop - 指令对象
+ * @param context - 处理上下文
  * @returns {string} 处理后的指令字符串
  */
-function processDirective(prop, context) {
+function processDirective(prop: any, context: ProcessorContext): string {
   let directiveName = getDirectiveName(prop);
 
   // if (prop.arg && !directiveName.includes(prop.arg.content)) {
@@ -306,7 +307,7 @@ function processDirective(prop, context) {
   }
 
   //处理dom节点
-  let result;
+  let result: string;
   if (stringWithDom(prop.exp.content)) {
     //去掉字符串本身前后的单/双引号/模版符号，处理完成最后统一换成模版字符串符号``
     const handlerContent = prop.exp.content
@@ -324,11 +325,11 @@ function processDirective(prop, context) {
 
 /**
  * 替换I18n调用
- * @param {string} str - 输入字符串
- * @param {Object} context - 处理上下文
+ * @param str - 输入字符串
+ * @param context - 处理上下文
  * @returns {string} 替换后的字符串
  */
-function replaceForI18nCall(str, context) {
+function replaceForI18nCall(str: string, context: ProcessorContext): string {
   return str.replace(
     new RegExp(context.config.scriptI18nCall, 'g'),
     context.config.templateI18nCall,
@@ -337,18 +338,18 @@ function replaceForI18nCall(str, context) {
 
 /**
  * 处理JS内容
- * @param {Object} node - AST节点
- * @param {Object} context - 处理上下文
+ * @param node - AST节点
+ * @param context - 处理上下文
  * @returns {string} 处理后的JS代码
  */
 
 /**
  * 处理JS内容
- * @param {Object} node - AST节点
- * @param {Object} context - 处理上下文
+ * @param node - AST节点
+ * @param context - 处理上下文
  * @returns {string} 处理后的JS代码
  */
-function handlerForJs(node, context) {
+function handlerForJs(node: any, context: ProcessorContext): string {
   try {
     const { ast } = processJsAst(context, node.content.trim());
     if (ast) {
@@ -356,7 +357,7 @@ function handlerForJs(node, context) {
     } else {
       return handleNonAstResult(node, context);
     }
-  } catch (e) {
+  } catch (e: any) {
     console.error(`handlerForJs: ${e.message}`);
     return `\n${node.content}`;
   }
@@ -364,12 +365,12 @@ function handlerForJs(node, context) {
 
 /**
  * 处理有AST结果的情况
- * @param {Object} ast - AST对象
- * @param {Object} node - 原始节点
- * @param {Object} context - 处理上下文
+ * @param ast - AST对象
+ * @param node - 原始节点
+ * @param context - 处理上下文
  * @returns {string} 处理后的JS代码
  */
-function handleAstResult(ast, node, context) {
+function handleAstResult(ast: any, node: any, context: ProcessorContext): string {
   if (node.ast.type === 'StringLiteral' && ast.program.body.length === 0) {
     return handleStringLiteral(node, context);
   }
@@ -382,11 +383,11 @@ function handleAstResult(ast, node, context) {
 
 /**
  * 处理字符串字面量
- * @param {Object} node - 原始节点
- * @param {Object} context - 处理上下文
+ * @param node - 原始节点
+ * @param context - 处理上下文
  * @returns {string} 处理后的字符串
  */
-function handleStringLiteral(node, context) {
+function handleStringLiteral(node: any, context: ProcessorContext): string {
   if (containsChinese(node.content)) {
     const key = generateKey(context, node.content);
     context.translations.set(key, node.content.replace(/'/g, '').trim());
@@ -397,11 +398,11 @@ function handleStringLiteral(node, context) {
 
 /**
  * 处理没有AST结果的情况 （异常情况，vue属性赋值="{a:constA,b:'测试中文'}"，babel无法单转，需要"(代码)"可转ast，简单处理使用字符串处理）
- * @param {Object} node - 原始节点
- * @param {Object} context - 处理上下文
+ * @param node - 原始节点
+ * @param context - 处理上下文
  * @returns {string} 处理后的JS代码
  */
-function handleNonAstResult(node, context) {
+function handleNonAstResult(node: any, context: ProcessorContext): string {
   const changeBefore = context.index;
   const getResult = replaceChineseWithI18nKey(node.content.trim(), context);
   return context.index > changeBefore ? getResult : `\n${node.content}`;
@@ -409,12 +410,12 @@ function handleNonAstResult(node, context) {
 
 /**
  * 字符串处理替换，ast结果异常的情况下使用
- * @param {string} str - 源代码字符串
- * @param {Object} context - 绑定的上下文
+ * @param str - 源代码字符串
+ * @param context - 绑定的上下文
  * @returns {string} 返回替换后的字符串
  */
-function replaceChineseWithI18nKey(str, context) {
-  return str.replace(/('[^']*[\u4e00-\u9fa5]+[^']*')/g, (match) => {
+function replaceChineseWithI18nKey(str: string, context: ProcessorContext): string {
+  return str.replace(/('[^']*[一-龥]+[^']*')/g, (match) => {
     const chineseContent = match.slice(1, -1); // 去掉引号
     if (containsChinese(chineseContent)) {
       const key = generateKey(context, chineseContent);
@@ -427,10 +428,10 @@ function replaceChineseWithI18nKey(str, context) {
 
 /**
  * 获取指令名称
- * @param {Object} prop - 属性对象
+ * @param prop - 属性对象
  * @returns {string} 指令名称
  */
-function getDirectiveName(prop) {
+function getDirectiveName(prop: any): string {
   if (prop.rawName) {
     //保持原有名称
     return prop.rawName;
@@ -449,11 +450,11 @@ function getDirectiveName(prop) {
 
 /**
  * 处理插值字符串
- * @param {string} strContent - 字符串内容
- * @param {Object} context - 处理上下文
+ * @param strContent - 字符串内容
+ * @param context - 处理上下文
  * @returns {string} 处理后的插值字符串
  */
-function interpolationStr(strContent, context) {
+function interpolationStr(strContent: string, context: ProcessorContext): string {
   const parts = splitTemplateString(strContent);
   return parts
     .map((part) => {
@@ -469,38 +470,14 @@ function interpolationStr(strContent, context) {
 
 /**
  * 分割模板字符串
- * @param {string} str - 输入字符串
+ * @param str - 输入字符串
  * @returns {Array} 分割后的字符串数组
  */
-function splitTemplateString(str) {
+function splitTemplateString(str: string): string[] {
   str = str.replace(/^`|`$/g, '');
   const regex = /(\$\{[^}]*?\})|([^$]+|\$(?!\{))/g;
   return str.match(regex) || [];
 }
 
-const handleVueFile = createI18nProcessor(processVueAst);
-
-module.exports = {
-  handleVueFile,
-  processVueAst,
-  processVueTemplate,
-  processVueScripts,
-  processTemplate,
-  astArrayToTemplate,
-  astToTemplate,
-  processTextNode,
-  processInterpolationNode,
-  processElementNode,
-  processAttributes,
-  processAttribute,
-  processDirective,
-  replaceForI18nCall,
-  handlerForJs,
-  handleAstResult,
-  handleStringLiteral,
-  handleNonAstResult,
-  replaceChineseWithI18nKey,
-  getDirectiveName,
-  interpolationStr,
-  splitTemplateString,
-};
+export const handleVueFile = createI18nProcessor(processVueAst);
+export { processVueAst, processVueTemplate, processVueScripts, processTemplate, astArrayToTemplate, astToTemplate, processTextNode, processInterpolationNode, processElementNode, processAttributes, processAttribute, processDirective, replaceForI18nCall, handlerForJs, handleAstResult, handleStringLiteral, handleNonAstResult, replaceChineseWithI18nKey, getDirectiveName, interpolationStr, splitTemplateString };
