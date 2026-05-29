@@ -1,0 +1,48 @@
+name: Pre-Release to VS Code Marketplace
+
+on:
+  push:
+    branches:
+      - dev
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Type check
+        run: yarn typecheck
+
+      - name: Run tests
+        run: yarn test
+
+      - name: Build extension
+        run: yarn build
+
+      - name: Report build artifact size and checksum
+        run: |
+          test -f dist/extension.js || (echo "dist/extension.js missing" && exit 1)
+          du -h dist/extension.js || true
+          shasum -a 256 dist/extension.js || true
+
+      - name: Install vsce (VS Code Extension CLI)
+        run: npm install -g @vscode/vsce
+
+      - name: Publish Pre-Release Extension (vsce)
+        run: vsce publish --pre-release --yarn -p ${{ secrets.VS_MARKETPLACE_TOKEN }}
