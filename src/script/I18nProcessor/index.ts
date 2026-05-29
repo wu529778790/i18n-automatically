@@ -1,24 +1,36 @@
-const path = require('path');
-const fs = require('fs');
-const { TranslationManager } = require('./common');
-const { handleVueFile } = require('./vueProcessor');
-const { handleJsFile } = require('./jsProcessor');
-const { readConfig } = require('../setting');
+import * as path from 'path';
+import * as fs from 'fs';
+import { TranslationManager } from './common';
+import { handleVueFile } from './vueProcessor';
+import { handleJsFile } from './jsProcessor';
+import { readConfig } from '../setting';
 // 使用 Prettier 核心库读取配置与格式化，行为与用户本地一致
-const prettier = require('prettier');
+import * as prettier from 'prettier';
 // 无需 ESM 动态导入，优先处理 CommonJS 的 .prettierrc.js
 
-function withTimeout(promise, ms, label) {
-  let timer;
+import type { ProcessorContext, I18nConfig } from '../../types';
+
+/** 文件处理器函数签名 */
+type FileProcessorFn = (
+  filePath: string,
+  config: I18nConfig,
+) => Promise<ProcessorContext | undefined>;
+
+function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  label: string,
+): Promise<T | null> {
+  let timer: ReturnType<typeof setTimeout>;
   return Promise.race([
     promise.finally(() => clearTimeout(timer)),
-    new Promise((_, reject) => {
+    new Promise<T>((_, reject) => {
       timer = setTimeout(() => {
         reject(new Error(`[timeout] ${label} exceeded ${ms}ms`));
       }, ms);
     }),
-  ]).catch((e) => {
-    console.warn(`[i18n-automatically] ${label} failed:`, e && e.message);
+  ]).catch((e: unknown) => {
+    console.warn(`[i18n-automatically] ${label} failed:`, e instanceof Error ? e.message : String(e));
     return null;
   });
 }
@@ -26,10 +38,9 @@ function withTimeout(promise, ms, label) {
 // （移除自定义解析器选择，交由 Prettier 依据 filepath 自动推断）
 /**
  * 处理单个文件
- * @param {string} filePath 文件路径
- * @returns {Promise<void>}
+ * @param filePath 文件路径
  */
-async function processFile(filePath) {
+async function processFile(filePath: string): Promise<void> {
   const fileExt = path.extname(filePath).toLowerCase();
   const processor = getFileProcessor(fileExt);
 
@@ -48,11 +59,10 @@ async function processFile(filePath) {
     const { contentChanged, translations } = processResult || {};
     if (contentChanged) {
       // 不合并：若用户配置存在，完全使用用户配置；否则走 Prettier 默认
-      /** @type {import('prettier').Options} */
-      const defaultPrettierOptions = {};
+      const defaultPrettierOptions: prettier.Options = {};
 
       // 备用：在无法使用 prettier 核心（如浏览器/某些宿主环境）时，回退到 standalone
-      function getParserForFile(ext) {
+      function getParserForFile(ext: string): string {
         switch ((ext || '').toLowerCase()) {
           case '.ts':
           case '.tsx':
@@ -67,14 +77,13 @@ async function processFile(filePath) {
         }
       }
 
-      let finalContent = contentChanged;
+      let finalContent: string = contentChanged;
       try {
         // 大文件直接跳过格式化，避免性能问题
         const isLarge = (finalContent && finalContent.length) > 200000;
         if (!isLarge) {
           // 读取用户 Prettier 配置（若存在），失败时忽略
-          /** @type {import('prettier').Options | null} */
-          let userPrettierOptions = await withTimeout(
+          let userPrettierOptions: prettier.Options | null = await withTimeout(
             prettier.resolveConfig(filePath, { editorconfig: true }),
             1200,
             'prettier.resolveConfig',
@@ -94,10 +103,10 @@ async function processFile(filePath) {
                 if (loaded && typeof loaded === 'object') {
                   userPrettierOptions = loaded;
                 }
-              } catch (e) {
+              } catch (e: unknown) {
                 console.warn(
                   '[i18n-automatically] load .prettierrc.js failed:',
-                  e && e.message,
+                  e instanceof Error ? e.message : String(e),
                 );
               }
             }
@@ -107,13 +116,13 @@ async function processFile(filePath) {
           // - 若 userPrettierOptions 存在：完全采用用户配置（仅补充 filepath 与 plugins）
           // - 若不存在：不提供我们自定义规则，走 Prettier 默认（仅提供 filepath 与 plugins）
           const baseOptions = userPrettierOptions || defaultPrettierOptions;
-          const formattingOptions = {
+          const formattingOptions: prettier.Options = {
             ...baseOptions,
             // 传入 filepath 便于按文件类型推断 parser，并让某些规则依据文件名生效
             filepath: filePath,
           };
 
-          let formatted = await withTimeout(
+          let formatted: string | null = await withTimeout(
             prettier.format(contentChanged, formattingOptions),
             2000,
             'prettier.format',
@@ -122,13 +131,18 @@ async function processFile(filePath) {
           if (!formatted) {
             try {
               // 回退到 standalone：不传入 host-only 选项，显式指定 parser 与 plugins
+              // eslint-disable-next-line @typescript-eslint/no-require-imports
               const prettierStandalone = require('prettier/standalone');
+              // eslint-disable-next-line @typescript-eslint/no-require-imports
               const pBabel = require('prettier/plugins/babel');
+              // eslint-disable-next-line @typescript-eslint/no-require-imports
               const pHtml = require('prettier/plugins/html');
+              // eslint-disable-next-line @typescript-eslint/no-require-imports
               const pTs = require('prettier/plugins/typescript');
+              // eslint-disable-next-line @typescript-eslint/no-require-imports
               const pEstree = require('prettier/plugins/estree');
 
-              const standaloneOptions = { ...(baseOptions || {}) };
+              const standaloneOptions = { ...(baseOptions || {}) } as Record<string, unknown>;
               delete standaloneOptions.filepath;
               delete standaloneOptions.pluginSearchDirs;
               delete standaloneOptions.config;
@@ -144,47 +158,46 @@ async function processFile(filePath) {
                 2000,
                 'prettier.standalone.format',
               );
-            } catch (e) {
+            } catch (_e) {
               // 忽略，保持 formatted 为空以便回退原文
             }
           }
 
           finalContent = formatted || contentChanged;
         }
-      } catch (error) {
+      } catch (error: unknown) {
         // 若格式化失败，直接使用未格式化内容，避免阻断写入和翻译文件输出
         console.warn(
           `Prettier format failed for ${filePath}, fallback to raw content.`,
-          error && error.message,
+          error instanceof Error ? error.message : String(error),
         );
       }
 
       try {
         await fs.promises.writeFile(filePath, finalContent, 'utf8');
-      } catch (e) {
+      } catch (e: unknown) {
         console.error(`Write file failed for ${filePath}:`, e);
       }
-      // 无论是否格式化/写入失败，尽量输出翻译文件，避免“扫描替换成功但 zh.json 为空”
+      // 无论是否格式化/写入失败，尽量输出翻译文件，避免"扫描替换成功但 zh.json 为空"
       try {
         await outputTranslations(translations);
-      } catch (e) {
+      } catch (e: unknown) {
         console.error(`Output translations failed for ${filePath}:`, e);
       }
     } else {
       console.log(`No changes needed for: ${filePath}`);
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(`Error processing file ${filePath}:`, error);
   }
 }
 
 /**
  * 获取文件处理器
- * @param {string} fileExt 文件扩展名
- * @returns {Function|null} 文件处理器函数
+ * @param fileExt 文件扩展名
  */
-function getFileProcessor(fileExt) {
-  const processors = {
+function getFileProcessor(fileExt: string): FileProcessorFn | null {
+  const processors: Record<string, FileProcessorFn> = {
     '.vue': handleVueFile,
     '.js': handleJsFile,
     '.jsx': handleJsFile,
@@ -197,10 +210,11 @@ function getFileProcessor(fileExt) {
 
 /**
  * 输出翻译文件
- * @param {Map} translations 翻译映射
- * @returns {Promise<void>}
+ * @param translations 翻译映射
  */
-async function outputTranslations(translations) {
+async function outputTranslations(
+  translations: Map<string, string> | undefined,
+): Promise<void> {
   const translationManager = new TranslationManager();
   const config = readConfig();
   await translationManager.outputTranslationFile(translations, config);
@@ -208,10 +222,9 @@ async function outputTranslations(translations) {
 
 /**
  * 递归处理目录中的所有文件
- * @param {string} dir 目录路径
- * @returns {Promise<void>}
+ * @param dir 目录路径
  */
-async function processDirectory(dir) {
+async function processDirectory(dir: string): Promise<void> {
   try {
     const files = await fs.promises.readdir(dir);
     for (const file of files) {
@@ -223,17 +236,16 @@ async function processDirectory(dir) {
         await processFile(filePath);
       }
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(`Error processing directory ${dir}:`, error);
   }
 }
 
 /**
  * 主函数
- * @param {string} inputPath 输入路径（文件或目录）
- * @returns {Promise<void>}
+ * @param inputPath 输入路径（文件或目录）
  */
-async function main(inputPath) {
+async function main(inputPath: string): Promise<void> {
   try {
     const stat = await fs.promises.stat(inputPath);
     if (stat.isDirectory()) {
@@ -241,24 +253,10 @@ async function main(inputPath) {
     } else {
       await processFile(inputPath);
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('An error occurred:', error);
     process.exit(1);
   }
 }
 
-// 如果直接运行此脚本，则处理命令行参数
-if (require.main === module) {
-  const inputPath = process.argv[2];
-  if (!inputPath) {
-    console.error('Please provide a file or directory path as an argument.');
-    process.exit(1);
-  }
-
-  main(inputPath).catch((error) => {
-    console.error('An error occurred:', error);
-    process.exit(1);
-  });
-}
-
-module.exports = { processFile, processDirectory, main };
+export { processFile, processDirectory, main };
