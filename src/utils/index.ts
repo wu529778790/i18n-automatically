@@ -1,42 +1,43 @@
-const vscode = require('vscode');
-const fs = require('fs');
-const path = require('path');
+import * as vscode from 'vscode';
+import * as fs from 'fs';
+import * as path from 'path';
 
-/**
- * 生成唯一ID
- */
-exports.generateUniqueId = () => {
+/** 生成唯一 ID */
+export function generateUniqueId(): string {
   const timestamp = Date.now().toString(16);
   const random = Math.random().toString(16).substring(2, 8);
   return timestamp + random;
-};
+}
 
-// 保存对象到指定路径的方法
-exports.saveObjectToPath = (obj, filePath) => {
-  const rootPath = exports.getRootPath();
+/** 保存对象到指定路径 */
+export function saveObjectToPath(
+  obj: Record<string, unknown>,
+  filePath: string,
+): Promise<void> {
+  const rootPath = getRootPath();
   const newFilePath = path.join(rootPath, filePath);
   const directory = path.dirname(newFilePath);
 
   return new Promise((resolve, reject) => {
-    // 创建目录（如果不存在）
     if (!fs.existsSync(directory)) {
       fs.mkdirSync(directory, { recursive: true });
     }
 
-    let updatedContent = obj;
+    let updatedContent: Record<string, unknown> = { ...obj };
 
-    // 尝试读取文件内容并合并
     if (fs.existsSync(newFilePath)) {
       try {
         const fileContent = fs.readFileSync(newFilePath, 'utf-8');
-        const fileContentObj = fileContent ? JSON.parse(fileContent) : {};
+        const fileContentObj: Record<string, unknown> = fileContent
+          ? JSON.parse(fileContent)
+          : {};
         updatedContent = { ...fileContentObj, ...obj };
-      } catch (error) {
+      } catch (_error) {
         reject(`Error reading or parsing file: ${newFilePath}`);
+        return;
       }
     }
 
-    // 写入更新后的内容
     try {
       fs.writeFileSync(
         newFilePath,
@@ -44,15 +45,13 @@ exports.saveObjectToPath = (obj, filePath) => {
         'utf-8',
       );
       resolve();
-    } catch (error) {
+    } catch (_error) {
       reject(`Error writing file: ${newFilePath}`);
     }
   });
-};
+}
 
-/**
- * 获取根目录
- */
-exports.getRootPath = () => {
-  return vscode.workspace.workspaceFolders[0].uri.fsPath;
-};
+/** 获取工作区根目录 */
+export function getRootPath(): string {
+  return vscode.workspace.workspaceFolders![0].uri.fsPath;
+}
