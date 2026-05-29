@@ -1,8 +1,7 @@
 // 直接使用打包内置的 @babel/traverse，避免外部版本不一致
-/** @type {any} */
-const traverseModule = require('@babel/traverse');
+const traverseModule: any = require('@babel/traverse');
 
-function resolveTraverse(mod) {
+function resolveTraverse(mod: any): any {
   if (!mod) return null;
   if (typeof mod === 'function') return mod;
   if (typeof mod.default === 'function') return mod.default;
@@ -13,9 +12,9 @@ function resolveTraverse(mod) {
   return null;
 }
 
-function resolveTraverseDeep(mod) {
+function resolveTraverseDeep(mod: any): any {
   // 尝试沿着 default 链逐层解析
-  let current = mod;
+  let current: any = mod;
   for (let i = 0; i < 6 && current; i++) {
     const direct = resolveTraverse(current);
     if (typeof direct === 'function') return direct;
@@ -33,8 +32,8 @@ function resolveTraverseDeep(mod) {
   return null;
 }
 
-let traverse /** @type {any} */ = null;
-function getTraverse() {
+let traverse: any = null;
+function getTraverse(): any {
   if (typeof traverse === 'function') return traverse;
   const candidate =
     resolveTraverse(traverseModule) ||
@@ -57,34 +56,33 @@ function getTraverse() {
       'keys:',
       keys.slice(0, 20).join(','),
     );
-  } catch (e) {
+  } catch (e: any) {
     console.error(e);
   }
   return null;
 }
-const parser = require('@babel/parser');
-/** @type {any} */
-const typesModule = require('@babel/types');
-const t = typesModule.default || typesModule;
-const {
+import * as parser from '@babel/parser';
+import * as typesModule from '@babel/types';
+const t: any = typesModule.default || typesModule;
+import {
   createI18nProcessor,
   generateKey,
   containsChinese,
   generateCode,
   stringWithDom,
-} = require('./common');
+} from './common';
+import type { ProcessorContext } from '../../../types';
 
 /**
  * 将配置中的调用名（如 "this.$t"、"i18n.global.t"、"t"）转为 Babel 可用的 callee AST
- * @param {string} calleeStr
  */
-function buildCalleeFromString(calleeStr) {
+function buildCalleeFromString(calleeStr: string): any {
   try {
     if (!calleeStr || typeof calleeStr !== 'string') return t.identifier('t');
     const parts = calleeStr.split('.').filter(Boolean);
     if (parts.length === 0) return t.identifier('t');
 
-    let current;
+    let current: any;
     if (parts[0] === 'this') {
       current = t.thisExpression();
       parts.shift();
@@ -95,19 +93,18 @@ function buildCalleeFromString(calleeStr) {
       current = t.memberExpression(current, t.identifier(seg));
     }
     return current;
-  } catch (_) {
+  } catch (_: any) {
     return t.identifier('t');
   }
 }
 
 /**
  * 处理 JavaScript AST 以进行国际化。
- * @param {Object} context - 处理上下文。
- * @param {string} [customContent] - 要处理的自定义内容，如果不提供则使用 context.contentSource。
- * @returns {Object} 处理后更新的上下文。
- * @throws {Error} 如果在 AST 处理过程中出现错误。
  */
-function processJsAst(context, customContent) {
+function processJsAst(
+  context: ProcessorContext,
+  customContent?: string,
+): ProcessorContext {
   try {
     context.hasPluginImport = false;
     const ast = parser.parse(customContent || context.contentSource, {
@@ -146,12 +143,12 @@ function processJsAst(context, customContent) {
     }
 
     // 防御：在某些 Babel 版本组合下，path.hub 可能缺失，补一个最小 hub，避免某些内部逻辑读取 buildError 报错
-    function ensurePathHub(path) {
+    function ensurePathHub(path: any) {
       try {
         if (path && !path.hub) {
           path.hub = {
             file: { opts: { filename: context.filePath || 'unknown' } },
-            buildError(node, msg) {
+            buildError(node: any, msg: string) {
               const e = new Error(msg || 'buildError');
               // 避免 TS/JS 类型检查报错：不要直接赋值未知属性，改用 Object.assign
               Object.assign(e, { node });
@@ -159,18 +156,18 @@ function processJsAst(context, customContent) {
             },
           };
         }
-      } catch (_) {
+      } catch (_: any) {
         // 忽略
       }
     }
 
     // 包一层 visitor 安全执行，避免 Babel 在构建 CodeFrame 时因 hub 为空二次报错，
     // 同时输出更有用的上下文（文件、节点类型、位置、片段）。
-    function runSafely(visitorName, path, runner) {
+    function runSafely(visitorName: string, path: any, runner: () => void) {
       try {
         ensurePathHub(path);
         runner();
-      } catch (err) {
+      } catch (err: any) {
         try {
           const node = path && path.node ? path.node : {};
           const start = typeof node.start === 'number' ? node.start : 0;
@@ -186,37 +183,37 @@ function processJsAst(context, customContent) {
               `snippet: ${snippet}\n` +
               `error: ${err && err.stack ? err.stack : err && err.message}`,
           );
-        } catch (logErr) {
+        } catch (logErr: any) {
           console.error('[i18n-automatically] 记录 visitor 错误失败', logErr);
         }
       }
     }
 
     try {
-      traverseFn(/** @type {any} */ (ast), {
+      traverseFn(ast, {
         noScope: true,
-        Program: (path) =>
+        Program: (path: any) =>
           runSafely('Program', path, () => checkForI18nImport(path, context)),
-        TemplateElement: (path) =>
+        TemplateElement: (path: any) =>
           runSafely('TemplateElement', path, () =>
             handleChineseString(path, context, true),
           ),
-        StringLiteral: (path) =>
+        StringLiteral: (path: any) =>
           runSafely('StringLiteral', path, () =>
             handleChineseString(path, context),
           ),
-        JSXText: (path) =>
+        JSXText: (path: any) =>
           runSafely('JSXText', path, () => handleChineseString(path, context)),
-        JSXAttribute: (path) =>
+        JSXAttribute: (path: any) =>
           runSafely('JSXAttribute', path, () =>
             handleJSXAttribute(path, context),
           ),
-        JSXExpressionContainer: (path) =>
+        JSXExpressionContainer: (path: any) =>
           runSafely('JSXExpressionContainer', path, () =>
             handleJSXExpressionContainer(path, context),
           ),
       });
-    } catch (traverseError) {
+    } catch (traverseError: any) {
       console.warn(
         '@babel/traverse 遍历出错，可能是 babel 版本兼容性问题:',
         traverseError && traverseError.stack
@@ -243,7 +240,7 @@ function processJsAst(context, customContent) {
         '',
       );
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('processJsAst 中出错:', error);
   } finally {
     return context;
@@ -252,12 +249,10 @@ function processJsAst(context, customContent) {
 
 /**
  * 检查 AST 中是否存在 i18n 导入。
- * @param {Object} path - AST 路径对象。
- * @param {Object} context - 处理上下文。
  */
-function checkForI18nImport(path, context) {
+function checkForI18nImport(path: any, context: ProcessorContext): void {
   context.hasPluginImport = path.node.body.some(
-    (node) =>
+    (node: any) =>
       node.type === 'ImportDeclaration' &&
       node.source.value.trim() === context.config.i18nImportPath,
   );
@@ -265,13 +260,14 @@ function checkForI18nImport(path, context) {
 
 /**
  * 处理 AST 中的中文字符串。
- * @param {Object} path - AST 路径对象。
- * @param {Object} context - 处理上下文。
- * @param {boolean} [isTemplateLiteral=false] - 是否为模板字面量。
  */
-function handleChineseString(path, context, isTemplateLiteral = false) {
+function handleChineseString(
+  path: any,
+  context: ProcessorContext,
+  isTemplateLiteral: boolean = false,
+): void {
   try {
-    const value = isTemplateLiteral ? path.node.value.raw : path.node.value;
+    const value: string = isTemplateLiteral ? path.node.value.raw : path.node.value;
 
     // 当 excludeDebugContexts !== false 时（默认开启），跳过调试上下文(console/throw/assert/debugger)中的中文
     const skipDebugContexts =
@@ -301,18 +297,19 @@ function handleChineseString(path, context, isTemplateLiteral = false) {
       replaceWithI18nCall(path, context, key);
     }
     context.translations.set(key, value.trim());
-  } catch (error) {
+  } catch (error: any) {
     context.index--;
     console.error('handleChineseString 中出错:', error);
   }
 }
 /**
  * 处理包含 DOM 的字符串。
- * @param {Object} path - AST 路径对象。
- * @param {Object} context - 处理上下文。
- * @param {boolean} isTemplateLiteral - 是否为模板字面量。
  */
-function handleStringWithDom(path, context, isTemplateLiteral) {
+function handleStringWithDom(
+  path: any,
+  context: ProcessorContext,
+  isTemplateLiteral: boolean,
+): void {
   if (path.type === 'StringLiteral') {
     convertStringLiteralToTemplateLiteral(path, context);
   } else if (isTemplateLiteral) {
@@ -322,11 +319,12 @@ function handleStringWithDom(path, context, isTemplateLiteral) {
 
 /**
  * 用 JSX 中的 i18n 调用替换当前路径。
- * @param {Object} path - AST 路径对象。
- * @param {Object} context - 处理上下文。
- * @param {string} key - 翻译键。
  */
-function replaceWithJSXI18nCall(path, context, key) {
+function replaceWithJSXI18nCall(
+  path: any,
+  context: ProcessorContext,
+  key: string,
+): void {
   path.replaceWith(
     t.jsxExpressionContainer(
       t.callExpression(buildCalleeFromString(context.config.scriptI18nCall), [
@@ -338,9 +336,6 @@ function replaceWithJSXI18nCall(path, context, key) {
 
 /**
  * 将字符串字面量转换为模板字面量
- *
- * @param {Object} path - Babel 的路径对象，表示当前遍历到的 AST 节点
- * @param {Object} context - 上下文对象，包含处理过程中需要的信息
  *
  * @description
  * 这个函数接收一个字符串字面量的 AST 节点，将其转换为等价的模板字面量。
@@ -355,7 +350,10 @@ function replaceWithJSXI18nCall(path, context, key) {
  *
  * @throws {Error} 如果在转换过程中发生错误，将在控制台输出错误信息
  */
-function convertStringLiteralToTemplateLiteral(path, context) {
+function convertStringLiteralToTemplateLiteral(
+  path: any,
+  context: ProcessorContext,
+): void {
   try {
     const stringLiteral = path.node;
     // 处理原始字符串，可能包含 DOM 节点和国际化函数调用
@@ -364,10 +362,10 @@ function convertStringLiteralToTemplateLiteral(path, context) {
     // 将字符串分割为静态部分和表达式部分
     const parts = translatedString.split(/(\$\{[^}]+\})/);
 
-    const quasis = [];
-    const expressions = [];
+    const quasis: any[] = [];
+    const expressions: any[] = [];
 
-    parts.forEach((part, index) => {
+    parts.forEach((part: string, index: number) => {
       if (part.startsWith('${') && part.endsWith('}')) {
         // 处理表达式部分
         const exp = part.slice(2, -1); // 移除 ${ 和 }
@@ -398,7 +396,7 @@ function convertStringLiteralToTemplateLiteral(path, context) {
 
     // 用新的模板字面量替换原始的字符串字面量
     path.replaceWith(templateLiteral);
-  } catch (error) {
+  } catch (error: any) {
     console.error(
       'convertStringLiteralToTemplateLiteral 函数中发生错误:',
       error,
@@ -408,10 +406,8 @@ function convertStringLiteralToTemplateLiteral(path, context) {
 
 /**
  * 处理 AST 中的 JSX 属性。
- * @param {Object} path - AST 路径对象。
- * @param {Object} context - 处理上下文。
  */
-function handleJSXAttribute(path, context) {
+function handleJSXAttribute(path: any, context: ProcessorContext): void {
   if (path.node.value && t.isStringLiteral(path.node.value)) {
     handleChineseString(path.get('value'), context);
   }
@@ -419,10 +415,11 @@ function handleJSXAttribute(path, context) {
 
 /**
  * 处理 AST 中的 JSX 表达式容器。
- * @param {Object} path - AST 路径对象。
- * @param {Object} context - 处理上下文。
  */
-function handleJSXExpressionContainer(path, context) {
+function handleJSXExpressionContainer(
+  path: any,
+  context: ProcessorContext,
+): void {
   if (t.isStringLiteral(path.node.expression)) {
     handleChineseString(path.get('expression'), context);
   }
@@ -430,25 +427,23 @@ function handleJSXExpressionContainer(path, context) {
 
 /**
  * 检查当前路径是否在调试上下文中。
- * @param {Object} path - AST 路径对象。
- * @returns {boolean} 如果在调试上下文中返回 true，否则返回 false。
  */
-function isInDebugContext(path) {
+function isInDebugContext(path: any): boolean {
   const debugContexts = [
-    (p) =>
+    (p: any) =>
       p.isCallExpression() &&
       p.get('callee').isMemberExpression() &&
       p.get('callee.object').isIdentifier({ name: 'console' }),
-    (p) =>
+    (p: any) =>
       (p.isNewExpression() &&
         p.get('callee').isIdentifier({ name: 'Error' })) ||
       p.isThrowStatement(),
-    (p) =>
+    (p: any) =>
       p.isCallExpression() &&
       (p.get('callee').isIdentifier({ name: 'assert' }) ||
         (p.get('callee').isMemberExpression() &&
           p.get('callee.object').isIdentifier({ name: 'assert' }))),
-    (p) => p.isDebuggerStatement(),
+    (p: any) => p.isDebuggerStatement(),
   ];
 
   return debugContexts.some((context) => path.findParent(context) !== null);
@@ -456,11 +451,12 @@ function isInDebugContext(path) {
 
 /**
  * 用 i18n 调用替换当前路径。
- * @param {Object} path - AST 路径对象。
- * @param {Object} context - 处理上下文。
- * @param {string} key - 翻译键。
  */
-function replaceWithI18nCall(path, context, key) {
+function replaceWithI18nCall(
+  path: any,
+  context: ProcessorContext,
+  key: string,
+): void {
   // 检查当前节点是否是TSLiteralType，如果是则跳过替换
   // if (path.parentPath.isTSLiteralType()) {
   //   return;
@@ -476,11 +472,12 @@ function replaceWithI18nCall(path, context, key) {
 
 /**
  * 处理 AST 中的模板字面量。
- * @param {Object} path - AST 路径对象。
- * @param {Object} context - 处理上下文。
- * @param {string} key - 翻译键。
  */
-function handleTemplateLiteral(path, context, key) {
+function handleTemplateLiteral(
+  path: any,
+  context: ProcessorContext,
+  key: string,
+): void {
   const newExpression = t.callExpression(
     buildCalleeFromString(context.config.scriptI18nCall),
     [t.stringLiteral(key)],
@@ -489,11 +486,13 @@ function handleTemplateLiteral(path, context, key) {
   const templateLiteral = path.parentPath;
   newExpression.start = path.node.start;
 
-  const existingExpressions = templateLiteral.node.expressions.map((exp) => ({
-    node: exp,
-    start: exp.start,
-  }));
-  const existingQuasis = templateLiteral.node.quasis.map((quasi) => ({
+  const existingExpressions = templateLiteral.node.expressions.map(
+    (exp: any) => ({
+      node: exp,
+      start: exp.start,
+    }),
+  );
+  const existingQuasis = templateLiteral.node.quasis.map((quasi: any) => ({
     node: quasi,
     start: quasi.start,
   }));
@@ -501,11 +500,11 @@ function handleTemplateLiteral(path, context, key) {
   existingExpressions.push({ node: newExpression, start: path.node.start });
 
   const sortedExpressions = existingExpressions
-    .sort((a, b) => a.start - b.start)
-    .map((item) => item.node);
+    .sort((a: any, b: any) => a.start - b.start)
+    .map((item: any) => item.node);
   const sortedQuasis = existingQuasis
-    .sort((a, b) => a.start - b.start)
-    .map((item) => item.node);
+    .sort((a: any, b: any) => a.start - b.start)
+    .map((item: any) => item.node);
 
   adjustQuasisAndExpressions(sortedQuasis, sortedExpressions);
 
@@ -517,10 +516,11 @@ function handleTemplateLiteral(path, context, key) {
 
 /**
  * 调整模板字面量的 quasis 和 expressions。
- * @param {Array} sortedQuasis - 排序后的 quasis 数组。
- * @param {Array} sortedExpressions - 排序后的 expressions 数组。
  */
-function adjustQuasisAndExpressions(sortedQuasis, sortedExpressions) {
+function adjustQuasisAndExpressions(
+  sortedQuasis: any[],
+  sortedExpressions: any[],
+): void {
   while (sortedQuasis.length < sortedExpressions.length + 1) {
     const isTail = sortedQuasis.length === sortedExpressions.length;
     const newQuasiStart = isTail
@@ -534,16 +534,13 @@ function adjustQuasisAndExpressions(sortedQuasis, sortedExpressions) {
   }
 
   sortedQuasis[sortedQuasis.length - 1].tail = true;
-  sortedQuasis.sort((a, b) => a.start - b.start);
+  sortedQuasis.sort((a: any, b: any) => a.start - b.start);
 }
 
 /**
  * 创建新的 quasi 元素。
- * @param {number} start - quasi 的起始位置。
- * @param {boolean} [tail=false] - 是否为尾部 quasi。
- * @returns {Object} 创建的 quasi 元素。
  */
-function createQuasi(start, tail = false) {
+function createQuasi(start: number, tail: boolean = false): any {
   const quasi = t.templateElement({ raw: '', cooked: '' }, tail);
   quasi.start = start;
   return quasi;
@@ -551,10 +548,8 @@ function createQuasi(start, tail = false) {
 
 /**
  * 处理 AST 中的模板元素。
- * @param {Object} path - AST 路径对象。
- * @param {Object} context - 处理上下文。
  */
-function processTemplateElement(path, context) {
+function processTemplateElement(path: any, context: ProcessorContext): void {
   const value = path.node.value.raw || path.node.value;
   const translatedString = handlerDomNode(value, context);
   path.node.value = { raw: translatedString, cooked: translatedString };
@@ -562,11 +557,8 @@ function processTemplateElement(path, context) {
 
 /**
  * 处理字符串中的 DOM 节点。
- * @param {string} str - 包含 DOM 节点的输入字符串。
- * @param {Object} context - 处理上下文。
- * @returns {string} 处理后带有翻译的字符串。
  */
-function handlerDomNode(str, context) {
+function handlerDomNode(str: string, context: ProcessorContext): string {
   if (!containsChinese(str)) {
     return str; // Early return if no Chinese characters
   }
@@ -592,10 +584,10 @@ function handlerDomNode(str, context) {
   return hasChanges ? result : str;
 }
 
-function processTextContent(text, context) {
+function processTextContent(text: string, context: ProcessorContext): string {
   const regex = /(\${[^}]+})|([^$]+)/g;
   let result = '';
-  let match;
+  let match: RegExpExecArray | null;
 
   while ((match = regex.exec(text)) !== null) {
     if (match[1]) {
@@ -616,10 +608,10 @@ function processTextContent(text, context) {
 }
 
 // Existing splitStringWithTags function
-function splitStringWithTags(str) {
+function splitStringWithTags(str: string): string[] {
   const regex = /(<\/?[^>]+>)|([^<]+)/g;
-  const result = [];
-  let match;
+  const result: string[] = [];
+  let match: RegExpExecArray | null;
   while ((match = regex.exec(str)) !== null) {
     if (match[1] || match[2]) {
       result.push(match[1] || match[2]);
@@ -630,10 +622,8 @@ function splitStringWithTags(str) {
 
 /**
  * 向 AST 添加 i18n 导入。
- * @param {Object} ast - AST 对象。
- * @param {Object} context - 处理上下文。
  */
-function addI18nImport(ast, context) {
+function addI18nImport(ast: any, context: ProcessorContext): void {
   ast.program.body.unshift(
     t.importDeclaration(
       [t.importDefaultSpecifier(t.identifier('i18n'))],
@@ -642,11 +632,8 @@ function addI18nImport(ast, context) {
   );
 }
 
-const handleJsFile = createI18nProcessor(processJsAst);
-
-module.exports = {
+export {
   processJsAst,
-  handleJsFile,
   handlerDomNode,
   handleChineseString,
   handleStringWithDom,
@@ -662,3 +649,5 @@ module.exports = {
   splitStringWithTags,
   addI18nImport,
 };
+
+export const handleJsFile = createI18nProcessor(processJsAst);
