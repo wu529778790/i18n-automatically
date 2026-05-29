@@ -1,19 +1,28 @@
-const fs = require('fs');
-const path = require('path');
-const crypto = require('crypto');
-const generate = require('@babel/generator').default;
-const vscode = require('vscode');
-const { generateUniqueId } = require('../../utils');
-const { readConfig } = require('../setting');
+import * as fs from 'fs';
+import * as path from 'path';
+import * as crypto from 'crypto';
+import generate from '@babel/generator';
+import * as vscode from 'vscode';
+import { generateUniqueId } from '../../utils';
+import { readConfig } from '../setting';
+import type {
+  I18nConfig,
+  ProcessorContext,
+  AstProcessor,
+  FileProcessor,
+} from '../../../types';
 
-function createContext(filePath, config) {
+/** 创建处理上下文 */
+export function createContext(
+  filePath: string,
+  config: I18nConfig,
+): ProcessorContext {
   return {
     filePath,
     fileUuid: generateUniqueId(),
     config: {
       ...config,
       isAutoImportI18n: true,
-      // 默认开启：跳过调试上下文，除非配置中显式为 false
       excludeDebugContexts:
         config && 'excludeDebugContexts' in config
           ? config.excludeDebugContexts
@@ -21,7 +30,6 @@ function createContext(filePath, config) {
     },
     index: 0,
     translations: new Map(),
-    // 额外保护：若传入的是目录则跳过读取，避免 EISDIR
     contentSource: (() => {
       try {
         const stat = fs.statSync(filePath);
@@ -29,7 +37,7 @@ function createContext(filePath, config) {
           throw new Error(`Not a file: ${filePath}`);
         }
         return fs.readFileSync(filePath, 'utf-8');
-      } catch (e) {
+      } catch (e: any) {
         console.error('[i18n-automatically] read source failed:', e.message);
         return '';
       }
@@ -39,24 +47,25 @@ function createContext(filePath, config) {
   };
 }
 
-function createI18nProcessor(astProcessor) {
-  return function (filePath, config) {
+/** 创建 I18n 处理器（高阶函数） */
+export function createI18nProcessor(
+  astProcessor: AstProcessor,
+): FileProcessor {
+  return function (filePath: string, config: I18nConfig) {
     const context = createContext(filePath, config);
-    return astProcessor(context);
+    return astProcessor(context) as any;
   };
 }
 
-function generateKey(context, text = '') {
+/** 生成 i18n key */
+export function generateKey(context: ProcessorContext, text = ''): string {
   const { filePath, fileUuid, config } = context;
 
-  // 如果配置中启用了 MD5 key 生成且提供了文本
   if (config.useMd5Key && text) {
-    // 使用文本的 MD5 值作为 key，这样相同的文本会生成相同的 key，实现去重
     context.index++;
     return crypto.createHash('md5').update(text.trim()).digest('hex');
   }
 
-  // 原有的基于组件名字的 key 生成逻辑
   const pathParts = filePath.split(path.sep);
   const pathDeep = config.keyFilePathLevel || 2;
   const selectedLevelsParts = pathParts.slice(-pathDeep);
@@ -70,85 +79,74 @@ function generateKey(context, text = '') {
   return `${selectedLevels}-${fileUuid}-${context.index}`;
 }
 
-function generateCode(ast, content) {
+/** 使用 Babel generator 从 AST 生成代码 */
+export function generateCode(ast: any, content: string): string {
   const opts = {
     retainLines: true,
     jsonCompatibleStrings: true,
     flowCommaSeparator: true,
-    quotes: 'single', // 强制使用单引号
+    quotes: 'single' as const,
     jsescOption: {
-      // 避免类型不兼容报错，顶层 quotes 已设为 'single'
       wrap: true,
     },
   };
   return generate(ast, opts, content).code;
 }
-function stringWithDom(str) {
-  // /<\/?[a-z][\s\S]*?>/i.test(value)
+
+/** 检查字符串是否包含 DOM 标签 */
+export function stringWithDom(str: string): boolean {
   return /<\/?[a-z][\s\S]*?>/i.test(str);
 }
 
-function containsChinese(str, isExcluded = false) {
-  // 匹配中文字符
-  const chineseRegex = /[\u4e00-\u9fa5]/;
-  // 如果没有中文字符，立即返回 false
+/** 检查字符串是否包含中文 */
+export function containsChinese(str: string, isExcluded = false): boolean {
+  const chineseRegex = /[一-龥]/;
   if (!chineseRegex.test(str)) {
     return false;
   }
-  // 匹配常见图片文件扩展名
-  const imageExtensionRegex = /\.(png|jpe?g|gif|svg|webp)(['"]|\?[^'"\s]*)?$/i;
-  // 如果是图片资源，返回 false
+
+  const imageExtensionRegex =
+    /\.(png|jpe?g|gif|svg|webp)(['"]|\?[^'"\s]*)?$/i;
   if (imageExtensionRegex.test(str)) {
     return false;
   }
-  // 如果 isExcluded 为 false，进行额外的排除检查
+
   if (!isExcluded) {
-    // 确保配置已加载
     const config = readConfig();
     if (
-      Array.isArray(config.excludedStrings) &&
-      config.excludedStrings.length
+      Array.isArray(config?.excludedStrings) &&
+      config!.excludedStrings!.length
     ) {
-      // 检查是否被排除
-      const isExcludedByConfig = config.excludedStrings.includes(str.trim());
-      // 如果被配置排除，返回 false
+      const isExcludedByConfig = config!.excludedStrings!.includes(str.trim());
       if (isExcludedByConfig) {
         return false;
       }
     }
   }
-  // 如果包含中文且不是图片资源且没有被排除，返回 true
+
   return true;
 }
 
-class TranslationManager {
-  constructor() {
-    // 假设这个方法在其他地方定义
-    this.getRootPath = () => {
-      // 这里应该返回实际的根路径
-      const workspaceFolders = vscode.workspace.workspaceFolders;
-      if (workspaceFolders && workspaceFolders[0] && workspaceFolders[0].uri) {
-        return workspaceFolders[0].uri.fsPath || '';
-      }
-      return '';
-    };
+/** 翻译文件管理器 */
+export class TranslationManager {
+  private getRootPath(): string {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (workspaceFolders && workspaceFolders[0] && workspaceFolders[0].uri) {
+      return workspaceFolders[0].uri.fsPath || '';
+    }
+    return '';
   }
 
-  /**
-   * 将翻译对象同步保存到指定路径的 JSON 文件中
-   * @param {Map|Object} translations - 翻译数据，可以是 Map 或普通对象
-   * @param {Object} config - 配置对象
-   * @param {string} config.i18nFilePath - i18n 文件的相对路径
-   * @param {string} [config.locale='zh'] - 语言代码
-   */
-  outputTranslationFile(translations, config) {
+  /** 将翻译对象保存到 JSON 文件 */
+  outputTranslationFile(
+    translations: Map<string, string> | Record<string, string>,
+    config: I18nConfig,
+  ): void {
     const rootPath = this.getRootPath();
     const locale = config.locale || 'zh';
 
-    // 标准化 i18n 根目录：允许相对/绝对；并剔除误填的 `locale` 或具体文件名
     const isWin = process.platform === 'win32';
     const configuredRaw = config.i18nFilePath || 'src/i18n';
-    // Windows 兼容：处理以 / 或 \\ 开头但无盘符的“伪绝对路径”，按相对路径处理
     const looksUnixRootOnWin =
       isWin &&
       /^[\\/]+/.test(configuredRaw) &&
@@ -157,12 +155,11 @@ class TranslationManager {
       ? configuredRaw.replace(/^[\\/]+/, '')
       : configuredRaw;
 
-    // 在 mac/linux 上，若以 / 开头但明显不是工程内路径，按相对路径处理，避免写入系统根目录
-    const appearsAbsoluteUnix = !isWin && /^[\\/]+/.test(normalizedConfigured);
+    const appearsAbsoluteUnix =
+      !isWin && /^[\\/]+/.test(normalizedConfigured);
 
-    let baseDir;
+    let baseDir: string;
     if (path.isAbsolute(normalizedConfigured)) {
-      // 若绝对路径不在工程内，优先尝试将其视为相对工程根
       if (!normalizedConfigured.startsWith(rootPath) && appearsAbsoluteUnix) {
         baseDir = path.join(
           rootPath,
@@ -174,33 +171,28 @@ class TranslationManager {
     } else {
       baseDir = path.join(rootPath, normalizedConfigured);
     }
-    // 如果末级是 locale 目录，则上移一级
+
     if (path.basename(baseDir).toLowerCase() === 'locale') {
       baseDir = path.dirname(baseDir);
     }
-    // 如果末级带 .json，当作误把文件写进配置：取其上级目录
     if (/\.json$/i.test(baseDir)) {
       baseDir = path.dirname(baseDir);
     }
 
     const targetDir = path.join(baseDir, 'locale');
-    let filePath = path.join(targetDir, `${locale}.json`);
+    const filePath = path.join(targetDir, `${locale}.json`);
 
-    // 确保传入的 translations 是一个对象
-    const translationObj =
+    const translationObj: Record<string, string> =
       translations instanceof Map
         ? Object.fromEntries(translations)
         : translations;
 
     try {
-      // 确保目录存在
       fs.mkdirSync(targetDir, { recursive: true });
 
       let updatedContent = translationObj;
 
-      // 如果文件存在，读取并合并内容
       if (fs.existsSync(filePath)) {
-        // 若某些误配置导致 \locale\zh.json 被创建成目录，进行友好处理
         const stat = fs.statSync(filePath);
         if (stat.isDirectory()) {
           throw new Error(
@@ -218,31 +210,21 @@ class TranslationManager {
           } else {
             updatedContent = { ...translationObj };
           }
-        } catch (error) {
+        } catch (error: any) {
           throw new Error(
             `Error reading or parsing file: ${filePath}. ${error.message}`,
           );
         }
       }
 
-      // 写入更新后的内容
       fs.writeFileSync(
         filePath,
         JSON.stringify(updatedContent, null, 2),
         'utf-8',
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Failed to output translation file: ${error.message}`);
-      throw error; // 重新抛出错误，允许调用者进行进一步处理
+      throw error;
     }
   }
 }
-
-module.exports = {
-  createI18nProcessor,
-  generateKey,
-  generateCode,
-  containsChinese,
-  TranslationManager,
-  stringWithDom,
-};
