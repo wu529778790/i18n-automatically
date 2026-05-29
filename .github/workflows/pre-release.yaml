@@ -1,10 +1,7 @@
 name: Pre-Release to VS Code Marketplace
 
 on:
-  push:
-    branches:
-      - dev
-  workflow_dispatch: # 允许手动触发
+  workflow_dispatch: # 仅手动触发
 
 jobs:
   build:
