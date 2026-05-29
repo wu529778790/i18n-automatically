@@ -54,7 +54,7 @@ async function bundleExtension() {
     //   避免被打包后影响 resolveConfig 的文件系统搜索与动态加载行为。
 
     await esbuild.build({
-      entryPoints: [path.resolve(__dirname, '..', 'src', 'extension.js')],
+      entryPoints: [path.resolve(__dirname, '..', 'src', 'extension.ts')],
       outfile: path.resolve(__dirname, '..', 'dist', 'extension.js'),
       bundle: true,
       platform: 'node',
