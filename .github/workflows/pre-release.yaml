@@ -1,7 +1,10 @@
 name: Pre-Release to VS Code Marketplace
 
 on:
-  workflow_dispatch: # 仅手动触发
+  push:
+    branches:
+      - dev
+  workflow_dispatch: # 允许手动触发
 
 jobs:
   build:
@@ -10,6 +13,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 获取完整历史以获取最新版本
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -37,6 +42,28 @@ jobs:
           test -f dist/extension.js || (echo "dist/extension.js missing" && exit 1)
           du -h dist/extension.js || true
           shasum -a 256 dist/extension.js || true
+
+      - name: Auto-increment version
+        run: |
+          # 获取当前版本
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "Current version: $CURRENT_VERSION"
+
+          # 使用 npm version 自动递增 patch 版本
+          npm version patch --no-git-tag-version
+
+          # 获取新版本
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "New version: $NEW_VERSION"
+
+          # 配置 git
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+          # 提交版本更新
+          git add package.json
+          git commit -m "chore(release): v${NEW_VERSION} [skip ci]"
+          git push
 
       - name: Install vsce (VS Code Extension CLI)
         run: npm install -g @vscode/vsce
